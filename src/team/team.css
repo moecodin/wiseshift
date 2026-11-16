@@ -994,3 +994,14 @@ a.tm-spot:hover {
 }
 .tm .rp-seen-note span { color: #667781; font-weight: 400; }
 
+
+.st-lang { width: max-content; }
+
+/* More tab (MoreTab.jsx), and the way back to it */
+.tm-more-item { display: flex; align-items: center; gap: 14px; padding: 16px; }
+.tm-more-icon { font-size: 24px; width: 32px; text-align: center; flex: none; }
+.tm-more-text { flex: 1; min-width: 0; }
+.tm-more-text b { display: block; font-size: 16px; }
+.tm-more-text small { display: block; color: var(--muted, #6b7486); font-size: 13px; }
+.tm-more-go { font-size: 22px; opacity: 0.5; }
+.tm-back { border: 0; background: none; padding: 2px 0 10px; font-weight: 700; color: inherit; opacity: 0.75; }
