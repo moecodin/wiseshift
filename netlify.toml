@@ -1,0 +1,44 @@
+# Netlify settings for WiseShift.
+# Netlify reads this file on every deploy from GitHub.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  # Skip the build (and save deploy credits) when a push changes nothing that
+  # ends up in the website, e.g. only docs/ or supabase/ scripts. Exit 0 = skip.
+  # Always build when Netlify has no earlier build to compare with (an empty
+  # CACHED_COMMIT_REF, e.g. after the GitHub repo was renamed): without that check,
+  # "git diff" compared nothing, found no changes, and cancelled real deploys.
+  ignore = "[ -n \"$CACHED_COMMIT_REF\" ] && [ \"$CACHED_COMMIT_REF\" != \"$COMMIT_REF\" ] && git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- src public index.html package.json package-lock.json vite.config.js netlify.toml"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# The whole site is one page; send any address back to it.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Keep the app out of Google and don't allow it inside other sites.
+    X-Robots-Tag = "noindex, nofollow"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# The WiseShift app (/team): the phone must always fetch the newest
+# service worker and app manifest, never an old saved copy.
+[[headers]]
+  for = "/wiseshift-sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/team"
+
+[[headers]]
+  for = "/app/wiseshift.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Content-Type = "application/manifest+json"

@@ -1,0 +1,93 @@
+// The Clock tab's words in English and Spanish (⚙️ Settings → Language).
+
+import { dayLabel } from './format.js'
+
+const WORDS = {
+  en: {
+    clockIn: 'Clock in',
+    clockOut: 'Clock out',
+    finding: 'Finding you…',
+    since: 'Clocked in since',
+    on: (day) => ` on ${day}`,
+    hrs: 'hrs',
+    clockedOut: (h) => `Clocked out · ${h} hrs today`,
+    notIn: 'Not clocked in',
+    allDone: 'All done for today 🎉',
+    nextShift: 'Next shift',
+    today: 'Today',
+    opensAt: (t) => `Clock in opens at ${t}`,
+    opensOn: (day, t) => `Clock in opens ${day} at ${t}`,
+    noUpcoming: 'No upcoming shifts on the schedule.',
+    anyway: "Working a shift that isn't on the schedule? Clock in anyway",
+    stale: (day) => `You never clocked out on ${day}. Clock out now, then ask a manager to fix that day's time.`,
+    noSpotDenied: "Done, but without your location: this phone isn't letting the site see it. Allow location for this site in your browser settings.",
+    noSpot: "Done, but your phone couldn't find its location this time.",
+    locationNote: 'Your location is saved when you clock in or out, never in between.',
+    timeOffToday: 'Time off today',
+    shift: 'Shift',
+    noShiftToday: 'No shift scheduled today.',
+    in: 'In',
+    out: 'Out',
+    stillIn: 'still in',
+    nextShifts: 'My next shifts',
+    current: 'Current',
+    next: 'Next',
+    seeSchedule: 'See the whole schedule',
+    scheduledWeek: 'Scheduled this week',
+    scheduled: 'Scheduled',
+    aboutPay: (m) => `about ${m} before taxes`,
+    workedPeriod: 'Worked this pay period',
+    readNotice: 'Please read before clocking in',
+    readIt: "I've read this",
+    readOn: 'You read this on',
+  },
+  es: {
+    clockIn: 'Marcar entrada',
+    clockOut: 'Marcar salida',
+    finding: 'Buscando tu ubicación…',
+    since: 'Entrada a las',
+    on: (day) => ` el ${day}`,
+    hrs: 'h',
+    clockedOut: (h) => `Salida marcada · ${h} h hoy`,
+    notIn: 'Sin marcar entrada',
+    allDone: '¡Listo por hoy! 🎉',
+    nextShift: 'Próximo turno',
+    today: 'Hoy',
+    opensAt: (t) => `Puedes marcar entrada a las ${t}`,
+    opensOn: (day, t) => `Puedes marcar entrada el ${day} a las ${t}`,
+    noUpcoming: 'No hay turnos próximos en el horario.',
+    anyway: '¿Trabajas un turno que no está en el horario? Marca entrada de todos modos',
+    stale: (day) => `No marcaste salida el ${day}. Marca salida ahora y pídele a un gerente que arregle la hora de ese día.`,
+    noSpotDenied: 'Listo, pero sin tu ubicación: este teléfono no deja que la página la vea. Permite la ubicación para este sitio en la configuración del navegador.',
+    noSpot: 'Listo, pero tu teléfono no encontró la ubicación esta vez.',
+    locationNote: 'Tu ubicación se guarda solo al marcar entrada o salida, nunca entre medio.',
+    timeOffToday: 'Hoy tienes día libre',
+    shift: 'Turno',
+    noShiftToday: 'No tienes turno hoy.',
+    in: 'Entrada',
+    out: 'Salida',
+    stillIn: 'aún adentro',
+    nextShifts: 'Mis próximos turnos',
+    current: 'Ahora',
+    next: 'Siguiente',
+    seeSchedule: 'Ver todo el horario',
+    scheduledWeek: 'Programado esta semana',
+    scheduled: 'Programado',
+    aboutPay: (m) => `aprox. ${m} antes de impuestos`,
+    workedPeriod: 'Trabajado este período de pago',
+    readNotice: 'Lee esto antes de marcar entrada',
+    readIt: 'Ya lo leí',
+    readOn: 'Lo leíste el',
+  },
+}
+
+export const say = (lang) => WORDS[lang] ?? WORDS.en
+
+// "Mon, Oct 26" or "lun, 26 oct".
+export const dayName = (key, lang) =>
+  lang === 'es' ? new Date(`${key}T12:00`).toLocaleDateString('es-US', { weekday: 'short', month: 'short', day: 'numeric' }) : dayLabel(key)
+// "Oct 23 – Nov 5" or "23 oct – 5 nov".
+export const rangeName = (days, lang) => {
+  const one = (key) => new Date(`${key}T12:00`).toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', { month: 'short', day: 'numeric' })
+  return `${one(days[0])} – ${one(days.at(-1))}`
+}
