@@ -107,9 +107,12 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     const wanted = new URLSearchParams(window.location.search).get('tab')
     return PAGES.includes(wanted) ? wanted : 'clock'
   })
-  const inMore = MORE.some((m) => m.id === tab)
   const me = data.me
   const boss = Boolean(me?.isManager)
+  // The Team page is for managers only; if the person changes to an employee while
+  // on it (sample "View as"), fall back to More instead of showing a blank page.
+  const page = tab === 'people' && !boss ? 'more' : tab
+  const inMore = MORE.some((m) => m.id === page)
   const lang = data.lang ?? 'en'
   const pending = boss ? data.timeOff.filter((t) => t.status === 'pending').length : 0
   // Note that I opened the app (on open and whenever it comes back on screen,
@@ -170,18 +173,18 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {inMore && (
           <button type="button" className="tm-back" onClick={() => setTab('more')}>‹ {tabNames.more}</button>
         )}
-        {needsNotice && tab === 'clock' && (
+        {needsNotice && page === 'clock' && (
           <section className="tm-card st-notice-card">
             <h2>{say(lang).readNotice}</h2>
             <LocationNotice data={data} me={me} />
           </section>
         )}
-        {tab === 'clock' && <ClockTab {...shared} onGoTo={setTab} />}
-        {tab === 'schedule' && <ScheduleTab {...shared} week={week} onWeek={setWeek} />}
-        {tab === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
-        {tab === 'off' && <TimeOffTab {...shared} />}
-        {tab === 'people' && boss && <PeopleTab {...shared} />}
-        {tab === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={setTab} onNotify={() => setNotifying(true)} onSettings={() => setSettingsOpen(true)} onSignOut={usingSupabase ? onSignOut : null} />}
+        {page === 'clock' && <ClockTab {...shared} onGoTo={setTab} />}
+        {page === 'schedule' && <ScheduleTab {...shared} week={week} onWeek={setWeek} />}
+        {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
+        {page === 'off' && <TimeOffTab {...shared} />}
+        {page === 'people' && boss && <PeopleTab {...shared} />}
+        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={setTab} onNotify={() => setNotifying(true)} onSettings={() => setSettingsOpen(true)} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
     )
   }
@@ -226,7 +229,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       {me && (
         <nav className="tm-tabs" role="tablist" aria-label="Team page">
           {TABS.map((id) => (
-            <button key={id} type="button" role="tab" aria-selected={tab === id || (id === 'more' && inMore)} onClick={() => setTab(id)}>
+            <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => setTab(id)}>
               <TabIcon id={id === 'clock' && boss ? 'today' : id} />
               <span>{id === 'clock' && boss ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
               {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
