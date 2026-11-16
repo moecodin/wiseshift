@@ -1240,3 +1240,17 @@ a.tm-spot:hover {
   .hr-seg button { flex: 1; }
 }
 
+/* ---------- Team page ---------- */
+.pt-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pt-head .sc-h { margin: 14px 0 8px; }
+.pt-person { width: 100%; text-align: left; color: var(--ink); font: inherit; cursor: pointer; }
+.pt-person.inactive { opacity: 0.6; border-style: dashed; }
+.pt-person .sc-body > b { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pt-person .sc-body small { overflow-wrap: anywhere; }
+.pt-chip { padding: 1px 9px; border-radius: 999px; background: #e3efe8; color: #24574a; font-size: 12px; font-weight: 700; }
+.pt-chip.off { background: var(--head); color: var(--muted); }
+[data-bs-theme='dark'] .pt-chip:not(.off) { background: #2f3f38; color: #7fc2ad; }
+.pt-help { margin: 14px 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); }
+.pt-help summary { font-weight: 700; cursor: pointer; }
+.pt-help ol { margin: 10px 0; padding-left: 20px; }
+

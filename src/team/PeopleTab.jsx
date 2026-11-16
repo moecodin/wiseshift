@@ -5,6 +5,7 @@ import { NY_MIN_WAGE } from './taxRates.js'
 import { dateKey } from '../lib/dates.js'
 import { dayLabel } from './format.js'
 import { noticeAcked } from './settings.js'
+import Avatar from './Avatar.jsx'
 
 const NEW_PAY = {
   hourlyRate: 0, filingStatus: 'single', step2: false, dependents: 0, otherIncome: 0, deductions: 0, extraWithholding: 0,
@@ -18,28 +19,31 @@ export default function PeopleTab({ data, me }) {
 
   return (
     <div className="tm-narrow">
-      <section className="tm-card">
-        <div className="tm-row">
-          <h2 className="mb-0">Team</h2>
-          <button type="button" className="btn btn-brand btn-sm" onClick={() => setEditing({ name: '', email: '', position: '', isManager: false, payType: 'hourly', active: true })}>+ Add person</button>
-        </div>
-        {people.map((e) => {
-          const pay = data.payById[e.id]
-          return (
-            <button key={e.id} type="button" className={`tm-person ${e.active ? '' : 'inactive'}`} onClick={() => setEditing(e)}>
-              <span>
-                <b>{e.name}</b>
-                {e.isManager && <span className="tm-chip approved">Manager</span>}
-                {!e.active && <span className="tm-chip declined">Not active</span>}
-                <small>{e.position || '—'} · {scheduleOnly(e) ? 'On the schedule only, no login' : e.email}</small>
-              </span>
-              <span className="tm-muted">{scheduleOnly(e) ? 'Schedule only' : e.payType === 'commission' ? 'Commission' : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : 'No rate'}</span>
-            </button>
-          )
-        })}
-      </section>
-      <section className="tm-card tm-help">
-        <h2>Giving someone a login</h2>
+      <div className="pt-head">
+        <h2 className="sc-h">Team <small className="mg-sum">{people.filter((e) => e.active).length} active</small></h2>
+        <button type="button" className="btn btn-brand btn-sm" onClick={() => setEditing({ name: '', email: '', position: '', isManager: false, payType: 'hourly', active: true })}>+ Add person</button>
+      </div>
+      {people.map((e) => {
+        const pay = data.payById[e.id]
+        const rate = scheduleOnly(e) ? 'Schedule only' : e.payType === 'commission' ? 'Commission' : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : 'No rate'
+        return (
+          <button key={e.id} type="button" className={`sc-row person pt-person ${e.active ? '' : 'inactive'}`} onClick={() => setEditing(e)}>
+            <Avatar employee={e} size={44} />
+            <span className="sc-body">
+              <b>
+                {e.name}
+                {e.isManager && <span className="pt-chip">Manager</span>}
+                {!e.active && <span className="pt-chip off">Not active</span>}
+              </b>
+              <small>{e.position || 'No position'}</small>
+              <small>{scheduleOnly(e) ? 'No login' : e.email}</small>
+            </span>
+            <span className="sc-hrs">{rate}</span>
+          </button>
+        )
+      })}
+      <details className="pt-help">
+        <summary>How to give someone a login</summary>
         <ol>
           <li>Add them here with the email they'll sign in with.</li>
           <li>
@@ -52,7 +56,7 @@ export default function PeopleTab({ data, me }) {
           <b> I've read this</b> (New York law); see who has in ⚙️ Settings → Business. Also post it where staff can see it.
         </p>
         <p className="tm-muted small mb-0">Someone who leaves: open them and press <b>Remove from team…</b>.</p>
-      </section>
+      </details>
       {editing && <PersonEditor employee={editing} pay={data.payById[editing.id] ?? NEW_PAY} data={data} me={me} onClose={() => setEditing(null)} />}
     </div>
   )
