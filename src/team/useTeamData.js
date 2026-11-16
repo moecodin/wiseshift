@@ -382,7 +382,7 @@ export function useTeamData({ signedIn, email, week, period }) {
     setLang: async (lang) => {
       if (!usingSupabase) return change((s) => ({ ...s, prefs: { ...s.prefs, [viewAs]: { ...s.prefs?.[viewAs], lang } } }))
       const problem = await run(supabase.rpc('set_my_lang', { new_lang: lang }))
-      return problem && /set_my_lang|schema cache/.test(problem) ? 'The language setting isn't in the database yet.' : problem
+      return problem && /set_my_lang|schema cache/.test(problem) ? "The language setting isn't in the database yet." : problem
     },
     setPushOff: async (kinds) => {
       if (!usingSupabase) return change((s) => ({ ...s, prefs: { ...s.prefs, [viewAs]: { ...s.prefs?.[viewAs], pushOff: kinds } } }))
