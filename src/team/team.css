@@ -1211,3 +1211,20 @@ a.tm-spot:hover {
 [data-bs-theme='dark'] .mt-pill.late { background: #4f2825; color: #f19a96; }
 [data-bs-theme='dark'] .mt-eyebrow.ok { color: #7fc2ad; }
 [data-bs-theme='dark'] .mt-eyebrow.bad { color: #f19a96; }
+
+/* ---------- Manager schedule on a phone: day strip + a card per person ---------- */
+.mg-phone { display: none; }
+@media (max-width: 767px) {
+  .mg-phone { display: block; }
+  .mg-grid { display: none; }
+  .tm-seg.mg-seg { display: none; }
+}
+.mg-sum { font-family: 'Figtree', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 6px; }
+.mg-person { align-items: flex-start; }
+.mg-person .sc-body > b { display: flex; align-items: center; gap: 6px; }
+.mg-shift { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; width: 100%; min-height: 40px; margin-top: 6px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--head); color: var(--ink); text-align: left; }
+.mg-shift .sc-time { margin: 0; font-size: 15px; }
+.mg-shift.draft { border-style: dashed; background: transparent; }
+.mg-shift small { margin-left: auto; }
+.mg-add { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px dashed var(--line); background: none; color: var(--muted); font-size: 22px; line-height: 1; }
+

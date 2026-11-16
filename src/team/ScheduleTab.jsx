@@ -2,9 +2,10 @@ import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, fromKey } from '../lib/dates.js'
 import { formatHours, moveDays, scheduleWeekOf, shiftMinutes } from './paycheck.js'
-import { clockTime, dayLabel, fromTimeInput, money, offOn, rangeLabel, scheduleOnly, shiftTimes, toTimeInput, useNow } from './format.js'
+import { clockTime, dayLabel, fromTimeInput, offOn, rangeLabel, scheduleOnly, shiftTimes, toTimeInput, useNow } from './format.js'
 import { rangeName, say } from './words.js'
-import MySchedule from './MySchedule.jsx'
+import MySchedule, { tagClass } from './MySchedule.jsx'
+import Avatar from './Avatar.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -40,7 +41,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
           {!thisWeek && <button type="button" className="btn btn-link btn-sm" onClick={() => onWeek(scheduleWeekOf(new Date()))}>This week</button>}
         </div>
         {boss && (
-          <div className="tm-seg" role="group" aria-label="Whose shifts">
+          <div className="tm-seg mg-seg" role="group" aria-label="Whose shifts">
             <button type="button" aria-pressed={view === 'everyone'} onClick={() => setView('everyone')}>Whole team</button>
             <button type="button" aria-pressed={view === 'mine'} onClick={() => setView('mine')}>My shifts</button>
           </div>
@@ -58,7 +59,9 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
       {!boss ? (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       ) : view === 'everyone' ? (
-        <div className="tm-gridwrap">
+        <>
+        <ManagerDay view={view} onView={setView} data={data} me={me} week={week} today={today} people={people} shifts={shifts} onEdit={setEditing} />
+        <div className="tm-gridwrap mg-grid">
           <table className="tm-grid">
             <thead>
               <tr>
@@ -110,32 +113,73 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
             </tfoot>
           </table>
         </div>
+        </>
       ) : (
-        <div className="tm-narrow">
-          <WeekTotal data={data} me={me} week={week} />
-          {week.map((d) => {
-            const mine = shifts.filter((s) => s.date === d && s.employeeId === me.id)
-            const off = offOn(data.teamOff, me.id, d)
-            return (
-              <div key={d} className={`tm-card tm-day ${d === today ? 'today' : ''}`}>
-                <b>{dayLabel(d)}</b>
-                <div>
-                  {off && <div className="tm-off">Time off</div>}
-                  {mine.length ? mine.map((s) => (
-                    <div key={s.id}>
-                      {s.title && <span className="tm-title">{s.title} · </span>}
-                      {shiftTimes(s)} <span className="tm-muted">({formatHours(shiftMinutes(s))} hrs)</span>
-                      {s.note && <div className="tm-muted small">{s.note}</div>}
-                    </div>
-                  )) : !off && <span className="tm-muted">{look?.offDay ?? 'Off'}</span>}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       )}
 
       {editing && <ShiftEditor shift={editing} data={data} week={week} onClose={() => setEditing(null)} />}
+    </div>
+  )
+}
+
+// Manager's phone view of the whole team: pick a day on the strip, then see one
+// card per person with their shifts (tap a shift to change it, + to add one).
+// Wide screens show the grid above instead (see .mg-phone / .mg-grid in team.css).
+function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdit }) {
+  const [picked, setPicked] = useState(null)
+  const selected = week.includes(picked) ? picked : week.includes(today) ? today : week[0]
+  const presets = data.settings?.shiftPresets
+  const dayShifts = shifts.filter((s) => s.date === selected)
+  const dayHours = dayShifts.reduce((sum, s) => sum + shiftMinutes(s), 0)
+  const working = new Set(dayShifts.map((s) => s.employeeId)).size
+  const heading = selected === today ? 'Today' : fromKey(selected).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+  const blank = (person) => ({ employeeId: person.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', note: '', published: false })
+  return (
+    <div className="tm-narrow mg-phone">
+      <div className="sc-toggle" role="group" aria-label="Whose shifts">
+        <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>My shifts</button>
+        <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>Whole team</button>
+      </div>
+      <div className="sc-strip" role="group" aria-label="Days">
+        {week.map((d) => {
+          const any = shifts.some((s) => s.date === d)
+          return (
+            <button key={d} type="button" className={`sc-day ${d === selected ? 'on' : ''}`} aria-pressed={d === selected} onClick={() => setPicked(d)}>
+              <span>{fromKey(d).toLocaleDateString('en-US', { weekday: 'narrow' }).toUpperCase()}</span>
+              <b>{fromKey(d).getDate()}</b>
+              <i className={any ? 'dot' : ''} />
+            </button>
+          )
+        })}
+      </div>
+      <h2 className="sc-h">{heading} <small className="mg-sum">{working} working · {formatHours(dayHours)} hrs</small></h2>
+      {people.map((person) => {
+        const theirs = shifts.filter((s) => s.employeeId === person.id)
+        const mine = dayShifts.filter((s) => s.employeeId === person.id)
+        const off = offOn(data.teamOff, person.id, selected)
+        return (
+          <div key={person.id} className={`sc-row person mg-person ${person.id === me.id ? 'me' : ''} ${!mine.length ? 'free' : ''}`}>
+            <Avatar employee={person} size={42} />
+            <div className="sc-body">
+              <b>
+                {person.name}{person.id === me.id ? ' (you)' : ''}
+                {person.id !== me.id && !scheduleOnly(person) && <SeenTick shifts={theirs} seenAt={data.seenById?.[person.id]} ready={data.seenById != null} />}
+              </b>
+              {off && <small>Time off</small>}
+              {mine.map((s) => (
+                <button key={s.id} type="button" className={`mg-shift ${s.published ? '' : 'draft'}`} onClick={() => onEdit(s)}>
+                  <span className="sc-time">{shiftTimes(s)}</span>
+                  {s.title && <span className={tagClass(s.title, presets)}>{s.title}</span>}
+                  {!s.published && <small>Draft</small>}
+                </button>
+              ))}
+              {!mine.length && !off && <small>Off · {person.position}</small>}
+            </div>
+            <button type="button" className="mg-add" aria-label={`Add a shift for ${person.name}`} onClick={() => onEdit(blank(person))}>+</button>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -170,12 +214,11 @@ function SeenTick({ shifts, seenAt, ready }) {
 }
 
 // Hours on my schedule for a week, and roughly what that pays before taxes
-// (like Humanity's weekly total). On the Clock tab and Schedule → Just me.
+// (like Humanity's weekly total; the pay line is hidden for now). On the Clock tab and Schedule → Just me.
 export function WeekTotal({ data, me, week, lang, onClick }) {
   const w = say(lang)
   const today = dateKey(useNow())
   const minutes = data.shifts.filter((s) => s.employeeId === me.id && week.includes(s.date)).reduce((sum, s) => sum + shiftMinutes(s), 0)
-  const rate = me.payType === 'hourly' ? data.payById[me.id]?.hourlyRate : 0
   const Tag = onClick ? 'button' : 'div'
   return (
     <Tag type={onClick ? 'button' : undefined} className="tm-card tm-summary" onClick={onClick}>
@@ -184,7 +227,6 @@ export function WeekTotal({ data, me, week, lang, onClick }) {
       </span>
       <span className="text-end">
         <b>{formatHours(minutes)} {w.hrs}</b>
-        {rate > 0 && minutes > 0 && <small>{w.aboutPay(money((minutes / 60) * rate))}</small>}
       </span>
     </Tag>
   )
