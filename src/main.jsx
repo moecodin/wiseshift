@@ -5,9 +5,9 @@ import './index.css'
 import TeamApp from './team/TeamApp.jsx'
 import { setUpTeamApp } from './team/app.js'
 
-// WiseShift lives at /team (the installable app). Any other address goes there.
-if (window.location.pathname.replace(/\/+$/, '') !== '/team') window.location.replace('/team')
-else setUpTeamApp()
+// WiseShift is one page that works wherever it is hosted (a site's main address
+// or a sub-folder like GitHub Pages).
+setUpTeamApp()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

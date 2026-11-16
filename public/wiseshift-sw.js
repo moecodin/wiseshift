@@ -8,7 +8,9 @@
 // It also shows push notifications (sent by the send-push Supabase function)
 // and opens the app on the right tab when one is tapped.
 const CACHE = 'wiseshift-v1'
-const SHELL = ['/team', '/app/wiseshift.webmanifest', '/app/icon-192.png', '/app/icon-512.png']
+// The folder this app is served from ('/' or '/wiseshift/'), taken from where it is registered.
+const BASE = self.registration.scope
+const SHELL = [BASE, `${BASE}app/wiseshift.webmanifest`, `${BASE}app/icon-192.png`, `${BASE}app/icon-512.png`]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()))
@@ -35,16 +37,16 @@ self.addEventListener('fetch', (event) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone()
-          caches.open(CACHE).then((cache) => cache.put('/team', copy))
+          caches.open(CACHE).then((cache) => cache.put(BASE, copy))
           return res
         })
-        .catch(() => caches.match('/team')),
+        .catch(() => caches.match(BASE)),
     )
     return
   }
 
   // Built files and images: from the phone if saved, otherwise fetch and save.
-  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/app/') || false) {
+  if (url.pathname.startsWith(new URL('assets/', BASE).pathname) || url.pathname.startsWith(new URL('app/', BASE).pathname)) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>
@@ -73,10 +75,10 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(msg.title || 'WiseShift', {
       body: msg.body || '',
-      icon: '/app/icon-192.png',
-      badge: '/app/icon-192.png',
+      icon: `${BASE}app/icon-192.png`,
+      badge: `${BASE}app/icon-192.png`,
       tag: msg.tag,
-      data: { url: msg.url || '/team' },
+      data: { url: msg.url || BASE },
     }),
   )
 })
@@ -84,10 +86,10 @@ self.addEventListener('push', (event) => {
 // Tapped: bring the app forward (or open it) on the right tab.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = new URL(event.notification.data?.url || '/team', self.location.origin).href
+  const url = new URL(event.notification.data?.url || BASE, BASE).href
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
-      const open = windows.find((w) => new URL(w.url).pathname.startsWith('/team'))
+      const open = windows.find((w) => w.url.startsWith(BASE))
       if (open) {
         open.navigate(url)
         return open.focus()

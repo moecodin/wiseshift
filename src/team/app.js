@@ -1,9 +1,12 @@
 // The team page as an installable app: "WiseShift" ("WiseShift" under
 // the icon). Only /team becomes the app; everything else is a normal web page.
-//   public/app/wiseshift.webmanifest   name, icons, colors, opens full-screen at /team
+//   public/app/wiseshift.webmanifest   name, icons, colors, opens full-screen
 //   public/wiseshift-sw.js             keeps the page's files on the phone
 import { useEffect, useState } from 'react'
 import { supabase, usingSupabase } from '../lib/supabase.js'
+
+// Where the site lives: '/' on its own address, '/wiseshift/' on GitHub Pages.
+const BASE = import.meta.env.BASE_URL
 
 // Push notifications: the public half of the key pair comes from the send-push
 // function (its VAPID_PUBLIC_KEY secret), so changing the keys in Supabase never
@@ -18,18 +21,18 @@ export function setUpTeamApp() {
     head.append(el)
     return el
   }
-  add('link', { rel: 'manifest', href: '/app/wiseshift.webmanifest' })
-  add('link', { rel: 'apple-touch-icon', href: '/app/apple-touch-icon.png' })
+  add('link', { rel: 'manifest', href: `${BASE}app/wiseshift.webmanifest` })
+  add('link', { rel: 'apple-touch-icon', href: `${BASE}app/apple-touch-icon.png` })
   add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' })
   add('meta', { name: 'mobile-web-app-capable', content: 'yes' })
   add('meta', { name: 'apple-mobile-web-app-title', content: 'WiseShift' })
   add('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'default' })
   add('meta', { name: 'theme-color', content: '#0d2e43' })
-  document.querySelector('link[rel="icon"]')?.setAttribute('href', '/app/icon-192.png')
+  document.querySelector('link[rel="icon"]')?.setAttribute('href', `${BASE}app/icon-192.png`)
 
   // Only the built site has a service worker (it would get in the way while developing).
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/wiseshift-sw.js', { scope: '/team' }).catch(() => {
+    navigator.serviceWorker.register(`${BASE}wiseshift-sw.js`, { scope: BASE }).catch(() => {
       // Still works as a normal web page.
     })
   }
@@ -84,7 +87,7 @@ export function useNewVersion() {
     if (!mine) return // developing locally: nothing to compare
     const check = async () => {
       try {
-        const res = await fetch('/team', { cache: 'no-store' })
+        const res = await fetch(BASE, { cache: 'no-store' })
         const latest = scriptName(await res.text())
         if (latest && latest !== mine) setFresh(true)
       } catch {
@@ -137,7 +140,7 @@ const keyBytes = (base64) => {
 }
 
 async function registration() {
-  return (await navigator.serviceWorker.getRegistration('/team')) ?? navigator.serviceWorker.register('/wiseshift-sw.js', { scope: '/team' })
+  return (await navigator.serviceWorker.getRegistration(BASE)) ?? navigator.serviceWorker.register(`${BASE}wiseshift-sw.js`, { scope: BASE })
 }
 
 // Is this phone signed up for notifications right now?

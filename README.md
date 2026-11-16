@@ -22,6 +22,9 @@ repo holds only the team features; the shop-specific parts were left behind.
 - The push-notification function in `supabase/legacy/functions/send-push` still mentions features that were removed (tasks, chat) and needs trimming.
 - App icons are not included yet: add `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` and `apple-touch-icon.png` to `public/app/`.
 
+## Preview online
+Every push to `main` publishes a clickable preview with made-up sample data to GitHub Pages (https://moecodin.github.io/wiseshift/). In the preview, use the "View as" menu at the top to switch between a manager and employees. Nothing you do is saved online. One-time setup: repo **Settings → Pages → Source: GitHub Actions**.
+
 ## Run it
 Needs [Node.js](https://nodejs.org).
 

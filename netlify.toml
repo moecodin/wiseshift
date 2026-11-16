@@ -35,7 +35,7 @@
   for = "/wiseshift-sw.js"
   [headers.values]
     Cache-Control = "no-cache"
-    Service-Worker-Allowed = "/team"
+    Service-Worker-Allowed = "/"
 
 [[headers]]
   for = "/app/wiseshift.webmanifest"

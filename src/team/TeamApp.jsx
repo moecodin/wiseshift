@@ -209,7 +209,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme, onSkin }) {
   return (
     <div className={`tm skin-${skin}`}>
       <header className="tm-head">
-        <a className="tm-logo" href="/team" aria-label="WiseShift">WS</a>
+        <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label="WiseShift">WS</a>
         <div className="tm-hello">
           {me ? `${lang === 'es' ? 'Hola' : 'Hi'} ${me.name.split(' ')[0]}` : 'WiseShift'}
           <small>{me ? (me.position || 'Team') : 'Team'}</small>

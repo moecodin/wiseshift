@@ -36,7 +36,7 @@ export default function AppBanners() {
       )}
       {install.how && !hidden && (
         <div className="app-banner install">
-          <img src="/app/icon-192.png" alt="" width="36" height="36" />
+          <img src={`${import.meta.env.BASE_URL}app/icon-192.png`} alt="" width="36" height="36" />
           <div>
             <b>Get the WiseShift app</b>
             <small>Opens full screen from your home screen.</small>
