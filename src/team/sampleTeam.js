@@ -26,6 +26,7 @@ const pay = {
   e5: { ...W4, employeeId: 'e5', hourlyRate: 20, nycResident: true },
 }
 
+const SAMPLE_ROLES = ['Front desk', 'Floor', 'Prep', 'Delivery']
 const OPEN = { title: 'Open', start: 480, end: 840 }
 const CLOSE = { title: 'Close', start: 840, end: 1200 }
 const ALL_DAY = { title: 'All Day', start: 480, end: 1200 }
@@ -72,7 +73,7 @@ export function createSampleTeam(today) {
         const s = days[weekday]
         if (!s) continue
         // Next week is still a draft, to try Publish.
-        shifts.push({ id: `s${++n}`, employeeId, date, start: s.start, end: s.end, breakMin: 0, title: s.title, note: '', published: offset < 1, postedAt })
+        shifts.push({ id: `s${++n}`, employeeId, date, start: s.start, end: s.end, breakMin: 0, title: s.title, role: SAMPLE_ROLES[(n + weekday) % SAMPLE_ROLES.length], note: '', published: offset < 1, postedAt })
         if (date > todayKey || employeeId === 'e6') continue
         // A few minutes early or late, like real punches.
         const early = ((n * 7) % 13) - 6

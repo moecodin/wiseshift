@@ -3,6 +3,7 @@ import { fromKey } from '../lib/dates.js'
 import { formatHours, shiftMinutes } from './paycheck.js'
 import { offOn, scheduleOnly, shiftTimes } from './format.js'
 import Avatar from './Avatar.jsx'
+import RoleBadge from './RoleBadge.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 
 // The phone schedule for employees: a strip of the week's days, a card for the
@@ -86,6 +87,7 @@ function Hero({ data, me, date, today, w, lang }) {
           <div key={s.id}>
             <small>{label}{s.title ? ` · ${s.title}` : ''}</small>
             <b>{shiftTimes(s)}</b>
+            {s.role && <em className="sc-hero-role">{s.role}</em>}
             <span>{formatHours(shiftMinutes(s))} {w.hrs}{s.note ? ` · ${s.note}` : ''}</span>
           </div>
         ))
@@ -122,6 +124,7 @@ function Row({ data, me, date, w, lang, on }) {
             <div key={s.id}>
               <span className="sc-time">{shiftTimes(s)}</span>
               {s.title && <span className={tagClass(s.title, data.settings?.shiftPresets)}>{s.title}</span>}
+              <RoleBadge role={s.role} roles={data.settings?.roles} />
               {s.note && <small>{s.note}</small>}
             </div>
           ))
@@ -156,6 +159,7 @@ function Everyone({ data, me, date, today, w, lang }) {
             <div>
               <span className="sc-time">{shiftTimes(s)}</span>
               {s.title && <span className={tagClass(s.title, data.settings?.shiftPresets)}>{s.title}</span>}
+              <RoleBadge role={s.role} roles={data.settings?.roles} />
             </div>
             {person.position && !scheduleOnly(person) && <small>{person.position}</small>}
           </div>

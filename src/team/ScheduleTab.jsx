@@ -6,6 +6,7 @@ import { clockTime, dayLabel, fromTimeInput, offOn, rangeLabel, scheduleOnly, sh
 import { rangeName, say } from './words.js'
 import MySchedule, { tagClass } from './MySchedule.jsx'
 import Avatar from './Avatar.jsx'
+import RoleBadge from './RoleBadge.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -89,10 +90,10 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
                         <td key={d} className={d === today ? 'today' : ''}>
                           {off && <div className="tm-off">Time off</div>}
                           {dayShifts.map((s) => (
-                            <ShiftBox key={s.id} shift={s} position={person.position} onClick={boss ? () => setEditing(s) : undefined} />
+                            <ShiftBox key={s.id} shift={s} roles={data.settings?.roles} position={person.position} onClick={boss ? () => setEditing(s) : undefined} />
                           ))}
                           {boss && (
-                            <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => setEditing({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', note: '', published: false })}>
+                            <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => setEditing({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>
                               +
                             </button>
                           )}
@@ -130,11 +131,12 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdi
   const [picked, setPicked] = useState(null)
   const selected = week.includes(picked) ? picked : week.includes(today) ? today : week[0]
   const presets = data.settings?.shiftPresets
+  const roles = data.settings?.roles
   const dayShifts = shifts.filter((s) => s.date === selected)
   const dayHours = dayShifts.reduce((sum, s) => sum + shiftMinutes(s), 0)
   const working = new Set(dayShifts.map((s) => s.employeeId)).size
   const heading = selected === today ? 'Today' : fromKey(selected).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
-  const blank = (person) => ({ employeeId: person.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', note: '', published: false })
+  const blank = (person) => ({ employeeId: person.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })
   return (
     <div className="tm-narrow mg-phone">
       <div className="sc-toggle" role="group" aria-label="Whose shifts">
@@ -171,6 +173,7 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdi
                 <button key={s.id} type="button" className={`mg-shift ${s.published ? '' : 'draft'}`} onClick={() => onEdit(s)}>
                   <span className="sc-time">{shiftTimes(s)}</span>
                   {s.title && <span className={tagClass(s.title, presets)}>{s.title}</span>}
+                  <RoleBadge role={s.role} roles={roles} />
                   {!s.published && <small>Draft</small>}
                 </button>
               ))}
@@ -232,12 +235,13 @@ export function WeekTotal({ data, me, week, lang, onClick }) {
   )
 }
 
-function ShiftBox({ shift, position, onClick }) {
+function ShiftBox({ shift, position, roles, onClick }) {
   const Tag = onClick ? 'button' : 'div'
   return (
     <Tag type={onClick ? 'button' : undefined} className={`tm-shift ${shift.published ? '' : 'draft'}`} onClick={onClick}>
       {shift.title && <b>{shift.title}</b>}
       {position && <span>{position}</span>}
+      {shift.role && <RoleBadge role={shift.role} roles={roles} />}
       <span>{shiftTimes(shift)}</span>
       <span>{formatHours(shiftMinutes(shift))} hrs</span>
       {shift.note && <span className="tm-shift-note">{shift.note}</span>}
@@ -249,6 +253,7 @@ function ShiftBox({ shift, position, onClick }) {
 function ShiftEditor({ shift, data, week, onClose }) {
   // Quick picks (⚙️ → Business), starting from the Humanity schedule.
   const presets = data.settings.shiftPresets
+  const roles = data.settings.roles ?? []
   const [s, setS] = useState({ ...shift })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -261,7 +266,7 @@ function ShiftEditor({ shift, data, week, onClose }) {
   const save = async () => {
     if (s.start === null || s.end === null || s.end <= s.start) return setError('The end time has to be after the start time.')
     setBusy(true)
-    const problem = await data.actions.saveShift({ ...s, breakMin: Number(s.breakMin) || 0, title: s.title.trim(), note: s.note.trim() })
+    const problem = await data.actions.saveShift({ ...s, breakMin: Number(s.breakMin) || 0, title: s.title.trim(), role: s.role ?? '', note: s.note.trim() })
     setBusy(false)
     if (problem) setError(problem)
     else onClose()
@@ -324,6 +329,18 @@ function ShiftEditor({ shift, data, week, onClose }) {
         <div className="col-5">
           <label className="form-label" htmlFor="sh-break">Unpaid break (min)</label>
           <input id="sh-break" type="number" min="0" step="15" className="form-control" value={s.breakMin} onChange={set('breakMin')} />
+        </div>
+        <div className="col-12">
+          <span className="form-label d-block" id="sh-role-l">Role</span>
+          <div className="rl-picks" role="group" aria-labelledby="sh-role-l">
+            <button type="button" className="rl-pick" aria-pressed={!s.role} onClick={() => setS({ ...s, role: '' })}>None</button>
+            {roles.map((r) => (
+              <button key={r.name} type="button" className="rl-pick" aria-pressed={s.role === r.name} onClick={() => setS({ ...s, role: r.name })}>
+                <i className={`rl-dot t${r.color ?? 0}`} aria-hidden="true" />{r.name}
+              </button>
+            ))}
+            {s.role && !roles.some((r) => r.name === s.role) && <button type="button" className="rl-pick" aria-pressed="true"><i className="rl-dot none" aria-hidden="true" />{s.role}</button>}
+          </div>
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="sh-note">Note</label>

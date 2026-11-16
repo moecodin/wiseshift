@@ -1241,6 +1241,24 @@ a.tm-spot:hover {
   .hr-seg button { flex: 1; }
 }
 
+/* ---------- Roles: a badge with a colored dot ---------- */
+.rl-badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-size: 12px; font-weight: 700; line-height: 1.5; vertical-align: 1px; }
+.rl-dot { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; border: 0; padding: 0; }
+.rl-dot.t0 { background: #2f6b5a; } .rl-dot.t1 { background: #c8472e; } .rl-dot.t2 { background: #d99a1e; } .rl-dot.t3 { background: #3f6fc0; }
+.rl-dot.t4 { background: #7a4fc0; } .rl-dot.t5 { background: #c04f85; } .rl-dot.t6 { background: #2f8d9a; } .rl-dot.t7 { background: #8a7d6e; }
+.rl-dot.none { background: var(--line); }
+.st-role { grid-template-columns: 1fr auto; }
+.st-swatch.rl-dot { width: 28px; height: 28px; }
+.st-swatch.rl-dot.on { outline: 3px solid var(--ink); outline-offset: 2px; }
+.rl-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+.rl-pick { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-size: 14px; font-weight: 700; }
+.rl-pick[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.sc-hero .sc-hero-role { display: inline-block; margin: 2px 0 4px; padding: 2px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.2); font-style: normal; font-size: 15px; font-weight: 700; }
+.sc-hero:not(.today) .sc-hero-role { background: var(--line); }
+.st-pick.st-role { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+.st-pick.st-role input:first-child { flex: 1; min-width: 0; grid-column: auto; }
+.st-pick.st-role .st-colors { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+
 /* ---------- Team page ---------- */
 .pt-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pt-head .sc-h { margin: 14px 0 8px; }

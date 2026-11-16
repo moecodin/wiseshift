@@ -228,6 +228,7 @@ function BusinessSettings({ data }) {
       <ShopLocation data={data} />
       <ClockInRules data={data} />
       <ShiftPicks data={data} />
+      <Roles data={data} />
       <Positions data={data} />
       <Reminders data={data} />
       <NoticeEditor data={data} />
@@ -309,6 +310,40 @@ function ShiftPicks({ data }) {
       ))}
       <div className="d-flex gap-2 mt-2">
         <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setPicks([...picks, { title: '', start: 540, end: 1020 }])}>+ Add</button>
+        <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={submit}>Save</button>
+      </div>
+      <Result result={result} />
+    </section>
+  )
+}
+
+function Roles({ data }) {
+  const [list, setList] = useState(() => data.settings.roles.map((r) => ({ ...r })))
+  const { busy, result, save, setResult } = useSave(data)
+  const setRole = (i, field, value) => setList(list.map((r, j) => (j === i ? { ...r, [field]: value } : r)))
+  const submit = () => {
+    const clean = list.map((r) => ({ ...r, name: r.name.trim() })).filter((r) => r.name)
+    const names = clean.map((r) => r.name.toLowerCase())
+    if (new Set(names).size !== names.length) return setResult({ error: 'Each role needs its own name.' })
+    save({ roles: clean })
+  }
+  return (
+    <section className="st-section">
+      <h3 className="tm-h3">Roles</h3>
+      <p className="tm-muted small mb-2">What someone does on a shift (for example Front desk). You pick one when you add a shift, and your team sees it on their schedule.</p>
+      {list.map((r, i) => (
+        <div key={i} className="st-pick st-role">
+          <input className="form-control form-control-sm" aria-label="Role name" placeholder="Role name" value={r.name} onChange={(e) => setRole(i, 'name', e.target.value)} />
+          <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove ${r.name || 'role'}`} onClick={() => setList(list.filter((_, j) => j !== i))}>✕</button>
+          <span className="st-colors" role="group" aria-label="Color">
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((c) => (
+              <button key={c} type="button" className={`rl-dot t${c} st-swatch ${r.color === c ? 'on' : ''}`} aria-label={`Color ${c + 1}`} aria-pressed={r.color === c} onClick={() => setRole(i, 'color', c)} />
+            ))}
+          </span>
+        </div>
+      ))}
+      <div className="d-flex gap-2 mt-2">
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setList([...list, { name: '', color: list.length % 8 }])}>+ Add</button>
         <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={submit}>Save</button>
       </div>
       <Result result={result} />

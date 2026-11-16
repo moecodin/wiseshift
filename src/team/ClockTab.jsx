@@ -3,6 +3,7 @@ import { dateKey, formatClock } from '../lib/dates.js'
 import { formatHours, payPeriodOf, periodHours, punchMinutes, scheduleWeekOf } from './paycheck.js'
 import { dayLabel, firstName, offOn, scheduleOnly, shiftTimes, useNow } from './format.js'
 import { currentSpot, streetAddress } from './location.js'
+import RoleBadge from './RoleBadge.jsx'
 import SpotTag from './SpotTag.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 import ReviewList from './ReviewList.jsx'
@@ -86,7 +87,7 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
         {todayShifts.length ? (
           todayShifts.map((s) => (
             <div key={s.id} className="tm-row">
-              <span>{s.title || w.shift}</span>
+              <span>{s.title || w.shift}{s.role && <> <RoleBadge role={s.role} roles={data.settings?.roles} /></>}</span>
               <b>{shiftTimes(s)}</b>
             </div>
           ))
@@ -148,7 +149,7 @@ function NextShifts({ data, me, now, lang, onMore }) {
               <b>{day.getDate()}</b>
             </div>
             <div className="tm-next-body">
-              {s.title && <span>{s.title}</span>}
+              {(s.title || s.role) && <span>{s.title}{s.role && <> <RoleBadge role={s.role} roles={data.settings?.roles} /></>}</span>}
               <b>{shiftTimes(s)}</b>
               {s.note && <small className="tm-muted">{s.note}</small>}
             </div>

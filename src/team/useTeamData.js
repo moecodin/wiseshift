@@ -57,11 +57,11 @@ const payToRow = (employeeId, p) => ({
   updated_at: new Date().toISOString(),
 })
 const shiftFromRow = (r) => ({
-  id: r.id, employeeId: r.employee_id, date: r.date, start: r.start_min, end: r.end_min, breakMin: r.break_min, title: r.title ?? '', note: r.note ?? '', published: r.published,
+  id: r.id, employeeId: r.employee_id, date: r.date, start: r.start_min, end: r.end_min, breakMin: r.break_min, title: r.title ?? '', role: r.role ?? '', note: r.note ?? '', published: r.published,
   postedAt: r.posted_at ?? null, // update 019
 })
 const shiftToRow = (s) => ({
-  employee_id: s.employeeId, date: s.date, start_min: s.start, end_min: s.end, break_min: s.breakMin || 0, title: s.title ?? '', note: s.note ?? '', published: Boolean(s.published),
+  employee_id: s.employeeId, date: s.date, start_min: s.start, end_min: s.end, break_min: s.breakMin || 0, title: s.title ?? '', role: s.role ?? '', note: s.note ?? '', published: Boolean(s.published),
 })
 // Where a punch happened (update 014), or null.
 const spot = (lat, lng, accuracy) => (lat == null || lng == null ? null : { lat, lng, accuracy })

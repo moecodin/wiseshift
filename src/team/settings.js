@@ -18,6 +18,12 @@ export const DEFAULT_SETTINGS = {
     { title: 'Close', start: 840, end: 1200 },
     { title: 'All Day', start: 480, end: 1200 },
   ],
+  roles: [
+    { name: 'Front desk', color: 0 },
+    { name: 'Floor', color: 3 },
+    { name: 'Prep', color: 2 },
+    { name: 'Delivery', color: 6 },
+  ], // what a person does on a shift; the manager picks one per shift
   positions: ['Manager', 'Assistant Manager', 'Team Member'],
   remindBefore: 30, // shift reminder
   remindAfter: 30, // "still clocked in?"
@@ -38,6 +44,7 @@ export function settingsFromRow(r) {
     allowAnyway: pick(r.allow_anyway, d.allowAnyway),
     roundWithin: pick(r.round_within, d.roundWithin),
     shiftPresets: Array.isArray(r.shift_presets) && r.shift_presets.length ? r.shift_presets : d.shiftPresets,
+    roles: Array.isArray(r.roles) ? r.roles : d.roles,
     positions: Array.isArray(r.positions) && r.positions.length ? r.positions : d.positions,
     remindBefore: pick(r.remind_before, d.remindBefore),
     remindAfter: pick(r.remind_after, d.remindAfter),
@@ -54,6 +61,7 @@ export const settingsToRow = (s) => ({
   allow_anyway: s.allowAnyway,
   round_within: s.roundWithin,
   shift_presets: s.shiftPresets,
+  roles: s.roles,
   positions: s.positions,
   remind_before: s.remindBefore,
   remind_after: s.remindAfter,
