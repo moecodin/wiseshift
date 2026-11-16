@@ -4,12 +4,14 @@ import { dateKey, fromKey } from '../lib/dates.js'
 import { formatHours, moveDays, scheduleWeekOf, shiftMinutes } from './paycheck.js'
 import { clockTime, dayLabel, fromTimeInput, money, offOn, rangeLabel, scheduleOnly, shiftTimes, toTimeInput, useNow } from './format.js'
 import { rangeName, say } from './words.js'
+import MySchedule from './MySchedule.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
 // only managers see until Publish.
-export default function ScheduleTab({ data, me, boss, look, week, onWeek }) {
-  const [view, setView] = useState('everyone')
+export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }) {
+  // Employees start on their own shifts; managers on the whole-team grid.
+  const [view, setView] = useState(boss ? 'everyone' : 'mine')
   const [editing, setEditing] = useState(null)
   const [message, setMessage] = useState('')
   const now = useNow()
@@ -37,10 +39,12 @@ export default function ScheduleTab({ data, me, boss, look, week, onWeek }) {
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onWeek(moveDays(week, 1))} aria-label="Week after">›</button>
           {!thisWeek && <button type="button" className="btn btn-link btn-sm" onClick={() => onWeek(scheduleWeekOf(new Date()))}>This week</button>}
         </div>
-        <div className="tm-seg" role="group" aria-label="Whose shifts">
-          <button type="button" aria-pressed={view === 'everyone'} onClick={() => setView('everyone')}>Everyone</button>
-          <button type="button" aria-pressed={view === 'mine'} onClick={() => setView('mine')}>Just me</button>
-        </div>
+        {boss && (
+          <div className="tm-seg" role="group" aria-label="Whose shifts">
+            <button type="button" aria-pressed={view === 'everyone'} onClick={() => setView('everyone')}>Whole team</button>
+            <button type="button" aria-pressed={view === 'mine'} onClick={() => setView('mine')}>My shifts</button>
+          </div>
+        )}
         {boss && (
           <div className="tm-tools">
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={copyLastWeek}>Copy last week</button>
@@ -51,7 +55,9 @@ export default function ScheduleTab({ data, me, boss, look, week, onWeek }) {
       {message && <p className="tm-msg" role="status">{message}</p>}
       {boss && drafts.length > 0 && <p className="tm-muted small">Dashed shifts are drafts: only managers see them until you press Publish.</p>}
 
-      {view === 'everyone' ? (
+      {!boss ? (
+        <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
+      ) : view === 'everyone' ? (
         <div className="tm-gridwrap">
           <table className="tm-grid">
             <thead>
