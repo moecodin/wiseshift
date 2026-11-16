@@ -299,12 +299,12 @@ function ShiftPicks({ data }) {
           <input className="form-control form-control-sm" aria-label="Name" placeholder="Name" value={p.title} onChange={(e) => setPick(i, 'title', e.target.value)} />
           <input type="time" step="900" className="form-control form-control-sm" aria-label="Start" value={p.start === null ? '' : toTimeInput(p.start)} onChange={(e) => setPick(i, 'start', fromTimeInput(e.target.value))} />
           <input type="time" step="900" className="form-control form-control-sm" aria-label="End" value={p.end === null ? '' : toTimeInput(p.end)} onChange={(e) => setPick(i, 'end', fromTimeInput(e.target.value))} />
+          <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove ${p.title || 'quick pick'}`} onClick={() => setPicks(picks.filter((_, j) => j !== i))}>✕</button>
           <span className="st-colors" role="group" aria-label="Color">
             {[0, 1, 2, 3, 4, 5, 6, 7].map((c) => (
               <button key={c} type="button" className={`sc-tag t${c} st-swatch ${p.color === c ? 'on' : ''}`} aria-label={`Color ${c + 1}`} aria-pressed={p.color === c} onClick={() => setPick(i, 'color', c)} />
             ))}
           </span>
-          <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove ${p.title || 'quick pick'}`} onClick={() => setPicks(picks.filter((_, j) => j !== i))}>✕</button>
         </div>
       ))}
       <div className="d-flex gap-2 mt-2">
