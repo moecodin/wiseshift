@@ -292,13 +292,18 @@ function ShiftPicks({ data }) {
   }
   return (
     <section className="st-section">
-      <h3 className="tm-h3">Shift quick picks</h3>
-      <p className="tm-muted small mb-2">The buttons in the Add shift pop-up.</p>
+      <h3 className="tm-h3">Shift types</h3>
+      <p className="tm-muted small mb-2">The buttons in the Add shift pop-up. The color shows on everyone's schedule.</p>
       {picks.map((p, i) => (
         <div key={i} className="st-pick">
           <input className="form-control form-control-sm" aria-label="Name" placeholder="Name" value={p.title} onChange={(e) => setPick(i, 'title', e.target.value)} />
           <input type="time" step="900" className="form-control form-control-sm" aria-label="Start" value={p.start === null ? '' : toTimeInput(p.start)} onChange={(e) => setPick(i, 'start', fromTimeInput(e.target.value))} />
           <input type="time" step="900" className="form-control form-control-sm" aria-label="End" value={p.end === null ? '' : toTimeInput(p.end)} onChange={(e) => setPick(i, 'end', fromTimeInput(e.target.value))} />
+          <span className="st-colors" role="group" aria-label="Color">
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((c) => (
+              <button key={c} type="button" className={`sc-tag t${c} st-swatch ${p.color === c ? 'on' : ''}`} aria-label={`Color ${c + 1}`} aria-pressed={p.color === c} onClick={() => setPick(i, 'color', c)} />
+            ))}
+          </span>
           <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove ${p.title || 'quick pick'}`} onClick={() => setPicks(picks.filter((_, j) => j !== i))}>✕</button>
         </div>
       ))}

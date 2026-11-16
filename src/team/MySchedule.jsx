@@ -11,8 +11,10 @@ import { WeekTotal } from './ScheduleTab.jsx'
 
 // Shift names get a soft color (Open, Close, All day, then others by name).
 const NAMED = { open: 0, close: 1, 'all day': 2 }
-export function tagClass(title) {
+export function tagClass(title, presets = []) {
   const t = (title || '').trim().toLowerCase()
+  const chosen = presets.find((p) => (p.title || '').trim().toLowerCase() === t)?.color
+  if (Number.isInteger(chosen)) return `sc-tag t${chosen}`
   if (t in NAMED) return `sc-tag t${NAMED[t]}`
   const hash = [...t].reduce((sum, c) => sum + c.charCodeAt(0), 0)
   return `sc-tag t${3 + (hash % 5)}`
@@ -117,7 +119,7 @@ function Row({ data, me, date, w, lang, on }) {
           mine.map((s) => (
             <div key={s.id}>
               <span className="sc-time">{shiftTimes(s)}</span>
-              {s.title && <span className={tagClass(s.title)}>{s.title}</span>}
+              {s.title && <span className={tagClass(s.title, data.settings?.shiftPresets)}>{s.title}</span>}
               {s.note && <small>{s.note}</small>}
             </div>
           ))
@@ -151,7 +153,7 @@ function Everyone({ data, me, date, today, w, lang }) {
             <b>{person.name}{person.id === me.id ? (lang === 'es' ? ' (tú)' : ' (you)') : ''}</b>
             <div>
               <span className="sc-time">{shiftTimes(s)}</span>
-              {s.title && <span className={tagClass(s.title)}>{s.title}</span>}
+              {s.title && <span className={tagClass(s.title, data.settings?.shiftPresets)}>{s.title}</span>}
             </div>
             {person.position && !scheduleOnly(person) && <small>{person.position}</small>}
           </div>

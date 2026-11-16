@@ -181,7 +181,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {tab === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
         {tab === 'off' && <TimeOffTab {...shared} />}
         {tab === 'people' && boss && <PeopleTab {...shared} />}
-        {tab === 'more' && <MoreTab {...shared} pending={pending} onOpen={setTab} />}
+        {tab === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={setTab} onNotify={() => setNotifying(true)} onSettings={() => setSettingsOpen(true)} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
     )
   }
@@ -227,8 +227,8 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         <nav className="tm-tabs" role="tablist" aria-label="Team page">
           {TABS.map((id) => (
             <button key={id} type="button" role="tab" aria-selected={tab === id || (id === 'more' && inMore)} onClick={() => setTab(id)}>
-              <TabIcon id={id} />
-              <span>{(lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
+              <TabIcon id={id === 'clock' && boss ? 'today' : id} />
+              <span>{id === 'clock' && boss ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
               {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
             </button>
           ))}
@@ -271,6 +271,7 @@ function Logo() {
 }
 
 const ICONS = {
+  today: <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   schedule: <><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
   hours: <><path d="M5 20V10M12 20V4M19 20v-7" /></>,

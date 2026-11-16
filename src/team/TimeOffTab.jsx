@@ -2,118 +2,131 @@ import { useState } from 'react'
 import { dateKey } from '../lib/dates.js'
 import { datesLabel, useNow } from './format.js'
 
-const STATUS = { pending: 'Waiting for a manager', approved: 'Approved', declined: 'Declined' }
+const WORDS = {
+  en: {
+    ask: '+ Request time off', cancelAsk: 'Close', waitingYou: 'Waiting for you', none: 'No requests waiting.', waiting: 'Waiting for a reply', coming: 'Coming up', earlier: 'Earlier', whoOff: "Who's off soon", nobodyOff: 'Nobody has upcoming time off.', empty: 'No requests yet.',
+    status: { pending: 'Waiting', approved: 'Approved', declined: 'Declined' }, withdraw: 'Withdraw request', clear: 'Clear', approve: 'Approve', decline: 'Decline', cancel: 'Cancel',
+    first: 'First day', last: 'Last day', reason: 'Reason (optional)', send: 'Send request', sent: 'Sent. A manager will approve or decline it here.', pickFirst: 'Pick the first day off.', lastBefore: 'The last day has to be on or after the first day.', confirm: (n) => `Cancel ${n}'s approved time off?`,
+  },
+  es: {
+    ask: '+ Pedir ausencia', cancelAsk: 'Cerrar', waitingYou: 'Esperan tu respuesta', none: 'No hay solicitudes.', waiting: 'Esperando respuesta', coming: 'Próximamente', earlier: 'Antes', whoOff: 'Quién falta pronto', nobodyOff: 'Nadie tiene ausencias próximas.', empty: 'Aún no hay solicitudes.',
+    status: { pending: 'Esperando', approved: 'Aprobada', declined: 'Rechazada' }, withdraw: 'Retirar solicitud', clear: 'Borrar', approve: 'Aprobar', decline: 'Rechazar', cancel: 'Cancelar',
+    first: 'Primer día', last: 'Último día', reason: 'Motivo (opcional)', send: 'Enviar solicitud', sent: 'Enviada. Un gerente la aprobará o rechazará aquí.', pickFirst: 'Elige el primer día libre.', lastBefore: 'El último día debe ser igual o posterior al primero.', confirm: (n) => `¿Cancelar la ausencia aprobada de ${n}?`,
+  },
+}
 
 // Ask for time off and see your requests. Managers approve or decline, and see
 // everyone's upcoming time off.
-export default function TimeOffTab({ data, me, boss, look }) {
+export default function TimeOffTab({ data, me, boss, lang }) {
+  const w = WORDS[lang === 'es' ? 'es' : 'en']
   const today = dateKey(useNow())
+  const [asking, setAsking] = useState(false)
   const name = (id) => data.employees.find((e) => e.id === id)?.name ?? '?'
-  const mine = data.timeOff.filter((t) => t.employeeId === me.id).sort((a, b) => b.start.localeCompare(a.start))
-  const waiting = boss ? data.timeOff.filter((t) => t.status === 'pending').sort((a, b) => a.start.localeCompare(b.start)) : []
+  const mine = data.timeOff.filter((t) => t.employeeId === me.id).sort((a, b) => a.start.localeCompare(b.start))
+  const waitingMine = mine.filter((t) => t.status === 'pending')
+  const comingMine = mine.filter((t) => t.status === 'approved' && t.end >= today)
+  const earlier = mine.filter((t) => t.status === 'declined' || (t.status === 'approved' && t.end < today)).sort((a, b) => b.start.localeCompare(a.start))
+  const waitingBoss = boss ? data.timeOff.filter((t) => t.status === 'pending').sort((a, b) => a.start.localeCompare(b.start)) : []
   const upcoming = data.teamOff.filter((t) => t.end >= today).sort((a, b) => a.start.localeCompare(b.start))
 
   return (
     <div className="tm-narrow">
-      <RequestForm data={data} today={today} title={look?.timeOff?.ask} />
+      <button type="button" className="to-ask" onClick={() => setAsking(!asking)}>{asking ? w.cancelAsk : w.ask}</button>
+      {asking && <RequestForm data={data} today={today} w={w} onDone={() => setAsking(false)} />}
 
       {boss && (
-        <section className="tm-card">
-          <h2>Waiting for you {waiting.length > 0 && <span className="tm-badge">{waiting.length}</span>}</h2>
-          {waiting.length ? waiting.map((t) => <Decide key={t.id} request={t} who={name(t.employeeId)} data={data} />) : <p className="tm-muted mb-0">No requests waiting.</p>}
-        </section>
+        <>
+          <h2 className="sc-h">{w.waitingYou} {waitingBoss.length > 0 && <span className="tm-badge">{waitingBoss.length}</span>}</h2>
+          {waitingBoss.length ? waitingBoss.map((t) => <Decide key={t.id} request={t} who={name(t.employeeId)} data={data} w={w} />) : <p className="tm-muted">{w.none}</p>}
+        </>
       )}
 
-      <section className="tm-card">
-        <h2>{look?.timeOff?.title ?? 'My requests'}</h2>
-        {mine.length ? (
-          mine.map((t) => (
-            <div key={t.id} className="tm-req">
-              <div>
-                <b>{datesLabel(t.start, t.end)}</b>
-                {t.reason && <div className="tm-muted small">“{t.reason}”</div>}
-              </div>
-              <span className={`tm-chip ${t.status}`}>{STATUS[t.status]}</span>
-              {t.status !== 'approved' && (
-                <button type="button" className="tm-link small" onClick={() => data.actions.withdrawTimeOff(t.id)}>
-                  {t.status === 'pending' ? 'Take back' : 'Clear'}
-                </button>
-              )}
-            </div>
-          ))
-        ) : (
-          <p className="tm-muted mb-0">No requests yet.</p>
-        )}
-      </section>
+      {waitingMine.length > 0 && <h2 className="sc-h">{w.waiting}</h2>}
+      {waitingMine.map((t) => <Request key={t.id} t={t} w={w} data={data} link={w.withdraw} />)}
 
-      <section className="tm-card">
-        <h2>Who's off</h2>
+      {comingMine.length > 0 && <h2 className="sc-h">{w.coming}</h2>}
+      {comingMine.map((t) => <Request key={t.id} t={t} w={w} data={data} />)}
+
+      {earlier.length > 0 && <h2 className="sc-h">{w.earlier}</h2>}
+      {earlier.map((t) => <Request key={t.id} t={t} w={w} data={data} link={t.status === 'declined' ? w.clear : null} faded />)}
+
+      {mine.length === 0 && <p className="tm-muted">{w.empty}</p>}
+
+      <section className="to-card to-off">
+        <b className="to-eyebrow">{w.whoOff.toUpperCase()}</b>
         {upcoming.length ? (
           upcoming.map((t) => (
-            <div key={t.id} className="tm-row">
-              <span>{name(t.employeeId)}</span>
-              <span className="tm-muted">{datesLabel(t.start, t.end)}</span>
+            <div key={t.id} className="to-offrow">
+              <b>{name(t.employeeId)}</b>
+              <span>{t.start <= today && t.end >= today ? (lang === 'es' ? 'Hoy' : 'Today') : datesLabel(t.start, t.end)}</span>
               {boss && (
-                <button type="button" className="tm-link small" onClick={() => window.confirm(`Cancel ${name(t.employeeId)}'s approved time off?`) && data.actions.deleteTimeOff(t.id)}>
-                  Cancel
-                </button>
+                <button type="button" className="tm-link small" onClick={() => window.confirm(w.confirm(name(t.employeeId))) && data.actions.deleteTimeOff(t.id)}>{w.cancel}</button>
               )}
             </div>
           ))
         ) : (
-          <p className="tm-muted mb-0">Nobody has upcoming time off.</p>
+          <p className="tm-muted mb-0">{w.nobodyOff}</p>
         )}
       </section>
     </div>
   )
 }
 
-function RequestForm({ data, today, title = 'Ask for time off' }) {
+// One of my requests.
+function Request({ t, w, data, link, faded }) {
+  const days = Math.round((new Date(`${t.end}T12:00`) - new Date(`${t.start}T12:00`)) / 86400000) + 1
+  return (
+    <div className={`to-card ${faded ? 'faded' : ''}`}>
+      <div className="to-top">
+        <b>{datesLabel(t.start, t.end)}</b>
+        <span className={`to-chip ${t.status}`}>{w.status[t.status]}</span>
+      </div>
+      <small>{days} {days === 1 ? 'day' : 'days'}{t.reason ? ` · ${t.reason}` : ''}</small>
+      {link && <button type="button" className="to-link" onClick={() => data.actions.withdrawTimeOff(t.id)}>{link}</button>}
+    </div>
+  )
+}
+
+function RequestForm({ data, today, w, onDone }) {
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
   const [reason, setReason] = useState('')
-  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
   const send = async (e) => {
     e.preventDefault()
     const last = end || start
-    if (!start) return setError('Pick the first day off.')
-    if (last < start) return setError('The last day has to be on or after the first day.')
+    if (!start) return setError(w.pickFirst)
+    if (last < start) return setError(w.lastBefore)
     const problem = await data.actions.requestTimeOff(start, last, reason.trim())
     if (problem) return setError(problem)
-    setStart('')
-    setEnd('')
-    setReason('')
-    setError('')
-    setMessage('Sent. A manager will approve or decline it here.')
+    onDone()
   }
 
   return (
-    <form className="tm-card" onSubmit={send}>
-      <h2>{title}</h2>
+    <form className="to-card" onSubmit={send}>
       <div className="row g-2">
         <div className="col-6">
-          <label className="form-label" htmlFor="to-start">First day</label>
-          <input id="to-start" type="date" className="form-control" min={today} value={start} onChange={(e) => { setStart(e.target.value); setMessage(''); setError('') }} />
+          <label className="form-label" htmlFor="to-start">{w.first}</label>
+          <input id="to-start" type="date" className="form-control" min={today} value={start} onChange={(e) => { setStart(e.target.value); setError('') }} />
         </div>
         <div className="col-6">
-          <label className="form-label" htmlFor="to-end">Last day</label>
-          <input id="to-end" type="date" className="form-control" min={start || today} value={end} placeholder="Same day" onChange={(e) => { setEnd(e.target.value); setError('') }} />
+          <label className="form-label" htmlFor="to-end">{w.last}</label>
+          <input id="to-end" type="date" className="form-control" min={start || today} value={end} onChange={(e) => { setEnd(e.target.value); setError('') }} />
         </div>
         <div className="col-12">
-          <label className="form-label" htmlFor="to-reason">Reason (optional)</label>
+          <label className="form-label" htmlFor="to-reason">{w.reason}</label>
           <input id="to-reason" className="form-control" maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
         </div>
       </div>
-      <button type="submit" className="btn btn-brand mt-3">Send request</button>
-      {message && <p className="tm-msg mt-2 mb-0" role="status">{message}</p>}
+      <button type="submit" className="btn btn-brand mt-3">{w.send}</button>
       {error && <p className="tm-error mt-2 mb-0" role="alert">{error}</p>}
     </form>
   )
 }
 
-function Decide({ request, who, data }) {
+// A manager's card for one waiting request.
+function Decide({ request, who, data, w }) {
   const [busy, setBusy] = useState(false)
   const decide = async (status) => {
     setBusy(true)
@@ -121,13 +134,13 @@ function Decide({ request, who, data }) {
     setBusy(false)
   }
   return (
-    <div className="tm-req">
-      <div>
-        <b>{who}</b> · {datesLabel(request.start, request.end)}
-        {request.reason && <div className="tm-muted small">“{request.reason}”</div>}
+    <div className="to-card">
+      <div className="to-top"><b>{who}</b><span className="to-chip pending">{datesLabel(request.start, request.end)}</span></div>
+      {request.reason && <small>“{request.reason}”</small>}
+      <div className="to-actions">
+        <button type="button" className="to-btn" disabled={busy} onClick={() => decide('declined')}>{w.decline}</button>
+        <button type="button" className="to-btn yes" disabled={busy} onClick={() => decide('approved')}>{w.approve}</button>
       </div>
-      <button type="button" className="btn btn-success btn-sm" disabled={busy} onClick={() => decide('approved')}>Approve</button>
-      <button type="button" className="btn btn-outline-danger btn-sm" disabled={busy} onClick={() => decide('declined')}>Decline</button>
     </div>
   )
 }

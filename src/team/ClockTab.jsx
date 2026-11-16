@@ -7,26 +7,21 @@ import SpotTag from './SpotTag.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 import ReviewList from './ReviewList.jsx'
 import ClockHero from './themes/ClockHero.jsx'
-import { punchStatus } from './review.js'
+import ManagerToday from './ManagerToday.jsx'
 import { dayName, rangeName, say } from './words.js'
 
 const UPCOMING = 4 // shifts listed under "My next shifts"
 
-// The Clock tab. Managers switch between their own clock and Review (approving
-// everyone's punches), like Humanity's Clock / Manage.
+// The Clock tab. Managers get a Today screen (what needs them, who is in) and
+// open their own clock or Review from there.
 export default function ClockTab({ data, me, boss, look, lang, onGoTo }) {
-  const [view, setView] = useState('clock')
+  const [view, setView] = useState('today')
   if (!boss) return <MyClock data={data} me={me} boss={boss} look={look} lang={lang} onGoTo={onGoTo} />
-  const pending = data.punches.filter((p) => punchStatus(p) === 'pending').length
+  if (view === 'today') return <ManagerToday data={data} me={me} lang={lang} onView={setView} />
   return (
     <>
-      <div className="tm-narrow tm-switch">
-        <div className="tm-seg" role="group" aria-label="Clock or review">
-          <button type="button" aria-pressed={view === 'clock'} onClick={() => setView('clock')}>My clock</button>
-          <button type="button" aria-pressed={view === 'review'} onClick={() => setView('review')}>
-            Review{pending > 0 && <span className="tm-badge">{pending}</span>}
-          </button>
-        </div>
+      <div className="tm-narrow">
+        <button type="button" className="tm-back" onClick={() => setView('today')}>‹ {lang === 'es' ? 'Hoy' : 'Today'}</button>
       </div>
       {view === 'review' ? (
         <div className="tm-narrow"><ReviewList data={data} /></div>
