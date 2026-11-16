@@ -19,10 +19,8 @@ import { say } from './words.js'
 import MoreTab from './MoreTab.jsx'
 import { MORE } from './more.js'
 import './team.css'
-import './themes/themes.css'
 
 const THEME_KEY = 'wiseshift-theme'
-const THEME_FONTS = 'https://fonts.googleapis.com/css2?family=Silkscreen&family=Pixelify+Sans:wght@400;600;700&family=Press+Start+2P&family=VT323&family=Fredoka:wght@400;600;700&family=Gochi+Hand&family=Comfortaa:wght@500;700&display=swap'
 function savedTheme() {
   try {
     return localStorage.getItem(THEME_KEY) // 'light', 'dark', or null (follow the device)
@@ -31,9 +29,9 @@ function savedTheme() {
   }
 }
 
-// The tabs, in order. Their names come from the person's theme. Hours & pay,
-// Time off and Team open from More.
-const TABS = ['clock', 'schedule', 'more']
+// The tabs, in order. Their names come from the person's theme. Time off and Team open
+// from More.
+const TABS = ['clock', 'schedule', 'hours', 'more']
 const PAGES = [...TABS, ...MORE.map((m) => m.id)]
 
 // The team page (/team): time clock, schedules, hours and
@@ -44,29 +42,17 @@ export default function TeamApp() {
   const [choosing, setChoosing] = useState(false) // signed in with an emailed code: choose a password
 
   // Light or dark: their own choice (remembered on this device), otherwise the
-  // device's setting. Only for Classic; the other themes have their own colors.
+  // device's setting.
   const [theme, setTheme] = useState(savedTheme)
-  const [skin, setSkin] = useState('classic') // the person's theme (themes/index.js)
   useEffect(() => {
     const dark = window.matchMedia('(prefers-color-scheme: dark)')
     const apply = () => {
-      const root = document.documentElement
-      root.dataset.skin = skin
-      root.dataset.bsTheme = skin === 'classic' ? theme ?? (dark.matches ? 'dark' : 'light') : themeById(skin).dark ? 'dark' : 'light'
+      document.documentElement.dataset.bsTheme = theme ?? (dark.matches ? 'dark' : 'light')
     }
     apply()
     dark.addEventListener('change', apply)
     return () => dark.removeEventListener('change', apply)
-  }, [theme, skin])
-  // The themes' fonts, fetched only once someone uses a theme other than Classic.
-  useEffect(() => {
-    if (skin === 'classic' || document.getElementById('team-theme-fonts')) return
-    const link = document.createElement('link')
-    link.id = 'team-theme-fonts'
-    link.rel = 'stylesheet'
-    link.href = THEME_FONTS
-    document.head.append(link)
-  }, [skin])
+  }, [theme])
   const toggleTheme = () => {
     const next = document.documentElement.dataset.bsTheme === 'dark' ? 'light' : 'dark'
     setTheme(next)
@@ -108,10 +94,10 @@ export default function TeamApp() {
       />
     )
   }
-  return <Team email={auth.email} signedIn={auth.signedIn} onSignOut={auth.signOut} onToggleTheme={toggleTheme} onSkin={setSkin} />
+  return <Team email={auth.email} signedIn={auth.signedIn} onSignOut={auth.signOut} onToggleTheme={toggleTheme} />
 }
 
-function Team({ email, signedIn, onSignOut, onToggleTheme, onSkin }) {
+function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   const [today] = useState(() => new Date())
   const [week, setWeek] = useState(() => scheduleWeekOf(today))
   const [period, setPeriod] = useState(() => payPeriodOf(today))
@@ -146,13 +132,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme, onSkin }) {
   }, [me?.id])
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
-  // Signed out or not on the team: Classic.
-  const skin = me ? data.theme ?? 'classic' : 'classic'
-  const look = themeById(skin)
-  useEffect(() => {
-    onSkin(skin)
-    return () => onSkin('classic')
-  }, [skin, onSkin])
+  const look = themeById()
 
   const signOut = usingSupabase && (
     <button type="button" className="tm-link" onClick={onSignOut}>Sign out</button>
@@ -207,14 +187,17 @@ function Team({ email, signedIn, onSignOut, onToggleTheme, onSkin }) {
   }
 
   return (
-    <div className={`tm skin-${skin}`}>
+    <div className="tm">
       <header className="tm-head">
-        <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label="WiseShift">WS</a>
+        <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /></a>
         <div className="tm-hello">
           {me ? `${lang === 'es' ? 'Hola' : 'Hi'} ${me.name.split(' ')[0]}` : 'WiseShift'}
           <small>{me ? (me.position || 'Team') : 'Team'}</small>
         </div>
         <span className="tm-head-btns">
+          <button type="button" className="tm-icon" onClick={onToggleTheme} aria-label="Light or dark" title="Light or dark">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></svg>
+          </button>
           {me && (
             <button type="button" className="tm-icon" onClick={() => setNotifying(true)} aria-label="Notifications" title="Notifications">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0" /></svg>
@@ -223,11 +206,6 @@ function Team({ email, signedIn, onSignOut, onToggleTheme, onSkin }) {
           {me && (
             <button type="button" className="tm-icon" onClick={() => setSettingsOpen(true)} aria-label="Settings" title="Settings">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
-            </button>
-          )}
-          {!me && (
-            <button type="button" className="tm-icon" onClick={onToggleTheme} aria-label="Light or dark" title="Light or dark">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
             </button>
           )}
         </span>
@@ -249,7 +227,8 @@ function Team({ email, signedIn, onSignOut, onToggleTheme, onSkin }) {
         <nav className="tm-tabs" role="tablist" aria-label="Team page">
           {TABS.map((id) => (
             <button key={id} type="button" role="tab" aria-selected={tab === id || (id === 'more' && inMore)} onClick={() => setTab(id)}>
-              {(lang === 'es' ? TABS_ES : look.tabs)[id]}
+              <TabIcon id={id} />
+              <span>{(lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
               {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
             </button>
           ))}
@@ -264,7 +243,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme, onSkin }) {
         <p className="tm-foot">{signOut}</p>
       </main>
       {settingsOpen && (
-        <SettingsPanel data={data} me={me} boss={boss} skin={skin} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => setSettingsOpen(false)} />
+        <SettingsPanel data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => setSettingsOpen(false)} />
       )}
       {notifying && <NotifySettings data={data} boss={boss} onClose={() => setNotifying(false)} />}
     </div>
@@ -278,4 +257,25 @@ function Notice({ title, children }) {
       <div>{children}</div>
     </div>
   )
+}
+
+// The WiseShift mark: three shift blocks.
+function Logo() {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <rect x="6" y="10" width="34" height="13" rx="6.5" fill="var(--navy)" />
+      <rect x="20" y="26" width="38" height="13" rx="6.5" fill="#2F6B5A" />
+      <rect x="10" y="42" width="30" height="13" rx="6.5" fill="#F6D580" />
+    </svg>
+  )
+}
+
+const ICONS = {
+  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+  schedule: <><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
+  hours: <><path d="M5 20V10M12 20V4M19 20v-7" /></>,
+  more: <><circle cx="6" cy="12" r="1.2" /><circle cx="12" cy="12" r="1.2" /><circle cx="18" cy="12" r="1.2" /></>,
+}
+function TabIcon({ id }) {
+  return <svg className="tm-tabicon" viewBox="0 0 24 24" aria-hidden="true">{ICONS[id]}</svg>
 }

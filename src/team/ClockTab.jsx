@@ -7,7 +7,6 @@ import SpotTag from './SpotTag.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 import ReviewList from './ReviewList.jsx'
 import ClockHero from './themes/ClockHero.jsx'
-import { playSound } from './themes/sfx.js'
 import { punchStatus } from './review.js'
 import { dayName, rangeName, say } from './words.js'
 
@@ -43,9 +42,7 @@ export default function ClockTab({ data, me, boss, look, lang, onGoTo }) {
 function MyClock({ data, me, boss, look, lang, onGoTo }) {
   // Every second, for the themes' running timers.
   const now = useNow(1000)
-  const theme = look?.id ?? 'classic'
   const w = say(lang)
-  const [flash, setFlash] = useState(null) // just clocked in or out: { kind, minutes, saved }
   const today = dateKey(now)
   const [busy, setBusy] = useState('') // '', 'locating' or 'saving'
   const [error, setError] = useState('')
@@ -72,30 +69,16 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
     // The street too, for the punch's details (skipped if it takes too long).
     if (!where.error) where.address = await streetAddress(where)
     setBusy('saving')
-    const wasOpen = open
     const problem = open ? await data.actions.clockOut(where) : await data.actions.clockIn(where)
     setBusy('')
     if (problem) return setError(problem)
     if (where.error) setNoSpot(where.error)
-    // The game themes celebrate: a flash at clock-in, "saving the game" at clock-out.
-    const sounds = data.sounds && look?.sounds
-    if (wasOpen) {
-      const minutes = punchMinutes(wasOpen, new Date())
-      setFlash({ kind: 'out', minutes, saved: false })
-      if (sounds) playSound('save')
-      setTimeout(() => setFlash((f) => f && { ...f, saved: true }), 1400)
-      setTimeout(() => setFlash(null), 6000)
-    } else {
-      setFlash({ kind: 'in' })
-      if (sounds) playSound('in')
-      setTimeout(() => setFlash(null), 3500)
-    }
   }
 
   return (
     <div className="tm-narrow">
-      <section className={`tm-card tm-clock th-hero-${theme}`}>
-        <ClockHero theme={theme} lang={lang} open={open} busy={busy} onPunch={punch} now={now} data={data} me={me} staleOpen={staleOpen} todayMinutes={todayMinutes} flash={flash} onGoTo={onGoTo} />
+      <section className="tm-card tm-clock">
+        <ClockHero lang={lang} open={open} busy={busy} onPunch={punch} now={now} data={data} me={me} staleOpen={staleOpen} todayMinutes={todayMinutes} onGoTo={onGoTo} />
         {staleOpen && <p className="tm-warn">{w.stale(dayName(dateKey(new Date(open.clockIn)), lang))}</p>}
         {noSpot && <p className="tm-warn">{noSpot === 'denied' ? w.noSpotDenied : w.noSpot}</p>}
         {error && <p className="tm-error" role="alert">{error}</p>}
@@ -103,7 +86,7 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
       </section>
 
       <section className="tm-card">
-        <h2>{w.today}</h2>
+        <h2>{lang === 'es' ? 'Tu día' : 'Your day'}</h2>
         {off && <p className="tm-offline">{w.timeOffToday}</p>}
         {todayShifts.length ? (
           todayShifts.map((s) => (
@@ -160,7 +143,7 @@ function NextShifts({ data, me, now, lang, onMore }) {
   const next = coming.find((s) => !isNow(s))
   return (
     <section className="tm-card tm-next">
-      <h2>{w.nextShifts}</h2>
+      <h2>{lang === 'es' ? 'Próximamente' : 'Coming up'}</h2>
       {coming.map((s) => {
         const day = new Date(`${s.date}T12:00`)
         return (

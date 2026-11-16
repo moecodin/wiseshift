@@ -23,16 +23,18 @@
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: #fff;
+  background: var(--paper);
+  border: 1px solid var(--line);
   display: grid;
   place-items: center;
 }
-.tm-logo img {
+.tm-logo svg {
+  width: 30px;
   height: 30px;
-  width: auto;
 }
 .tm-hello {
   text-align: center;
+  font-family: 'Fraunces', Georgia, serif;
   font-size: 24px;
   font-weight: 700;
   line-height: 1.1;
@@ -1005,3 +1007,59 @@ a.tm-spot:hover {
 .tm-more-text small { display: block; color: var(--muted, #6b7486); font-size: 13px; }
 .tm-more-go { font-size: 22px; opacity: 0.5; }
 .tm-back { border: 0; background: none; padding: 2px 0 10px; font-weight: 700; color: inherit; opacity: 0.75; }
+
+/* ---------- WiseShift look (warm) ---------- */
+.tm-card h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 700; }
+.tm-card { border-radius: 20px; box-shadow: var(--shadow); }
+
+/* Bottom tab bar, like a phone app */
+.tm-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  max-width: none;
+  margin: 0;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  overflow: visible;
+  justify-content: center;
+  gap: 4px;
+}
+.tm-tabs button,
+.tm-tabs button:first-child,
+.tm-tabs button:last-child {
+  flex: 1 1 0;
+  max-width: 120px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--muted);
+  padding: 6px 4px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+.tm-tabs button[aria-selected='true'] { background: var(--edit-bg); color: var(--navy); }
+.tm-tabicon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tm-tabs .tm-badge { position: absolute; top: 2px; right: 22%; margin: 0; }
+.tm-main { padding-bottom: 96px; }
+
+/* Clock: soft shapes behind a calmer, smaller button */
+.tm-clock { position: relative; overflow: hidden; background: var(--paper); padding: 26px 16px 18px; }
+.tm-clock::before, .tm-clock::after { content: ''; position: absolute; border-radius: 50%; z-index: 0; }
+.tm-clock::before { width: 190px; height: 190px; top: -70px; left: -60px; background: #fbe3d8; }
+.tm-clock::after { width: 150px; height: 150px; right: -50px; bottom: -50px; background: #f6e7b5; }
+.tm-clock > * { position: relative; z-index: 1; }
+.tm-now { font-family: 'Fraunces', Georgia, serif; font-size: 46px; font-weight: 700; }
+.tm-punch { width: 120px; height: 120px; font-size: 19px; box-shadow: 0 6px 16px rgba(90, 60, 30, 0.22); }
+.tm-punch.out { background: var(--navy); }
+.tm-locked { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; margin-top: 14px; padding: 12px; border-radius: 16px; background: var(--head); color: var(--ink); }
+.tm-locked small { color: var(--muted); }
+.tm-locked-done { font-size: 17px; }
+.tm-locked .tm-link { margin-top: 6px; color: var(--muted); }

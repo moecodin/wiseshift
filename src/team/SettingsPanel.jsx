@@ -4,7 +4,6 @@ import { supabase, usingSupabase } from '../lib/supabase.js'
 import { dateKey } from '../lib/dates.js'
 import { clockTime, dayLabel, fromTimeInput, scheduleOnly, toTimeInput } from './format.js'
 import { NotifyOptions } from './NotifySettings.jsx'
-import { ThemeOptions } from './themes/ThemePicker.jsx'
 import ShopLocation from './ShopLocation.jsx'
 import { noticeAcked } from './settings.js'
 import { dayName, say } from './words.js'
@@ -12,7 +11,7 @@ import { dayName, say } from './words.js'
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
 // how the app works for the whole team.
-export default function SettingsPanel({ data, me, boss, skin, onToggleTheme, onSignOut, start = 'me', onClose }) {
+export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut, start = 'me', onClose }) {
   const [page, setPage] = useState(boss ? start : 'me')
   return (
     <Modal title="Settings" size={page === 'business' ? 'lg' : undefined} onClose={onClose}>
@@ -25,7 +24,7 @@ export default function SettingsPanel({ data, me, boss, skin, onToggleTheme, onS
         </div>
       )}
       {page === 'me' ? (
-        <MySettings data={data} me={me} boss={boss} skin={skin} onToggleTheme={onToggleTheme} onSignOut={onSignOut} />
+        <MySettings data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} />
       ) : (
         <BusinessSettings data={data} />
       )}
@@ -47,16 +46,14 @@ const explain = (problem) =>
     : problem
 const outcome = (problem, ok = 'Saved.') => (problem ? { error: explain(problem) } : { ok })
 
-function MySettings({ data, me, boss, skin, onToggleTheme, onSignOut }) {
+function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
   return (
     <>
       <section className="st-section">
-        <h3 className="tm-h3">Theme</h3>
-        <p className="tm-muted small mb-2">Only you see it, on any phone you sign in on.</p>
-        <ThemeOptions data={data} />
-        {skin === 'classic' && (
-          <button type="button" className="btn btn-outline-secondary btn-sm mt-2" onClick={onToggleTheme}>Switch light / dark</button>
-        )}
+        <h3 className="tm-h3">{data.lang === 'es' ? 'Apariencia' : 'Appearance'}</h3>
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onToggleTheme}>
+          {data.lang === 'es' ? 'Cambiar claro / oscuro' : 'Switch light / dark'}
+        </button>
       </section>
       <Language data={data} />
       <section className="st-section">
@@ -97,7 +94,7 @@ function Language({ data }) {
         <button type="button" aria-pressed={data.lang === 'es'} onClick={() => pick('es')}>Español</button>
       </div>
       <p className="tm-muted small mt-2 mb-0">
-        {data.lang === 'es' ? 'Las pestañas, las Tareas y sus notificaciones salen en español.' : 'Changes the tabs, Tasks, and task notifications.'}
+        {data.lang === 'es' ? 'Las pestañas y las pantallas salen en español.' : 'Changes the tabs and screens to Spanish.'}
       </p>
       <Result result={result} />
     </section>

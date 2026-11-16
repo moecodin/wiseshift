@@ -1,7 +1,7 @@
 import { TABS_ES } from './themes/index.js'
 import { MORE } from './more.js'
 
-// The More tab: Hours & pay, Time off, and (managers) Team.
+// The More tab: Time off, and (managers) Team.
 export default function MoreTab({ boss, look, lang, pending, onOpen }) {
   const es = lang === 'es'
   const names = es ? TABS_ES : look.tabs
