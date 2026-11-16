@@ -6,11 +6,12 @@ import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToI
 import { TAX_YEAR } from './taxRates.js'
 import { describeSpot } from './location.js'
 import SpotTag from './SpotTag.jsx'
+import MyHours from './MyHours.jsx'
 
 // Hours for a pay period (Friday to Thursday, two weeks) and the paycheck
 // estimate. Managers can look at anyone, fix punches, see everyone's timesheet
 // and download it for the payroll service.
-export default function HoursTab({ data, me, boss, period, onPeriod }) {
+export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
   const now = useNow()
   const [view, setView] = useState('person')
   const [who, setWho] = useState(me.id)
@@ -39,6 +40,8 @@ export default function HoursTab({ data, me, boss, period, onPeriod }) {
       </div>
       {boss && view === 'all' ? (
         <Timesheet data={data} period={period} now={now} />
+      ) : !boss ? (
+        <MyHours data={data} me={me} period={period} now={now} lang={lang} />
       ) : (
         <Person data={data} boss={boss} employee={data.employees.find((e) => e.id === who) ?? me} period={period} now={now} />
       )}

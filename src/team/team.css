@@ -1107,3 +1107,17 @@ a.tm-spot:hover {
 .sc-tag.t7 { background: #e9e4dc; color: #4f463c; }
 [data-bs-theme='dark'] .sc-tag { filter: brightness(0.95); }
 .sc-row.person .tm-avatar { flex: none; }
+
+/* ---------- My hours (employee) ---------- */
+.hr-hero { background: #2f6b5a; color: #fff; border-radius: 26px; padding: 18px 22px; margin-bottom: 8px; }
+.hr-hero small { display: block; font-size: 14px; font-weight: 600; color: #d5ebe2; }
+.hr-hero b { font-family: 'Fraunces', Georgia, serif; font-size: 46px; line-height: 1.1; }
+.hr-hero span { font-size: 18px; font-weight: 600; }
+.hr-bar { height: 10px; border-radius: 5px; background: #24574a; margin: 10px 0 8px; }
+.hr-bar i { display: block; height: 100%; border-radius: 5px; background: #f6d580; }
+.hr-day.warn { background: #fbebd6; border-color: #e3c9a0; }
+.hr-day.warn .hr-warn { color: #6b4a0b; font-weight: 600; }
+[data-bs-theme='dark'] .hr-day.warn { background: #4a3b1c; border-color: #6b5527; }
+[data-bs-theme='dark'] .hr-day.warn .hr-warn { color: #f2c875; }
+.hr-times { display: block; font-size: 16px; font-weight: 600; }
+.hr-total { font-size: 17px; font-weight: 700; color: var(--ink); }
