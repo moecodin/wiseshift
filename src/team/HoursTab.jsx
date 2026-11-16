@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
-import { dateKey, formatClock } from '../lib/dates.js'
+import { dateKey, formatClock, fromKey } from '../lib/dates.js'
 import { decimalHours, estimatePaycheck, formatHours, grossPay, moveDays, payPeriodOf, periodHours, punchMinutes } from './paycheck.js'
 import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { TAX_YEAR } from './taxRates.js'
@@ -27,7 +27,7 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
           {!current && <button type="button" className="btn btn-link btn-sm" onClick={() => onPeriod(payPeriodOf(new Date()))}>This pay period</button>}
         </div>
         {boss && (
-          <div className="tm-seg" role="group" aria-label="Show">
+          <div className="tm-seg hr-seg" role="group" aria-label="Show">
             <button type="button" aria-pressed={view === 'person'} onClick={() => setView('person')}>One person</button>
             <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet (everyone)</button>
           </div>
@@ -58,47 +58,62 @@ function Person({ data, boss, employee, period, now }) {
 
   return (
     <div className="tm-narrow">
-      <section className="tm-card tm-totals">
-        <div><small>Total</small><b>{formatHours(hours.total)}</b></div>
-        <div><small>Regular</small><b>{formatHours(hours.regular)}</b></div>
-        <div><small>Overtime</small><b className={hours.overtime ? 'tm-ot' : ''}>{formatHours(hours.overtime)}</b></div>
+      <section className="hr-hero">
+        <small>{isMe ? 'Hours this pay period' : `${employee.name} · this pay period`}</small>
+        <div><b>{formatHours(hours.total)}</b> <span>hrs</span></div>
+        <small>
+          Regular {formatHours(hours.regular)}
+          {hours.overtime > 0 && <> · <span className="hr-ot">Overtime {formatHours(hours.overtime)}</span></>}
+        </small>
       </section>
       {hours.open && <p className="tm-warn">{isMe ? "You're" : `${employee.name} is`} still clocked in, so these hours keep counting.</p>}
 
-      {weeks.map((days, i) => (
-        <section key={i} className="tm-card">
-          <h2>
-            Week {i + 1} <small className="tm-muted">{rangeLabel(days.map((d) => d.date))} · {formatHours(days.reduce((sum, d) => sum + d.minutes, 0))} hrs</small>
-          </h2>
-          {days.map((d) => (
-            <div key={d.date} className="tm-dayrow">
-              <span className="tm-dayname">{dayLabel(d.date)}</span>
-              <div className="tm-dayp">
-                {d.punches.map((p) => (
-                  <div key={p.id}>
-                    {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : <i>still in</i>}
-                    <div className="tm-spots">
-                      {/* A time a manager typed in has no location; don't call it missing. */}
-                      {(p.inSpot || !p.editedBy) && <SpotTag spot={p.inSpot} shop={data.shop} prefix="In: " />}
-                      {p.clockOut && (p.outSpot || !p.editedBy) && <SpotTag spot={p.outSpot} shop={data.shop} prefix="Out: " />}
-                    </div>
-                    {p.editedBy && <span className="tm-edited" title={`Fixed by ${p.editedBy}`}>fixed</span>}
-                    {p.approvedAt && <span className="tm-ok-mark" title={`Approved by ${p.approvedBy ?? ''}`}> ✓</span>}
-                    {p.note && <span className="tm-muted small"> · {p.note}</span>}
-                    {boss && <button type="button" className="tm-link small" onClick={() => setEditing(p)}>Edit</button>}
+      {weeks.map((days, i) => {
+        const worked = days.filter((d) => d.punches.length > 0).reverse()
+        return (
+          <div key={i}>
+            <h2 className="sc-h">
+              Week {i + 1} <small className="mg-sum">{rangeLabel(days.map((d) => d.date))} · {formatHours(days.reduce((sum, d) => sum + d.minutes, 0))} hrs</small>
+            </h2>
+            {worked.length === 0 && <p className="tm-muted">No punches this week.</p>}
+            {worked.map((d) => {
+              const date = fromKey(d.date)
+              return (
+                <div key={d.date} className="sc-row hr-day mh-day">
+                  <div className="sc-date">
+                    <small>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</small>
+                    <b>{date.getDate()}</b>
                   </div>
-                ))}
-              </div>
-              <span className="tm-dayh">{d.minutes ? formatHours(d.minutes) : ''}</span>
-            </div>
-          ))}
-          {boss && (
-            <button type="button" className="tm-link small mt-2" onClick={() => setEditing({ employeeId: employee.id, clockIn: timeInputToIso(days[0].date, '08:00'), clockOut: timeInputToIso(days[0].date, '14:00'), note: '', isNew: true })}>
-              + Add a missing punch
-            </button>
-          )}
-        </section>
-      ))}
+                  <div className="sc-body">
+                    {d.punches.map((p) => (
+                      <div key={p.id} className="mh-punch">
+                        <span className="hr-times">
+                          {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : <i>still in</i>}
+                          {p.approvedAt && <span className="tm-ok-mark" title={`Approved by ${p.approvedBy ?? ''}`}> ✓</span>}
+                          {p.editedBy && <span className="tm-edited" title={`Fixed by ${p.editedBy}`}>fixed</span>}
+                        </span>
+                        <div className="tm-spots">
+                          {/* A time a manager typed in has no location; don't call it missing. */}
+                          {(p.inSpot || !p.editedBy) && <SpotTag spot={p.inSpot} shop={data.shop} prefix="In: " />}
+                          {p.clockOut && (p.outSpot || !p.editedBy) && <SpotTag spot={p.outSpot} shop={data.shop} prefix="Out: " />}
+                        </div>
+                        {p.note && <small>{p.note}</small>}
+                        {boss && <button type="button" className="mh-edit" onClick={() => setEditing(p)}>Edit</button>}
+                      </div>
+                    ))}
+                  </div>
+                  <span className="sc-hrs hr-total">{d.minutes ? formatHours(d.minutes) : ''}</span>
+                </div>
+              )
+            })}
+            {boss && (
+              <button type="button" className="mh-add" onClick={() => setEditing({ employeeId: employee.id, clockIn: timeInputToIso(days[0].date, '08:00'), clockOut: timeInputToIso(days[0].date, '14:00'), note: '', isNew: true })}>
+                + Add a missing punch
+              </button>
+            )}
+          </div>
+        )
+      })}
 
       <Paycheck employee={employee} pay={pay} hours={hours} isMe={isMe} />
       {editing && <PunchEditor punch={editing} data={data} onClose={() => setEditing(null)} />}

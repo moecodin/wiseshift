@@ -1228,3 +1228,15 @@ a.tm-spot:hover {
 .mg-shift small { margin-left: auto; }
 .mg-add { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px dashed var(--line); background: none; color: var(--muted); font-size: 22px; line-height: 1; }
 
+/* ---------- Manager hours (phone) ---------- */
+.hr-hero .hr-ot { color: #f6d580; font-size: inherit; }
+.mh-day { align-items: flex-start; }
+.mh-punch + .mh-punch { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.mh-punch .tm-spots { margin-top: 2px; }
+.mh-edit { margin-top: 4px; min-height: 32px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: none; color: var(--ink); font-size: 13px; font-weight: 700; }
+.mh-add { width: 100%; min-height: 44px; margin: 0 0 8px; border: 1px dashed var(--line); border-radius: 20px; background: none; color: var(--muted); font-weight: 700; }
+@media (max-width: 767px) {
+  .hr-seg { width: 100%; }
+  .hr-seg button { flex: 1; }
+}
+
