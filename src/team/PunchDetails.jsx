@@ -62,6 +62,8 @@ export default function PunchDetails({ punch: start, data, onClose }) {
     const problem = await data.actions.approvePunches([punch.id], yes)
     setBusy(false)
     if (problem) setError(problem)
+    // Approving is the end of the job, so the pop-up closes (Unapprove stays open).
+    else if (yes) onClose()
   }
 
   if (editing) return <PunchEditor punch={punch} data={data} onClose={() => setEditing(false)} />
