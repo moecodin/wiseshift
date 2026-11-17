@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, fromKey } from '../lib/dates.js'
 import { formatHours, moveDays, scheduleWeekOf, shiftMinutes } from './paycheck.js'
-import { clockTime, dayLabel, fromTimeInput, offOn, rangeLabel, scheduleOnly, shiftTimes, toTimeInput, useNow } from './format.js'
+import { clockTime, dayLabel, fromTimeInput, offOn, rangeLabel, shiftTimes, toTimeInput, useNow } from './format.js'
 import { rangeName, say } from './words.js'
-import MySchedule, { tagClass } from './MySchedule.jsx'
-import Avatar from './Avatar.jsx'
+import MySchedule from './MySchedule.jsx'
+import WeekGrid from './WeekGrid.jsx'
+import DayTimeline from './DayTimeline.jsx'
+import { loadSpan, saveSpan } from './viewPref.js'
 import DayStrip from './DayStrip.jsx'
-import RoleBadge from './RoleBadge.jsx'
-import { activeCover } from './CoverUI.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -17,7 +17,13 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
   // Employees start on their own shifts; managers on the whole-team grid.
   const [view, setView] = useState(boss ? 'everyone' : 'mine')
   const [editing, setEditing] = useState(null)
-  const [span, setSpan] = useState('day') // manager on a phone: one day of cards, or the whole week grid
+  // Manager on a phone: the day timeline or the week grid. The last choice is remembered.
+  const [span, setSpan] = useState(loadSpan)
+  const changeSpan = (next) => {
+    setSpan(next)
+    saveSpan(next)
+  }
+  const [pickedDay, setPickedDay] = useState(null)
   const [message, setMessage] = useState('')
   const now = useNow()
   const today = dateKey(now)
@@ -78,69 +84,8 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       ) : view === 'everyone' ? (
         <>
-        <ManagerDay span={span} onSpan={setSpan} flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} people={people} shifts={shifts} onEdit={setEditing} />
-        <div className={`tm-gridwrap mg-grid ${span === 'week' ? 'show-phone' : ''}`}>
-          <table className="tm-grid">
-            <thead>
-              <tr>
-                <th scope="col">{rangeLabel(week)}</th>
-                {week.map((d) => (
-                  <th key={d} scope="col" className={d === today ? 'today' : ''}>
-                    <span className="gr-dow">{fromKey(d).toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                    <span className="gr-date">{fromKey(d).getDate()}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {people.map((person) => {
-                const theirs = shifts.filter((s) => s.employeeId === person.id)
-                return (
-                  <tr key={person.id} className={person.id === me.id ? 'me' : ''}>
-                    <th scope="row">
-                      <div className="gr-person">
-                        <Avatar employee={person} size={34} />
-                        <div>
-                          <b>
-                            {person.name}
-                            {boss && person.id !== me.id && !scheduleOnly(person) && <SeenTick shifts={theirs} seenAt={data.seenById?.[person.id]} ready={data.seenById != null} />}
-                          </b>
-                          <small>{person.position}</small>
-                          <small className="tm-hrs">{formatHours(theirs.reduce((sum, s) => sum + shiftMinutes(s), 0))} hrs</small>
-                        </div>
-                      </div>
-                    </th>
-                    {week.map((d) => {
-                      const dayShifts = theirs.filter((s) => s.date === d)
-                      const off = offOn(data.teamOff, person.id, d)
-                      return (
-                        <td key={d} className={d === today ? 'today' : ''}>
-                          {off && <div className="tm-off">Time off</div>}
-                          {dayShifts.map((s) => (
-                            <ShiftBox key={s.id} cover={activeCover(data.cover, s.id)} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={boss ? () => setEditing(s) : undefined} />
-                          ))}
-                          {boss && (
-                            <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => setEditing({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>
-                              +
-                            </button>
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                )
-              })}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th scope="row">Hours</th>
-                {week.map((d) => (
-                  <td key={d}>{formatHours(shifts.filter((s) => s.date === d).reduce((sum, s) => sum + shiftMinutes(s), 0))}</td>
-                ))}
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <ManagerDay span={span} onSpan={changeSpan} picked={pickedDay} onPick={setPickedDay} flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} shifts={shifts} onEdit={setEditing} />
+        <WeekGrid className={`mg-grid ${span === 'week' ? 'show-phone' : ''}`} data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable showSeen flash={flash} onEdit={setEditing} onPickDay={(d) => { setPickedDay(d); changeSpan('day') }} />
         </>
       ) : (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
@@ -151,19 +96,12 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
   )
 }
 
-// Manager's phone view of the whole team: pick a day on the strip, then see one
-// card per person with their shifts (tap a shift to change it, + to add one).
-// Wide screens show the grid above instead (see .mg-phone / .mg-grid in team.css).
-function ManagerDay({ span, onSpan, view, onView, data, me, week, today, people, shifts, flash, onEdit }) {
-  const [picked, setPicked] = useState(null)
+// Manager's phone view of the whole team: pick a day on the strip, then see that day as a
+// timeline (tap a bar to change a shift, + to add one). "Week" shows the week grid instead.
+// Wide screens always show the grid (see .mg-phone / .mg-grid in team.css).
+function ManagerDay({ span, onSpan, picked, onPick, view, onView, data, me, week, today, shifts, flash, onEdit }) {
   const selected = week.includes(picked) ? picked : week.includes(today) ? today : week[0]
-  const presets = data.settings?.shiftPresets
-  const roles = data.settings?.roles
-  const dayShifts = shifts.filter((s) => s.date === selected)
-  const dayHours = dayShifts.reduce((sum, s) => sum + shiftMinutes(s), 0)
-  const working = new Set(dayShifts.map((s) => s.employeeId)).size
-  const heading = selected === today ? 'Today' : fromKey(selected).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
-  const blank = (person) => ({ employeeId: person.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })
+  const blank = () => ({ employeeId: me.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })
   return (
     <div className="tm-narrow mg-phone">
       <div className="sc-toggle" role="group" aria-label="Whose shifts">
@@ -178,7 +116,7 @@ function ManagerDay({ span, onSpan, view, onView, data, me, week, today, people,
       <DayStrip days={week} selected={selected} renderDay={(d) => {
           const any = shifts.some((s) => s.date === d)
           return (
-            <button key={d} type="button" className={`sc-day ${d === selected ? 'on' : ''}`} aria-pressed={d === selected} onClick={() => setPicked(d)}>
+            <button key={d} type="button" className={`sc-day ${d === selected ? 'on' : ''}`} aria-pressed={d === selected} onClick={() => onPick(d)}>
               <span>{fromKey(d).toLocaleDateString('en-US', { weekday: 'narrow' }).toUpperCase()}</span>
               <b>{fromKey(d).getDate()}</b>
               <i className={any ? 'dot' : ''} />
@@ -186,67 +124,10 @@ function ManagerDay({ span, onSpan, view, onView, data, me, week, today, people,
           )
         }} />
       <div key={selected} className="sc-fade">
-      <h2 className="sc-h">{heading} <small className="mg-sum">{working} working · {formatHours(dayHours)} hrs</small></h2>
-      {people.map((person) => {
-        const theirs = shifts.filter((s) => s.employeeId === person.id)
-        const mine = dayShifts.filter((s) => s.employeeId === person.id)
-        const off = offOn(data.teamOff, person.id, selected)
-        return (
-          <div key={person.id} className={`sc-row person mg-person ${person.id === me.id ? 'me' : ''} ${!mine.length ? 'free' : ''}`}>
-            <Avatar employee={person} size={42} />
-            <div className="sc-body">
-              <b>
-                {person.name}{person.id === me.id ? ' (you)' : ''}
-                {person.id !== me.id && !scheduleOnly(person) && <SeenTick shifts={theirs} seenAt={data.seenById?.[person.id]} ready={data.seenById != null} />}
-              </b>
-              {off && <small>Time off</small>}
-              {mine.map((s) => (
-                <button key={s.id} type="button" className={`mg-shift ${s.published ? '' : 'draft'} ${flash.has(s.id) ? 'flash' : ''}`} onClick={() => onEdit(s)}>
-                  <span className="sc-time">{shiftTimes(s)}</span>
-                  {s.title && <span className={tagClass(s.title, presets)}>{s.title}</span>}
-                  <RoleBadge role={s.role} roles={roles} />
-                  {activeCover(data.cover, s.id) && <span className="cv-tag">cover?</span>}
-                  {!s.published && <small>Draft</small>}
-                </button>
-              ))}
-              {!mine.length && !off && <small>Off · {person.position}</small>}
-            </div>
-            <button type="button" className="mg-add" aria-label={`Add a shift for ${person.name}`} onClick={() => onEdit(blank(person))}>+</button>
-          </div>
-        )
-      })}
+        <DayTimeline mode="manager" data={data} me={me} date={selected} today={today} lang="en" flash={flash} onEdit={onEdit} onAdd={() => onEdit(blank())} />
       </div>
       </>}
     </div>
-  )
-}
-
-// Managers: has this person opened the app since their shifts this week were
-// posted? ✓ gray = posted, not yet; ✓✓ blue = yes (Humanity's "logged in since
-// shift was posted"). Tap for the times. Same look in every theme.
-function SeenTick({ shifts, seenAt, ready }) {
-  const [open, setOpen] = useState(false)
-  const posted = shifts.filter((s) => s.published && s.postedAt).map((s) => s.postedAt).sort().at(-1)
-  if (!ready || !posted) return null
-  const seen = Boolean(seenAt && new Date(seenAt) >= new Date(posted))
-  const when = (iso) => new Date(iso).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
-  const label = seen ? `Seen: logged in since shift was posted` : 'Posted, not logged in since'
-  return (
-    <>
-      <button type="button" className={`rp-seen ${seen ? 'seen' : ''}`} aria-label={label} title={label} aria-expanded={open} onClick={() => setOpen(!open)}>
-        <svg viewBox="0 0 18 12" aria-hidden="true">
-          {seen && <path d="M1 6.5l3 3L10.5 3" />}
-          <path d={seen ? 'M6.5 8.5l1 1L14 3' : 'M4 6.5l3 3L13.5 3'} />
-        </svg>
-      </button>
-      {open && (
-        <span className="rp-seen-note" role="status">
-          {seen ? <>✓✓ Logged in since shift was posted</> : <>✓ Not logged in since shift was posted</>}
-          <span>Posted {when(posted)}</span>
-          <span>Last opened the app: {seenAt ? when(seenAt) : 'never'}</span>
-        </span>
-      )}
-    </>
   )
 }
 
@@ -265,21 +146,6 @@ export function WeekTotal({ data, me, week, lang, onClick }) {
       <span className="text-end">
         <b>{formatHours(minutes)} {w.hrs}</b>
       </span>
-    </Tag>
-  )
-}
-
-function ShiftBox({ shift, roles, presets, flash, cover, onClick }) {
-  const Tag = onClick ? 'button' : 'div'
-  // The shift type's color (Open, Close…) tints the box; no type means a plain cream box.
-  const tint = shift.title ? tagClass(shift.title, presets).match(/t\d/)?.[0] : ''
-  return (
-    <Tag type={onClick ? 'button' : undefined} className={`tm-shift ${tint} ${shift.published ? '' : 'draft'} ${flash ? 'flash' : ''}`} onClick={onClick}>
-      <b>{shiftTimes(shift)}</b>
-      <span className="gr-meta">{shift.title ? `${shift.title} · ` : ''}{formatHours(shiftMinutes(shift))} hrs</span>
-      {shift.role && <RoleBadge role={shift.role} roles={roles} />}
-      {cover && <span className="cv-tag">cover?</span>}
-      {shift.note && <span className="tm-shift-note">{shift.note}</span>}
     </Tag>
   )
 }
