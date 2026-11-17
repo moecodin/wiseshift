@@ -15,9 +15,9 @@ const WORDS = {
     mgr: (n) => `Notes from staff (${n})`, gotIt: 'Got it', fix: 'Add the missing punch', for: 'for',
   },
   es: {
-    add: 'Agregar una nota', title: 'Nota para tu gerente', hint: '¿Olvidaste marcar entrada? ¿Trabajas fuera de la tienda? Díselo a tu gerente aquí. Aparece en su pantalla de Hoy.',
-    when: 'Qué día', today: 'Hoy', yesterday: 'Ayer', what: 'Qué pasó', note: 'Tu nota', placeholder: 'Llegué a las 8:00 pero olvidé marcar entrada.', send: 'Enviar nota', cancel: 'Cancelar',
-    tags: { forgotIn: 'Olvidé marcar entrada', forgotOut: 'Olvidé marcar salida', outside: 'Trabajo fuera de la tienda', other: 'Otra cosa' },
+    add: 'Agregar una nota', title: 'Nota para tu gerente', hint: '¿Olvidaste registrar tu entrada? ¿Trabajas fuera de la tienda? Díselo a tu gerente aquí. Aparece en su pantalla de Hoy.',
+    when: 'Qué día', today: 'Hoy', yesterday: 'Ayer', what: 'Qué pasó', note: 'Tu nota', placeholder: 'Llegué a las 8:00 pero olvidé registrar mi entrada.', send: 'Enviar nota', cancel: 'Cancelar',
+    tags: { forgotIn: 'Olvidé la entrada', forgotOut: 'Olvidé la salida', outside: 'Trabajo fuera de la tienda', other: 'Otra cosa' },
     yours: 'Tus notas', seen: 'Vista', sent: 'Enviada', remove: 'Quitar',
     mgr: (n) => `Notas del personal (${n})`, gotIt: 'Entendido', fix: 'Agregar el registro que falta', for: 'para',
   },
