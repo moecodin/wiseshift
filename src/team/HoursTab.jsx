@@ -10,6 +10,9 @@ import SpotTag from './SpotTag.jsx'
 import MyHours from './MyHours.jsx'
 import { useFeatures } from './features.js'
 import ExportHours from './ExportHours.jsx'
+import PunchDetails from './PunchDetails.jsx'
+import ReviewList from './ReviewList.jsx'
+import { punchStatus } from './review.js'
 
 // Hours for a pay period (Friday to Thursday, two weeks) and the paycheck
 // estimate. Managers can look at anyone, fix punches, see everyone's timesheet
@@ -21,23 +24,29 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
   const [exporting, setExporting] = useState(false)
   const [who, setWho] = useState(me.id)
   const current = payPeriodOf(now)[0] === period[0]
+  // Managers can also review (approve) everyone's punches here, like the Review list on Today.
+  const reviewing = boss && view === 'review'
+  const toReview = boss ? data.punches.filter((p) => punchStatus(p) === 'pending').length : 0
 
   return (
     <div>
       <div className="tm-toolbar">
+        {!reviewing && (
         <div className="tm-weeknav">
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, -1))} aria-label="Pay period before">‹</button>
           <b>{rangeLabel(period)}</b>
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, 1))} aria-label="Pay period after">›</button>
           {!current && <button type="button" className="btn btn-link btn-sm" onClick={() => onPeriod(payPeriodOf(new Date()))}>This pay period</button>}
         </div>
-        {boss && f.timesheets && (
+        )}
+        {boss && (
           <div className="tm-seg hr-seg" role="group" aria-label="Show">
             <button type="button" aria-pressed={view === 'person'} onClick={() => setView('person')}>One person</button>
-            <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet (everyone)</button>
+            {f.timesheets && <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet (everyone)</button>}
+            <button type="button" aria-pressed={view === 'review'} onClick={() => setView('review')}>Review{toReview > 0 && <span className="hr-count">{toReview}</span>}</button>
           </div>
         )}
-        {boss && f.timesheets && (
+        {boss && f.timesheets && !reviewing && (
           <button type="button" className="btn btn-brand btn-sm ex-btn" onClick={() => setExporting(true)}>Export hours…</button>
         )}
         {boss && view === 'person' && (
@@ -46,7 +55,9 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
           </select>
         )}
       </div>
-      {boss && f.timesheets && view === 'all' ? (
+      {reviewing ? (
+        <div className="tm-narrow desk"><ReviewList data={data} /></div>
+      ) : boss && f.timesheets && view === 'all' ? (
         <Timesheet data={data} period={period} now={now} />
       ) : !boss ? (
         <MyHours data={data} me={me} period={period} now={now} lang={lang} />
@@ -62,10 +73,19 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
 function Person({ data, boss, employee, period, now }) {
   const f = useFeatures()
   const [editing, setEditing] = useState(null)
+  const [details, setDetails] = useState(null)
+  const [approving, setApproving] = useState(false)
   const hours = periodHours(data.punches, employee.id, period, now)
   const pay = data.payById[employee.id]
   const isMe = employee.id === data.me?.id
   const weeks = [hours.byDay.slice(0, 7), hours.byDay.slice(7)]
+  // Finished punches nobody has approved yet: managers approve them here, one at a time or all at once.
+  const pending = hours.byDay.flatMap((d) => d.punches).filter((p) => p.clockOut && !p.approvedAt)
+  const approve = async (ids) => {
+    setApproving(true)
+    await data.actions.approvePunches(ids, true)
+    setApproving(false)
+  }
 
   return (
     <div className="tm-narrow desk hr-grid">
@@ -78,6 +98,12 @@ function Person({ data, boss, employee, period, now }) {
           {hours.overtime > 0 && <> · <span className="hr-ot">Overtime {formatHours(hours.overtime)}</span></>}
         </small>
       </section>
+      {boss && pending.length > 0 && (
+        <div className="mh-pending">
+          <span><b>{pending.length}</b> {pending.length === 1 ? 'punch' : 'punches'} to approve</span>
+          <button type="button" disabled={approving} onClick={() => approve(pending.map((p) => p.id))}>Approve all</button>
+        </div>
+      )}
       {hours.open && <p className="tm-warn">{isMe ? "You're" : `${employee.name} is`} still clocked in, so these hours keep counting.</p>}
       </div>
 
@@ -116,6 +142,8 @@ function Person({ data, boss, employee, period, now }) {
                           {p.clockOut && (p.outSpot || !p.editedBy) && <SpotTag quiet spot={p.outSpot} shop={data.shop} prefix="Out: " />}
                         </div>
                         {p.note && <small>{p.note}</small>}
+                        {boss && p.clockOut && !p.approvedAt && <button type="button" className="mh-approve" disabled={approving} onClick={() => approve([p.id])}>Approve</button>}
+                        {boss && <button type="button" className="mh-edit" onClick={() => setDetails(p)}>Details</button>}
                         {boss && <button type="button" className="mh-edit" onClick={() => setEditing(p)}>Edit</button>}
                       </div>
                     ))}
@@ -139,6 +167,7 @@ function Person({ data, boss, employee, period, now }) {
       {f.payRates && <Paycheck employee={employee} pay={pay} hours={hours} isMe={isMe} />}
       </div>
       {editing && <PunchEditor punch={editing} data={data} onClose={() => setEditing(null)} />}
+      {details && <PunchDetails punch={details} data={data} onClose={() => setDetails(null)} />}
     </div>
   )
 }

@@ -1744,3 +1744,13 @@ button.tl-bar:active { transform: scale(0.96); }
 .nt-flat { cursor: default; margin-top: 8px; }
 .nt-flat:hover { transform: none; }
 .nt-mine h2 { margin-bottom: 4px; }
+
+/* ---------- Approving punches from Hours ---------- */
+.mh-pending { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; padding: 10px 14px; border-radius: 16px; background: #fbebd6; color: #6b4a0b; font-size: 14px; }
+[data-bs-theme='dark'] .mh-pending { background: #54431f; color: #f2d79a; }
+.mh-pending button, .mh-approve { min-height: 34px; padding: 0 16px; border: 0; border-radius: 999px; background: #2f6b5a; color: #fff; font-size: 13px; font-weight: 700; }
+.mh-pending button:disabled, .mh-approve:disabled { opacity: 0.6; }
+.mh-approve { margin-top: 4px; margin-right: 6px; }
+.mh-punch .mh-edit { margin-right: 6px; }
+
+.hr-count { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; background: var(--red, #c8472e); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
