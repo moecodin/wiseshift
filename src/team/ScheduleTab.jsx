@@ -83,7 +83,10 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
               <tr>
                 <th scope="col">{rangeLabel(week)}</th>
                 {week.map((d) => (
-                  <th key={d} scope="col" className={d === today ? 'today' : ''}>{dayLabel(d)}</th>
+                  <th key={d} scope="col" className={d === today ? 'today' : ''}>
+                    <span className="gr-dow">{fromKey(d).toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                    <span className="gr-date">{fromKey(d).getDate()}</span>
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -93,10 +96,17 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
                 return (
                   <tr key={person.id} className={person.id === me.id ? 'me' : ''}>
                     <th scope="row">
-                      {person.name}
-                      {boss && person.id !== me.id && !scheduleOnly(person) && <SeenTick shifts={theirs} seenAt={data.seenById?.[person.id]} ready={data.seenById != null} />}
-                      <small>{person.position}</small>
-                      <small className="tm-hrs">{formatHours(theirs.reduce((sum, s) => sum + shiftMinutes(s), 0))} hrs</small>
+                      <div className="gr-person">
+                        <Avatar employee={person} size={34} />
+                        <div>
+                          <b>
+                            {person.name}
+                            {boss && person.id !== me.id && !scheduleOnly(person) && <SeenTick shifts={theirs} seenAt={data.seenById?.[person.id]} ready={data.seenById != null} />}
+                          </b>
+                          <small>{person.position}</small>
+                          <small className="tm-hrs">{formatHours(theirs.reduce((sum, s) => sum + shiftMinutes(s), 0))} hrs</small>
+                        </div>
+                      </div>
                     </th>
                     {week.map((d) => {
                       const dayShifts = theirs.filter((s) => s.date === d)
@@ -105,7 +115,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
                         <td key={d} className={d === today ? 'today' : ''}>
                           {off && <div className="tm-off">Time off</div>}
                           {dayShifts.map((s) => (
-                            <ShiftBox key={s.id} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} position={person.position} onClick={boss ? () => setEditing(s) : undefined} />
+                            <ShiftBox key={s.id} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={boss ? () => setEditing(s) : undefined} />
                           ))}
                           {boss && (
                             <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => setEditing({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>
@@ -250,15 +260,15 @@ export function WeekTotal({ data, me, week, lang, onClick }) {
   )
 }
 
-function ShiftBox({ shift, position, roles, flash, onClick }) {
+function ShiftBox({ shift, roles, presets, flash, onClick }) {
   const Tag = onClick ? 'button' : 'div'
+  // The shift type's color (Open, Close…) tints the box; no type means a plain cream box.
+  const tint = shift.title ? tagClass(shift.title, presets).match(/t\d/)?.[0] : ''
   return (
-    <Tag type={onClick ? 'button' : undefined} className={`tm-shift ${shift.published ? '' : 'draft'} ${flash ? 'flash' : ''}`} onClick={onClick}>
-      {shift.title && <b>{shift.title}</b>}
-      {position && <span>{position}</span>}
+    <Tag type={onClick ? 'button' : undefined} className={`tm-shift ${tint} ${shift.published ? '' : 'draft'} ${flash ? 'flash' : ''}`} onClick={onClick}>
+      <b>{shiftTimes(shift)}</b>
+      <span className="gr-meta">{shift.title ? `${shift.title} · ` : ''}{formatHours(shiftMinutes(shift))} hrs</span>
       {shift.role && <RoleBadge role={shift.role} roles={roles} />}
-      <span>{shiftTimes(shift)}</span>
-      <span>{formatHours(shiftMinutes(shift))} hrs</span>
       {shift.note && <span className="tm-shift-note">{shift.note}</span>}
     </Tag>
   )

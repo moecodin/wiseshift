@@ -1364,3 +1364,48 @@ a.tm-spot:hover {
   .live-dot::after { animation: none; display: none; }
   .mt-fold, .mt-fold.leaving .mt-card { transition: none; }
 }
+
+/* ---------- Week grid on a computer (warm look) ---------- */
+.tm-gridwrap { border-radius: 22px; border-color: var(--line); box-shadow: 0 1px 0 rgba(90, 60, 30, 0.04); }
+.tm-grid { border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.tm-grid th, .tm-grid td { border: 0; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 8px; }
+.tm-grid th:last-child, .tm-grid td:last-child { border-right: 0; }
+.tm-grid tbody tr:last-child th, .tm-grid tbody tr:last-child td { border-bottom: 0; }
+.tm-grid thead th { background: var(--head); color: var(--muted); padding: 10px 6px; font-weight: 600; }
+.tm-grid thead th:first-child { font-family: 'Fraunces', Georgia, serif; font-size: 14px; color: var(--ink); text-align: left; padding-left: 14px; }
+.gr-dow { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.gr-date { display: block; font-size: 20px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+.tm-grid thead th.today { background: var(--navy); }
+.tm-grid thead th.today .gr-dow, .tm-grid thead th.today .gr-date { color: #fff; }
+.tm-grid td.today { background: var(--edit-bg); }
+.tm-grid tbody th { padding: 10px 12px; }
+.tm-grid tr.me th { box-shadow: none; }
+.tm-grid tr.me th .gr-person b::after { content: 'you'; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--head); color: var(--muted); font-size: 11px; font-weight: 700; }
+.gr-person { display: flex; align-items: center; gap: 10px; }
+.gr-person .tm-avatar { flex: none; }
+.gr-person b { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 14px; }
+.gr-person small { display: block; }
+.tm-grid tfoot th, .tm-grid tfoot td { border-bottom: 0; color: var(--muted); }
+.tm-shift { border: 1px solid transparent; border-radius: 14px; padding: 8px 10px; margin-bottom: 6px; background: var(--head); color: var(--ink); display: flex; flex-direction: column; gap: 3px; align-items: flex-start; transition: transform 0.12s ease, box-shadow 0.15s ease; }
+.tm-shift b { font-size: 13px; }
+.tm-shift .gr-meta { font-size: 12px; opacity: 0.85; }
+button.tm-shift:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(90, 60, 30, 0.14); }
+.tm-shift.draft { border: 1px dashed currentColor; background: transparent; }
+.tm-shift.t0 { background: #e3efe8; color: #24574a; } .tm-shift.t1 { background: #f8ddd6; color: #8e2f1d; }
+.tm-shift.t2 { background: #fbebd6; color: #6b4a0b; } .tm-shift.t3 { background: #dfe9f8; color: #264a85; }
+.tm-shift.t4 { background: #eadff6; color: #55318a; } .tm-shift.t5 { background: #f8dfe9; color: #8a2a55; }
+.tm-shift.t6 { background: #d9eef0; color: #1f5e66; } .tm-shift.t7 { background: #e9e4dc; color: #4f463c; }
+.tm-shift.draft[class*=' t'] { background: transparent; }
+[data-bs-theme='dark'] .tm-shift { background: var(--head); color: var(--ink); border-color: transparent; }
+[data-bs-theme='dark'] .tm-shift.t0 { background: #2b4a40; color: #bfe6d6; } [data-bs-theme='dark'] .tm-shift.t1 { background: #55302a; color: #f5c4b8; }
+[data-bs-theme='dark'] .tm-shift.t2 { background: #54431f; color: #f2d79a; } [data-bs-theme='dark'] .tm-shift.t3 { background: #2c3f61; color: #c3d6f5; }
+[data-bs-theme='dark'] .tm-shift.t4 { background: #44335f; color: #dccaf3; } [data-bs-theme='dark'] .tm-shift.t5 { background: #5a2f44; color: #f3c8da; }
+[data-bs-theme='dark'] .tm-shift.t6 { background: #254b50; color: #b9e2e7; } [data-bs-theme='dark'] .tm-shift.t7 { background: #484136; color: #e0d8cb; }
+[data-bs-theme='dark'] .tm-shift.draft { background: transparent; }
+.tm-shift .rl-badge { background: rgba(255, 255, 255, 0.65); border-color: transparent; color: #2a2420; }
+[data-bs-theme='dark'] .tm-shift .rl-badge { background: rgba(0, 0, 0, 0.28); color: var(--ink); }
+.tm-off { border-radius: 14px; padding: 6px 10px; border-style: dashed; background: none; }
+.tm-add { border-radius: 14px; min-height: 30px; }
+.tm-grid thead th:first-child, .tm-grid tbody th { width: 190px; }
+.tm-grid td.today { background: color-mix(in srgb, var(--navy) 8%, var(--paper)); }
+
