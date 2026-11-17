@@ -1448,6 +1448,16 @@ button.tm-shift:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba
 .cv-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px dashed currentColor; font-size: 11px; font-weight: 700; line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) { .cv-take { transition: none; } }
 
+/* Cover step 2: choices, Accept / Not now, labels */
+.cv-choice { display: block; width: 100%; text-align: left; margin-bottom: 6px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); font-size: 14px; }
+.cv-choice[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.cv-choice[aria-pressed='true'] .rl-badge { background: var(--paper); }
+.cv-acts { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.cv-pass { min-height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: none; color: var(--muted); font-weight: 700; font-size: 13px; }
+.cv-lab { display: inline-block; min-width: 56px; margin-right: 6px; font-weight: 700; color: var(--muted); }
+.mt-big .cv-lab { display: block; font-size: 12px; font-weight: 700; }
+.cv-status p + .cv-btn { margin-top: 6px; }
+
 /* ---------- Pop-ups: fade and rise in, fade out, bottom sheet on phones ---------- */
 .pu-root .modal-content { animation: pu-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
 .pu-root .modal-backdrop { animation: pu-fade 0.2s ease both; }
