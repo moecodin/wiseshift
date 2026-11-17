@@ -15,6 +15,7 @@ import NotifySettings from './NotifySettings.jsx'
 import SettingsPanel, { LocationNotice } from './SettingsPanel.jsx'
 import { noticeAcked } from './settings.js'
 import { TABS_ES, themeById } from './themes/index.js'
+import { FeaturesContext, featuresOf } from './features.js'
 import { say } from './words.js'
 import MoreTab from './MoreTab.jsx'
 import { MORE } from './more.js'
@@ -111,7 +112,11 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   const boss = Boolean(me?.isManager)
   // The Team page is for managers only; if the person changes to an employee while
   // on it (sample "View as"), fall back to More instead of showing a blank page.
-  const page = tab === 'people' && !boss ? 'more' : tab
+  // Which parts of the app this business uses (Settings → Features). A tab or page for a
+  // feature that is off is skipped, even if someone opens an old link to it.
+  const features = featuresOf(data.settings)
+  const tabs = features.timeClock ? TABS : TABS.filter((t) => t !== 'hours')
+  const page = tab === 'people' && !boss ? 'more' : tab === 'hours' && !features.timeClock ? 'clock' : tab === 'off' && !features.timeOff ? 'more' : tab
   const inMore = MORE.some((m) => m.id === page)
   // Screens slide in from the side the tab is on: toward the right for tabs further
   // along the bar (and pages opened from More), toward the left going back.
@@ -132,9 +137,9 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     place()
     window.addEventListener('resize', place)
     return () => window.removeEventListener('resize', place)
-  }, [page, inMore, me?.id, data.lang, boss])
+  }, [page, inMore, me?.id, data.lang, boss, tabs.length])
   const lang = data.lang ?? 'en'
-  const pending = boss ? data.timeOff.filter((t) => t.status === 'pending').length : 0
+  const pending = boss && features.timeOff ? data.timeOff.filter((t) => t.status === 'pending').length : 0
   // Note that I opened the app (on open and whenever it comes back on screen,
   // at most every 2 minutes), for the managers' ✓✓ on the Schedule.
   const markSeen = useRef(data.actions.markSeen)
@@ -186,7 +191,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   } else {
     const shared = { data, me, boss, look, lang }
     // New York says to have everyone acknowledge that clocking in records their location.
-    const needsNotice = data.settingsReady && !noticeAcked(data.privateById[me.id], data.settings)
+    const needsNotice = features.location && data.settingsReady && !noticeAcked(data.privateById[me.id], data.settings)
     const tabNames = lang === 'es' ? TABS_ES : look.tabs
     body = (
       <>
@@ -210,6 +215,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   }
 
   return (
+    <FeaturesContext.Provider value={features}>
     <div className="tm">
       <header className="tm-head">
         <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /></a>
@@ -249,10 +255,10 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       {me && (
         <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
           {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
-          {TABS.map((id) => (
+          {tabs.map((id) => (
             <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => go(id)}>
-              <TabIcon id={id === 'clock' && boss ? 'today' : id} />
-              <span>{id === 'clock' && boss ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
+              <TabIcon id={id === 'clock' ? 'today' : id} />
+              <span>{id === 'clock' ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
               {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
             </button>
           ))}
@@ -271,6 +277,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       )}
       {notifying && <NotifySettings data={data} boss={boss} onClose={() => setNotifying(false)} />}
     </div>
+    </FeaturesContext.Provider>
   )
 }
 

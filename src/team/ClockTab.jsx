@@ -4,6 +4,9 @@ import { formatHours, payPeriodOf, periodHours, punchMinutes, scheduleWeekOf } f
 import { dayLabel, firstName, offOn, scheduleOnly, shiftTimes, useNow } from './format.js'
 import { currentSpot, streetAddress } from './location.js'
 import RoleBadge from './RoleBadge.jsx'
+import { OpenShifts } from './CoverUI.jsx'
+import { useFeatures } from './features.js'
+import { Countdown, MyRequests, TodayTeam } from './TodayExtras.jsx'
 import SpotTag from './SpotTag.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 import ReviewList from './ReviewList.jsx'
@@ -39,6 +42,7 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
   // Every second, for the themes' running timers.
   const now = useNow(1000)
   const w = say(lang)
+  const f = useFeatures()
   const today = dateKey(now)
   const [busy, setBusy] = useState('') // '', 'locating' or 'saving'
   const [error, setError] = useState('')
@@ -61,9 +65,10 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
     setBusy('locating')
     setError('')
     setNoSpot('')
-    const where = await currentSpot()
+    // Without the location feature the punch is saved with no place.
+    const where = f.location ? await currentSpot() : {}
     // The street too, for the punch's details (skipped if it takes too long).
-    if (!where.error) where.address = await streetAddress(where)
+    if (f.location && !where.error) where.address = await streetAddress(where)
     setBusy('saving')
     const problem = open ? await data.actions.clockOut(where) : await data.actions.clockIn(where)
     setBusy('')
@@ -73,13 +78,18 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
 
   return (
     <div className="tm-narrow">
+      {f.timeClock && (
       <section className="tm-card tm-clock">
         <ClockHero lang={lang} open={open} busy={busy} onPunch={punch} now={now} data={data} me={me} staleOpen={staleOpen} todayMinutes={todayMinutes} onGoTo={onGoTo} />
         {staleOpen && <p className="tm-warn">{w.stale(dayName(dateKey(new Date(open.clockIn)), lang))}</p>}
         {noSpot && <p className="tm-warn">{noSpot === 'denied' ? w.noSpotDenied : w.noSpot}</p>}
         {error && <p className="tm-error" role="alert">{error}</p>}
-        <p className="tm-muted small mt-3 mb-0">{w.locationNote}</p>
+        {!boss && <Countdown data={data} me={me} now={now} open={open} lang={lang} />}
+        {f.location && <p className="tm-muted small mt-3 mb-0">{w.locationNote}</p>}
       </section>
+      )}
+
+      {!boss && <OpenShifts data={data} me={me} lang={lang} />}
 
       <section className="tm-card">
         <h2>{lang === 'es' ? 'Tu día' : 'Your day'}</h2>
@@ -107,18 +117,25 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
             ))}
           </ul>
         )}
+        {!f.timeClock && !boss && <Countdown data={data} me={me} now={now} open={undefined} lang={lang} />}
       </section>
+
+      {!boss && <TodayTeam data={data} me={me} today={today} now={now} lang={lang} onMore={() => onGoTo('schedule')} />}
+
+      {!boss && <MyRequests data={data} me={me} now={now} lang={lang} onGoTo={onGoTo} />}
 
       <NextShifts data={data} me={me} now={now} lang={lang} onMore={() => onGoTo('schedule')} />
 
       <WeekTotal data={data} me={me} lang={lang} week={scheduleWeekOf(now)} onClick={() => onGoTo('schedule')} />
 
+      {f.timeClock && (
       <button type="button" className="tm-card tm-summary" onClick={() => onGoTo('hours')}>
         <span>
           {w.workedPeriod} <small>{rangeName(period, lang)}</small>
         </span>
         <b>{formatHours(hours.total)} {w.hrs}</b>
       </button>
+      )}
 
       {boss && <WhoIsIn data={data} now={now} today={today} />}
     </div>
@@ -157,7 +174,7 @@ function NextShifts({ data, me, now, lang, onMore }) {
           </div>
         )
       })}
-      <button type="button" className="tm-link small mt-1" onClick={onMore}>{w.seeSchedule}</button>
+      <button type="button" className="td-more" onClick={onMore}>{w.seeSchedule}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg></button>
     </section>
   )
 }

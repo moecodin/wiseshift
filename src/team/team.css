@@ -1569,6 +1569,30 @@ button.tl-bar:active { transform: scale(0.96); }
 .gr-dayhead { display: block; width: 100%; border: 0; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .tl-bar.flash, button.tl-bar { animation: none; transition: none; } }
 
+/* ---------- Staff Today screen: countdown, who is working, my requests ---------- */
+.td-countdown { margin: 8px 0 0; font-size: 14px; font-weight: 600; color: var(--muted); }
+.td-team ul { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 8px 0 6px; padding: 0; list-style: none; }
+.td-team li { display: grid; grid-template-columns: auto; justify-items: center; gap: 1px; min-width: 62px; text-align: center; }
+.td-team li b { font-size: 13px; }
+.td-team li small { font-size: 11px; color: var(--muted); max-width: 86px; line-height: 1.25; }
+.td-av { position: relative; display: inline-block; }
+.td-av .live-dot { position: absolute; right: -2px; bottom: -2px; margin: 0; width: 11px; height: 11px; border: 2px solid var(--paper); box-sizing: content-box; }
+.td-req { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 10px 0; border: 0; border-top: 1px solid var(--line); background: none; color: var(--ink); text-align: left; font: inherit; }
+.td-requests h2 + .td-req { border-top: 0; }
+.td-req small { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.td-req b { font-size: 15px; }
+.td-state { flex: none; max-width: 48%; padding: 3px 10px; border-radius: 999px; background: var(--head); color: var(--muted); font-size: 12px; font-weight: 700; text-align: right; }
+.td-state.approved { background: #e3efe8; color: #24574a; }
+.td-state.declined { background: #f8ddd6; color: #8e2f1d; }
+[data-bs-theme='dark'] .td-state.approved { background: #2b4a40; color: #bfe6d6; }
+[data-bs-theme='dark'] .td-state.declined { background: #55302a; color: #f5c4b8; }
+
+/* "See the schedule" style links on the Today screen: a soft pill with an arrow */
+.td-more { display: inline-flex; align-items: center; gap: 4px; min-height: 38px; margin-top: 6px; padding: 0 10px 0 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--head); color: var(--ink); font-size: 14px; font-weight: 700; transition: transform 0.12s ease, background-color 0.15s ease; }
+.td-more svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.td-more:active { transform: scale(0.96); }
+@media (prefers-reduced-motion: reduce) { .td-more { transition: none; } .td-more:active { transform: none; } }
+
 /* ---------- Settings → Features ---------- */
 .ft-presets { display: grid; gap: 8px; margin-bottom: 8px; }
 .ft-preset { display: block; width: 100%; text-align: left; padding: 10px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); color: var(--ink); transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
