@@ -467,15 +467,15 @@ export function useTeamData({ signedIn, email, week, period }) {
       let existing
       if (usingSupabase) {
         const [a, b] = await Promise.all([
-          supabase.from('shifts').select('*').gte('date', fromDays[0]).lte('date', fromDays[6]),
-          supabase.from('shifts').select('*').gte('date', toDays[0]).lte('date', toDays[6]),
+          supabase.from('shifts').select('*').gte('date', fromDays[0]).lte('date', fromDays.at(-1)),
+          supabase.from('shifts').select('*').gte('date', toDays[0]).lte('date', toDays.at(-1)),
         ])
         if (a.error || b.error) return { error: (a.error || b.error).message, copied: 0 }
         source = a.data.map(shiftFromRow)
         existing = b.data.map(shiftFromRow)
       } else {
-        source = sample.shifts.filter((x) => x.date >= fromDays[0] && x.date <= fromDays[6])
-        existing = sample.shifts.filter((x) => x.date >= toDays[0] && x.date <= toDays[6])
+        source = sample.shifts.filter((x) => x.date >= fromDays[0] && x.date <= fromDays.at(-1))
+        existing = sample.shifts.filter((x) => x.date >= toDays[0] && x.date <= toDays.at(-1))
       }
       const same = (a, b) => a.employeeId === b.employeeId && a.date === b.date && a.start === b.start
       const copies = source
