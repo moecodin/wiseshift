@@ -5,13 +5,14 @@ import { datesLabel, scheduleOnly, shiftTimes, useNow } from './format.js'
 import { punchStatus, shiftFor } from './review.js'
 import { PunchEditor } from './HoursTab.jsx'
 import Avatar from './Avatar.jsx'
+import RoleBadge from './RoleBadge.jsx'
 
 const LATE = 15 // minutes after the shift start that "On time" turns into "Late"
 const MISSING_AFTER = 10 // minutes after a shift starts before "hasn't clocked in" shows
 
 const WORDS = {
-  en: { hi: 'Hi', attention: 'Needs your attention', clear: 'All clear. Nothing needs you right now.', notIn: (n) => `${n} hasn't clocked in`, started: (m) => `Shift started ${m} min ago`, call: 'Call', off: 'TIME OFF REQUEST', nobodyElse: 'Nobody else is off those days.', alsoOff: (n) => `Also off: ${n}.`, decline: 'Decline', approve: 'Approve', fix: 'PUNCH TO FIX', neverOut: (t) => `Clocked in ${t} and never clocked out.`, setOut: 'Set the clock-out time', review: (n) => `${n} ${n === 1 ? 'punch' : 'punches'} to review`, reviewSub: 'Approve the ones that look right', open: 'Open', working: 'Working now', clockedIn: (n) => `${n} clocked in`, nobody: 'Nobody is clocked in.', onTime: 'On time', late: 'Late', draft: 'This week is still a draft', changes: (n) => `${n} ${n === 1 ? 'change' : 'changes'} not published`, publish: 'Publish', youIn: "You're clocked in", since: (t) => `Since ${t}`, myClock: 'My clock', inAt: (t) => `In at ${t}`, sched: 'Review all punches', days: (n) => `${n} ${n === 1 ? 'day' : 'days'}` },
-  es: { hi: 'Hola', attention: 'Necesita tu atención', clear: 'Todo en orden. Nada te necesita ahora.', notIn: (n) => `${n} no ha marcado entrada`, started: (m) => `El turno empezó hace ${m} min`, call: 'Llamar', off: 'SOLICITUD DE AUSENCIA', nobodyElse: 'Nadie más falta esos días.', alsoOff: (n) => `También faltan: ${n}.`, decline: 'Rechazar', approve: 'Aprobar', fix: 'REGISTRO POR ARREGLAR', neverOut: (t) => `Marcó entrada a las ${t} y nunca marcó salida.`, setOut: 'Poner la hora de salida', review: (n) => `${n} ${n === 1 ? 'registro' : 'registros'} por revisar`, reviewSub: 'Aprueba los que se vean bien', open: 'Apertura', working: 'Trabajando ahora', clockedIn: (n) => `${n} con entrada`, nobody: 'Nadie ha marcado entrada.', onTime: 'A tiempo', late: 'Tarde', draft: 'Esta semana sigue en borrador', changes: (n) => `${n} ${n === 1 ? 'cambio' : 'cambios'} sin publicar`, publish: 'Publicar', youIn: 'Tienes la entrada marcada', since: (t) => `Desde las ${t}`, myClock: 'Mi reloj', inAt: (t) => `Entrada ${t}`, sched: 'Revisar todos los registros', days: (n) => `${n} ${n === 1 ? 'día' : 'días'}` },
+  en: { coverEyebrow: 'COVER REQUEST', coverLine: (taker, owner) => `${taker} takes ${owner}'s shift`, hi: 'Hi', attention: 'Needs your attention', clear: 'All clear. Nothing needs you right now.', notIn: (n) => `${n} hasn't clocked in`, started: (m) => `Shift started ${m} min ago`, call: 'Call', off: 'TIME OFF REQUEST', nobodyElse: 'Nobody else is off those days.', alsoOff: (n) => `Also off: ${n}.`, decline: 'Decline', approve: 'Approve', fix: 'PUNCH TO FIX', neverOut: (t) => `Clocked in ${t} and never clocked out.`, setOut: 'Set the clock-out time', review: (n) => `${n} ${n === 1 ? 'punch' : 'punches'} to review`, reviewSub: 'Approve the ones that look right', open: 'Open', working: 'Working now', clockedIn: (n) => `${n} clocked in`, nobody: 'Nobody is clocked in.', onTime: 'On time', late: 'Late', draft: 'This week is still a draft', changes: (n) => `${n} ${n === 1 ? 'change' : 'changes'} not published`, publish: 'Publish', youIn: "You're clocked in", since: (t) => `Since ${t}`, myClock: 'My clock', inAt: (t) => `In at ${t}`, sched: 'Review all punches', days: (n) => `${n} ${n === 1 ? 'day' : 'days'}` },
+  es: { coverEyebrow: 'SOLICITUD DE COBERTURA', coverLine: (taker, owner) => `${taker} toma el turno de ${owner}`, hi: 'Hola', attention: 'Necesita tu atención', clear: 'Todo en orden. Nada te necesita ahora.', notIn: (n) => `${n} no ha marcado entrada`, started: (m) => `El turno empezó hace ${m} min`, call: 'Llamar', off: 'SOLICITUD DE AUSENCIA', nobodyElse: 'Nadie más falta esos días.', alsoOff: (n) => `También faltan: ${n}.`, decline: 'Rechazar', approve: 'Aprobar', fix: 'REGISTRO POR ARREGLAR', neverOut: (t) => `Marcó entrada a las ${t} y nunca marcó salida.`, setOut: 'Poner la hora de salida', review: (n) => `${n} ${n === 1 ? 'registro' : 'registros'} por revisar`, reviewSub: 'Aprueba los que se vean bien', open: 'Apertura', working: 'Trabajando ahora', clockedIn: (n) => `${n} con entrada`, nobody: 'Nadie ha marcado entrada.', onTime: 'A tiempo', late: 'Tarde', draft: 'Esta semana sigue en borrador', changes: (n) => `${n} ${n === 1 ? 'cambio' : 'cambios'} sin publicar`, publish: 'Publicar', youIn: 'Tienes la entrada marcada', since: (t) => `Desde las ${t}`, myClock: 'Mi reloj', inAt: (t) => `Entrada ${t}`, sched: 'Revisar todos los registros', days: (n) => `${n} ${n === 1 ? 'día' : 'días'}` },
 }
 
 // The manager's Today screen: what needs a decision, who is working, and the
@@ -45,7 +46,8 @@ export default function ManagerToday({ data, me, lang, onView }) {
   const open = data.punches.filter((p) => !p.clockOut && dateKey(new Date(p.clockIn)) === today).sort((a, b) => new Date(a.clockIn) - new Date(b.clockIn))
   const week = scheduleWeekOf(now)
   const drafts = data.shifts.filter((s) => week.includes(s.date) && !s.published)
-  const count = notIn.length + requests.length + stuck.length + (toReview > 0 ? 1 : 0)
+  const covers = (data.cover ?? []).filter((c) => c.status === 'taken' && data.shifts.some((s) => s.id === c.shiftId))
+  const count = notIn.length + requests.length + covers.length + stuck.length + (toReview > 0 ? 1 : 0)
 
   const othersOff = (t) => data.teamOff.filter((o) => o.employeeId !== t.employeeId && o.start <= t.end && o.end >= t.start).map((o) => first(o.employeeId))
 
@@ -90,6 +92,25 @@ export default function ManagerToday({ data, me, lang, onView }) {
               <button type="button" className="to-btn yes" disabled={Boolean(leaving[t.id])} onClick={() => leave(t.id, 'approved', () => data.actions.decideTimeOff(t.id, 'approved'))}>{w.approve}</button>
             </div>
           </section>
+          </div></div>
+        )
+      })}
+
+      {covers.map((c) => {
+        const s = data.shifts.find((x) => x.id === c.shiftId)
+        const done = (result) => leave(c.id, result, () => data.actions.decideCover(c.id, result === 'approved'))
+        return (
+          <div key={c.id} className={`mt-fold ${leaving[c.id] ? `leaving ${leaving[c.id]}` : ''}`}><div className="mt-fold-in">
+            <section className="mt-card">
+              {leaving[c.id] && <span className="mt-stamp" aria-hidden="true">{leaving[c.id] === 'approved' ? '✓' : '✕'}</span>}
+              <div className="mt-who"><Avatar employee={person(c.takerId)} size={42} /><div><small className="mt-eyebrow ok">{w.coverEyebrow}</small><b>{w.coverLine(first(c.takerId), first(c.requesterId))}</b></div></div>
+              <p className="mt-big">{new Date(`${s.date}T12:00`).toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · {shiftTimes(s)}</p>
+              <p className="mt-sub">{s.title ? `${s.title} ` : ''}<RoleBadge role={s.role} roles={data.settings?.roles} />{c.note ? ` “${c.note}”` : ''}</p>
+              <div className="to-actions">
+                <button type="button" className="to-btn" disabled={Boolean(leaving[c.id])} onClick={() => done('declined')}>{w.decline}</button>
+                <button type="button" className="to-btn yes" disabled={Boolean(leaving[c.id])} onClick={() => done('approved')}>{w.approve}</button>
+              </div>
+            </section>
           </div></div>
         )
       })}
