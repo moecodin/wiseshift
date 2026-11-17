@@ -1205,7 +1205,7 @@ a.tm-spot:hover {
 .mt-draft b { display: block; font-size: 16px; }
 .mt-draft small { color: var(--muted); font-size: 14px; }
 .mt-draft button { border: 0; background: var(--navy); color: #fff; font-weight: 700; padding: 0 18px; line-height: 44px; border-radius: 999px; }
-.mt-more { display: block; margin: 8px auto 0; }
+.mt-more { display: flex; margin: 8px auto 0; width: fit-content; }
 [data-bs-theme='dark'] .mt-alert { background: #4a3b1c; color: #f1ece4; }
 [data-bs-theme='dark'] .mt-alert small { color: #f2c875; }
 [data-bs-theme='dark'] .mt-pill { background: #2f3f38; color: #7fc2ad; }
@@ -1787,3 +1787,6 @@ button.tl-bar:active { transform: scale(0.96); }
   .tm-cell b { font-size: 7.5pt; }
   .ts-print > p.tm-muted { font-size: 7.5pt; margin-top: 6px; }
 }
+
+/* My clock: a centered button with room above and below */
+.td-more.mt-more { display: flex; width: fit-content; margin: 14px auto 6px; }
