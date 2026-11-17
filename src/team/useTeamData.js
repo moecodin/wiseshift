@@ -159,6 +159,7 @@ async function loadLive(email, week, period, today) {
     punches,
     timeOff: timeOff.data.map(timeOffFromRow),
     teamOff: teamOff.data.map(timeOffFromRow),
+    cover: [], // cover requests aren't in the database yet
     shop: settings.error ? null : shopFromRow(settings.data),
     settings: settings.error ? DEFAULT_SETTINGS : settingsFromRow(settings.data),
     privateById: priv.error ? {} : Object.fromEntries(priv.data.map((r) => [r.employee_id, privateFromRow(r)])),
@@ -203,6 +204,8 @@ function sampleView(state, viewAs) {
     shifts: state.shifts.filter((x) => boss || x.published),
     punches: state.punches.filter(own),
     timeOff: state.timeOff.filter(own),
+    // Cover requests are public inside the team: everyone needs to see which shifts are open.
+    cover: state.cover ?? [],
     teamOff: state.timeOff.filter((t) => t.status === 'approved').map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
     shop: state.shop ?? null,
     settings: { ...DEFAULT_SETTINGS, ...state.settings },
@@ -241,12 +244,13 @@ function saveLocalTheme(email, value) {
   }
 }
 
+const COVER_SETUP = "Cover requests aren't set up in the database yet."
 let sampleIds = Date.now()
 const newId = (prefix) => `${prefix}${++sampleIds}`
 
 // ---------- The hook ----------
 
-const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
+const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
 
 export function useTeamData({ signedIn, email, week, period }) {
   const today = useMemo(() => startOfToday(), [])
@@ -577,6 +581,56 @@ export function useTeamData({ signedIn, email, week, period }) {
         })
       }
       return run(supabase.from('time_off').update({ status, decided_by: myName, decided_at: decidedAt }).eq('id', id)).then(andTell('time_off_decided', { id }))
+    },
+    // Cover: someone gives away a shift, a coworker takes it, a manager approves.
+    // status: open (nobody yet), taken (waiting for a manager), approved, declined, cancelled.
+    requestCover: async (shiftId, note) => {
+      if (usingSupabase) return COVER_SETUP
+      const shift = sample.shifts.find((x) => x.id === shiftId)
+      if (!shift || shift.employeeId !== viewAs) return "That isn't your shift."
+      if (!shift.published) return "That shift isn't published yet."
+      if (new Date(fromKey(shift.date).getTime() + shift.end * 60000) < new Date()) return 'That shift is already over.'
+      if ((sample.cover ?? []).some((c) => c.shiftId === shiftId && (c.status === 'open' || c.status === 'taken'))) return 'There is already a cover request for that shift.'
+      return change((s) => {
+        s.cover = [...(s.cover ?? []), { id: newId('c'), shiftId, requesterId: viewAs, note: (note || '').trim(), status: 'open', takerId: null, createdAt: new Date().toISOString() }]
+        return s
+      })
+    },
+    cancelCover: async (id) => {
+      if (usingSupabase) return COVER_SETUP
+      return change((s) => {
+        const c = (s.cover ?? []).find((x) => x.id === id)
+        if (c && c.requesterId === viewAs && (c.status === 'open' || c.status === 'taken')) c.status = 'cancelled'
+        return s
+      })
+    },
+    takeCover: async (id) => {
+      if (usingSupabase) return COVER_SETUP
+      const c = (sample.cover ?? []).find((x) => x.id === id)
+      if (!c || c.status !== 'open') return 'That request is no longer open.'
+      const shift = sample.shifts.find((x) => x.id === c.shiftId)
+      if (!shift) return 'That shift is gone.'
+      if (c.requesterId === viewAs) return "That's your own shift."
+      if (sample.shifts.some((x) => x.employeeId === viewAs && x.date === shift.date && x.start < shift.end && shift.start < x.end)) return 'This overlaps one of your shifts.'
+      if (sample.timeOff.some((t) => t.employeeId === viewAs && t.status === 'approved' && t.start <= shift.date && t.end >= shift.date)) return 'You have time off that day.'
+      return change((s) => {
+        Object.assign(s.cover.find((x) => x.id === id), { status: 'taken', takerId: viewAs, takenAt: new Date().toISOString() })
+        return s
+      })
+    },
+    decideCover: async (id, approve) => {
+      if (usingSupabase) return COVER_SETUP
+      return change((s) => {
+        const c = (s.cover ?? []).find((x) => x.id === id)
+        if (!c || c.status !== 'taken') return s
+        Object.assign(c, { status: approve ? 'approved' : 'declined', decidedBy: myName, decidedAt: new Date().toISOString() })
+        if (approve) {
+          const shift = s.shifts.find((x) => x.id === c.shiftId)
+          // The shift moves to the new person, and is posted to them as if it were new.
+          if (shift) Object.assign(shift, { employeeId: c.takerId, postedAt: new Date().toISOString() })
+        }
+        return s
+      })
     },
     deleteTimeOff: async (id) => (usingSupabase ? run(supabase.from('time_off').delete().eq('id', id)) : change((s) => ({ ...s, timeOff: s.timeOff.filter((t) => t.id !== id) }))),
 
