@@ -5,7 +5,7 @@ import { useFeature } from './features.js'
 const toSpanish = (label) =>
   label === 'At the shop' ? 'En la tienda' : label === 'Location saved' ? 'Ubicación guardada' : label.replace(/ away$/, ' de distancia')
 
-// A punch's place: "📍 At the shop" or "📍 2.3 mi away", opening the map. On busy cards
+// A punch's place: "At the shop" or "2.3 mi away", opening the map. On busy cards
 // (quiet) the ordinary "At the shop" is left out and only a punch that was away from the shop,
 // or had no location, still shows. The punch details always show everything.
 export default function SpotTag({ spot, shop, prefix = '', lang = 'en', quiet = false }) {
@@ -22,7 +22,7 @@ export default function SpotTag({ spot, shop, prefix = '', lang = 'en', quiet = 
       rel="noreferrer"
       title={spot.accuracy ? `Accurate to about ${Math.round(spot.accuracy * 3.281)} ft. Open the map` : 'Open the map'}
     >
-      📍 {prefix}{lang === 'es' ? toSpanish(label) : label}
+      {prefix}{lang === 'es' ? toSpanish(label) : label}
     </a>
   )
 }
