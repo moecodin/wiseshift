@@ -112,8 +112,8 @@ function Person({ data, boss, employee, period, now }) {
                         </span>
                         <div className="tm-spots">
                           {/* A time a manager typed in has no location; don't call it missing. */}
-                          {(p.inSpot || !p.editedBy) && <SpotTag spot={p.inSpot} shop={data.shop} prefix="In: " />}
-                          {p.clockOut && (p.outSpot || !p.editedBy) && <SpotTag spot={p.outSpot} shop={data.shop} prefix="Out: " />}
+                          {(p.inSpot || !p.editedBy) && <SpotTag quiet spot={p.inSpot} shop={data.shop} prefix="In: " />}
+                          {p.clockOut && (p.outSpot || !p.editedBy) && <SpotTag quiet spot={p.outSpot} shop={data.shop} prefix="Out: " />}
                         </div>
                         {p.note && <small>{p.note}</small>}
                         {boss && <button type="button" className="mh-edit" onClick={() => setEditing(p)}>Edit</button>}

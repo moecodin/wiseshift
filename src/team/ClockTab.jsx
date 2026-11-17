@@ -112,8 +112,8 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
             {todayPunches.map((p) => (
               <li key={p.id}>
                 <span>
-                  {w.in} {formatClock(p.clockIn)} <SpotTag spot={p.inSpot} shop={data.shop} lang={lang} />
-                  {p.clockOut ? <> · {w.out} {formatClock(p.clockOut)} <SpotTag spot={p.outSpot} shop={data.shop} lang={lang} /></> : ` · ${w.stillIn}`}
+                  {w.in} {formatClock(p.clockIn)} <SpotTag quiet spot={p.inSpot} shop={data.shop} lang={lang} />
+                  {p.clockOut ? <> · {w.out} {formatClock(p.clockOut)} <SpotTag quiet spot={p.outSpot} shop={data.shop} lang={lang} /></> : ` · ${w.stillIn}`}
                 </span>
                 <span>{formatHours(punchMinutes(p, now))}</span>
               </li>
@@ -203,7 +203,7 @@ function WhoIsIn({ data, now, today }) {
             <span>{name(p.employeeId)}</span>
             <span className={dateKey(new Date(p.clockIn)) === today ? 'tm-muted' : 'tm-bad'}>
               since {dateKey(new Date(p.clockIn)) === today ? '' : `${dayLabel(dateKey(new Date(p.clockIn)))}, `}
-              {formatClock(p.clockIn)} <SpotTag spot={p.inSpot} shop={data.shop} />
+              {formatClock(p.clockIn)} <SpotTag quiet spot={p.inSpot} shop={data.shop} />
             </span>
           </div>
         ))

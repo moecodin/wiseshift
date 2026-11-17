@@ -129,7 +129,7 @@ function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, 
           <>
             {w.since} <b>{formatClock(open.clockIn)}</b>
             {staleOpen && w.on(dayName(dateKey(new Date(open.clockIn)), lang))} · {formatHours(punchMinutes(open, now))} {w.hrs}
-            <div><SpotTag spot={open.inSpot} shop={data.shop} lang={lang} /></div>
+            <div><SpotTag quiet spot={open.inSpot} shop={data.shop} lang={lang} /></div>
           </>
         ) : todayMinutes ? (
           <>{w.clockedOut(formatHours(todayMinutes))}</>
