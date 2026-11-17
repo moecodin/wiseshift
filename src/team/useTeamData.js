@@ -244,6 +244,12 @@ function saveLocalTheme(email, value) {
   }
 }
 
+// Has this shift's day already ended?
+const shiftOver = (shift) => new Date(fromKey(shift.date).getTime() + shift.end * 60000) < new Date()
+// Would this person taking `shift` overlap their own shifts (not counting the one they'd give up) or approved time off?
+const clashes = (state, personId, shift, giving) =>
+  state.shifts.some((x) => x.employeeId === personId && x.id !== giving && x.date === shift.date && x.start < shift.end && shift.start < x.end) ||
+  state.timeOff.some((t) => t.employeeId === personId && t.status === 'approved' && t.start <= shift.date && t.end >= shift.date)
 const COVER_SETUP = "Cover requests aren't set up in the database yet."
 let sampleIds = Date.now()
 const newId = (prefix) => `${prefix}${++sampleIds}`
@@ -582,17 +588,32 @@ export function useTeamData({ signedIn, email, week, period }) {
       }
       return run(supabase.from('time_off').update({ status, decided_by: myName, decided_at: decidedAt }).eq('id', id)).then(andTell('time_off_decided', { id }))
     },
-    // Cover: someone gives away a shift, a coworker takes it, a manager approves.
-    // status: open (nobody yet), taken (waiting for a manager), approved, declined, cancelled.
-    requestCover: async (shiftId, note) => {
+    // Cover: someone gives a shift away (to the whole team or one person) or swaps it
+    // for one of a coworker's. A coworker says yes, then a manager approves.
+    // status: open (waiting for a coworker), taken (a coworker said yes, waiting for a
+    // manager), approved, declined (by a manager), passed (the asked person said no), cancelled.
+    // kind: 'giveaway' or 'swap'. targetId: who was asked (null = the whole team).
+    requestCover: async (shiftId, note, { targetId = null, swapShiftId = null } = {}) => {
       if (usingSupabase) return COVER_SETUP
       const shift = sample.shifts.find((x) => x.id === shiftId)
       if (!shift || shift.employeeId !== viewAs) return "That isn't your shift."
       if (!shift.published) return "That shift isn't published yet."
-      if (new Date(fromKey(shift.date).getTime() + shift.end * 60000) < new Date()) return 'That shift is already over.'
-      if ((sample.cover ?? []).some((c) => c.shiftId === shiftId && (c.status === 'open' || c.status === 'taken'))) return 'There is already a cover request for that shift.'
+      if (shiftOver(shift)) return 'That shift is already over.'
+      const busy = (id) => (sample.cover ?? []).some((c) => (c.status === 'open' || c.status === 'taken') && (c.shiftId === id || c.swapShiftId === id))
+      if (busy(shiftId)) return 'There is already a cover request for that shift.'
+      if (targetId) {
+        const target = sample.employees.find((e) => e.id === targetId && e.active)
+        if (!target || target.payType === 'none' || targetId === viewAs) return 'Pick a coworker who uses the app.'
+      }
+      if (swapShiftId) {
+        const other = sample.shifts.find((x) => x.id === swapShiftId)
+        if (!targetId || !other || other.employeeId !== targetId || !other.published) return "That isn't their shift."
+        if (shiftOver(other)) return 'That shift is already over.'
+        if (busy(swapShiftId)) return 'That shift already has a cover request.'
+        if (clashes(sample, viewAs, other, shiftId)) return 'That shift overlaps one of your shifts, or you have time off that day.'
+      }
       return change((s) => {
-        s.cover = [...(s.cover ?? []), { id: newId('c'), shiftId, requesterId: viewAs, note: (note || '').trim(), status: 'open', takerId: null, createdAt: new Date().toISOString() }]
+        s.cover = [...(s.cover ?? []), { id: newId('c'), kind: swapShiftId ? 'swap' : 'giveaway', shiftId, swapShiftId, targetId, requesterId: viewAs, note: (note || '').trim(), status: 'open', takerId: null, createdAt: new Date().toISOString() }]
         return s
       })
     },
@@ -604,6 +625,7 @@ export function useTeamData({ signedIn, email, week, period }) {
         return s
       })
     },
+    // Say yes: take the shift (or, for a swap, agree to trade).
     takeCover: async (id) => {
       if (usingSupabase) return COVER_SETUP
       const c = (sample.cover ?? []).find((x) => x.id === id)
@@ -611,10 +633,19 @@ export function useTeamData({ signedIn, email, week, period }) {
       const shift = sample.shifts.find((x) => x.id === c.shiftId)
       if (!shift) return 'That shift is gone.'
       if (c.requesterId === viewAs) return "That's your own shift."
-      if (sample.shifts.some((x) => x.employeeId === viewAs && x.date === shift.date && x.start < shift.end && shift.start < x.end)) return 'This overlaps one of your shifts.'
-      if (sample.timeOff.some((t) => t.employeeId === viewAs && t.status === 'approved' && t.start <= shift.date && t.end >= shift.date)) return 'You have time off that day.'
+      if (c.targetId && c.targetId !== viewAs) return 'That request is for someone else.'
+      if (clashes(sample, viewAs, shift, c.swapShiftId)) return 'This overlaps one of your shifts, or you have time off that day.'
       return change((s) => {
         Object.assign(s.cover.find((x) => x.id === id), { status: 'taken', takerId: viewAs, takenAt: new Date().toISOString() })
+        return s
+      })
+    },
+    // Say no to a request made to me.
+    passCover: async (id) => {
+      if (usingSupabase) return COVER_SETUP
+      return change((s) => {
+        const c = (s.cover ?? []).find((x) => x.id === id)
+        if (c && c.status === 'open' && c.targetId === viewAs) Object.assign(c, { status: 'passed', passedAt: new Date().toISOString() })
         return s
       })
     },
@@ -623,11 +654,17 @@ export function useTeamData({ signedIn, email, week, period }) {
       return change((s) => {
         const c = (s.cover ?? []).find((x) => x.id === id)
         if (!c || c.status !== 'taken') return s
+        const shift = s.shifts.find((x) => x.id === c.shiftId)
+        const other = c.swapShiftId ? s.shifts.find((x) => x.id === c.swapShiftId) : null
+        // If either shift changed hands since the request, it can't go ahead.
+        const stale = !shift || shift.employeeId !== c.requesterId || (c.swapShiftId && (!other || other.employeeId !== c.takerId))
+        if (stale) return Object.assign(c, { status: 'cancelled' }) && s
         Object.assign(c, { status: approve ? 'approved' : 'declined', decidedBy: myName, decidedAt: new Date().toISOString() })
         if (approve) {
-          const shift = s.shifts.find((x) => x.id === c.shiftId)
-          // The shift moves to the new person, and is posted to them as if it were new.
-          if (shift) Object.assign(shift, { employeeId: c.takerId, postedAt: new Date().toISOString() })
+          // The shifts change hands and are posted to the new people as if new.
+          const postedAt = new Date().toISOString()
+          Object.assign(shift, { employeeId: c.takerId, postedAt })
+          if (other) Object.assign(other, { employeeId: c.requesterId, postedAt })
         }
         return s
       })
