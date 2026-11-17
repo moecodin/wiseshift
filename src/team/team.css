@@ -1447,3 +1447,56 @@ button.tm-shift:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba
 .cv-err { color: var(--red, #c8472e); font-weight: 600; }
 .cv-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px dashed currentColor; font-size: 11px; font-weight: 700; line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) { .cv-take { transition: none; } }
+
+/* ---------- Pop-ups: fade and rise in, fade out, bottom sheet on phones ---------- */
+.pu-root .modal-content { animation: pu-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.pu-root .modal-backdrop { animation: pu-fade 0.2s ease both; }
+.pu-root.leaving .modal-content { animation: pu-out 0.16s ease-in both; }
+.pu-root.leaving .modal-backdrop { animation: pu-fade-out 0.16s ease-in both; }
+.pu-root.leaving { pointer-events: none; }
+@keyframes pu-in { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes pu-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(12px) scale(0.97); } }
+@keyframes pu-fade { from { opacity: 0; } }
+@keyframes pu-fade-out { to { opacity: 0; } }
+.modal { overscroll-behavior: contain; }
+@media (max-width: 575px) {
+  .pu-root .modal-dialog { margin: 0; max-width: none; min-height: 100%; align-items: flex-end; }
+  .pu-root .modal-content { border-radius: 26px 26px 0 0; max-height: 92vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom, 0px); animation-name: pu-sheet-in; }
+  .pu-root.leaving .modal-content { animation-name: pu-sheet-out; }
+  .pu-grab { position: relative; padding-top: 22px; touch-action: none; cursor: grab; }
+  .pu-grab::before { content: ''; position: absolute; top: 8px; left: 50%; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: var(--line); }
+}
+@keyframes pu-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes pu-sheet-out { from { transform: none; } to { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .pu-root .modal-content, .pu-root .modal-backdrop { animation: none; }
+}
+@media (min-width: 576px) { .pu-root .modal-content { border-radius: 22px; } }
+
+/* Pop-ups: press dip, check mark after saving, shake on errors, chips and lists */
+.pu-root .btn { transition: transform 0.12s ease, background-color 0.15s ease; }
+.pu-root .btn:active { transform: scale(0.96); }
+.pu-root.leaving.saved .modal-content { animation: pu-saved-out 0.56s ease both; }
+.pu-root.leaving.saved .modal-backdrop { animation: pu-fade-out 0.2s ease-in 0.36s both; }
+.pu-root.leaving.saved .modal-content > * { animation: pu-dim 0.56s ease both; }
+.pu-root.leaving.saved .modal-content::after { content: '\2713'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 72px; font-weight: 800; color: var(--ok, #2f6b5a); animation: pu-check 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes pu-saved-out { 0%, 62% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(12px) scale(0.97); } }
+@keyframes pu-dim { 0% { opacity: 1; } 30%, 100% { opacity: 0.12; } }
+@keyframes pu-check { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
+@media (max-width: 575px) { .pu-root.leaving.saved .modal-content { animation-name: pu-saved-sheet-out; } }
+@keyframes pu-saved-sheet-out { 0%, 62% { transform: none; } 100% { transform: translateY(100%); } }
+
+.pu-root .modal-body.shake { animation: pu-shake 0.4s ease; }
+@keyframes pu-shake { 0%, 100% { transform: none; } 18% { transform: translateX(-7px); } 36% { transform: translateX(6px); } 54% { transform: translateX(-4px); } 72% { transform: translateX(3px); } }
+.pu-root .tm-error { animation: pu-err 0.25s ease both; }
+@keyframes pu-err { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.rl-pick, .cv-choice { transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease; }
+.rl-pick:active, .cv-choice:active { transform: scale(0.96); }
+.cv-slide { display: grid; grid-template-rows: 1fr; animation: cv-open 0.26s ease both; }
+.cv-slide > div { min-height: 0; overflow: hidden; }
+@keyframes cv-open { from { grid-template-rows: 0fr; opacity: 0; } to { grid-template-rows: 1fr; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .pu-root.leaving.saved .modal-content::after, .pu-root .modal-body.shake, .pu-root .tm-error, .cv-slide { animation: none; }
+  .rl-pick, .cv-choice, .pu-root .btn { transition: none; }
+}
