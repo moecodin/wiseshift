@@ -63,6 +63,28 @@ const shiftFromRow = (r) => ({
 const shiftToRow = (s) => ({
   employee_id: s.employeeId, date: s.date, start_min: s.start, end_min: s.end, break_min: s.breakMin || 0, title: s.title ?? '', role: s.role ?? '', note: s.note ?? '', published: Boolean(s.published),
 })
+// Update 024: cover requests, managers' notes and tasks, staff notes about punches.
+const coverFromRow = (r) => ({
+  id: r.id, kind: r.kind, shiftId: r.shift_id, swapShiftId: r.swap_shift_id, requesterId: r.requester_id, targetId: r.target_id, takerId: r.taker_id,
+  note: r.note ?? '', status: r.status, createdAt: r.created_at, takenAt: r.taken_at, passedAt: r.passed_at, decidedBy: r.decided_by, decidedAt: r.decided_at,
+})
+const noteFromRow = (r) => ({
+  id: r.id, kind: r.kind, text: r.text, color: r.color, dueDate: r.due_date ?? '', assignees: r.assignees ?? [], notify: r.notify, sendText: r.send_text,
+  done: r.done, doneBy: r.done_by ?? '', doneAt: r.done_at, createdBy: r.created_by ?? '', createdAt: r.created_at,
+})
+const punchNoteFromRow = (r) => ({ id: r.id, employeeId: r.employee_id, date: r.date, tag: r.tag, text: r.text, createdAt: r.created_at, ackAt: r.ack_at, ackBy: r.ack_by ?? '' })
+// A manager's note changes, in the table's column names.
+const noteChangesToRow = (c) => {
+  const row = {}
+  if ('text' in c) row.text = c.text
+  if ('kind' in c) row.kind = c.kind
+  if ('color' in c) row.color = c.color
+  if ('dueDate' in c) row.due_date = c.dueDate || null
+  if ('assignees' in c) row.assignees = c.assignees
+  if ('notify' in c) row.notify = c.notify
+  if ('sendText' in c) row.send_text = c.sendText
+  return row
+}
 // Where a punch happened (update 014), or null.
 const spot = (lat, lng, accuracy) => (lat == null || lng == null ? null : { lat, lng, accuracy })
 const punchFromRow = (r) => ({
@@ -128,6 +150,13 @@ async function loadLive(email, week, period, today) {
   )
   // Anyone still clocked in from an earlier week, so a forgotten clock-out shows up.
   const openPunches = supabase.from('punches').select('*').is('clock_out', null)
+  // Update 024 (the new team page). Each comes back empty, not a failure, before 024 is run.
+  const extrasFrom = dayStartIso(addDays(offFrom, -14))
+  const extras = Promise.all([
+    supabase.from('cover_requests').select('*').or(`status.in.(open,taken),created_at.gte."${extrasFrom}"`),
+    supabase.from('manager_notes').select('*').order('created_at', { ascending: false }),
+    supabase.from('punch_notes').select('*').gte('date', addDays(offFrom, -14)),
+  ])
   const [seen, priv, prefs, total, settings, pay, timeOff, teamOff, open, ...rest] = await Promise.all([
     // When people last opened the app (update 019). Your own, or everyone's for a manager.
     supabase.from('employee_seen').select('*'),
@@ -146,6 +175,8 @@ async function loadLive(email, week, period, today) {
     ...punchQueries,
   ])
   for (const result of [pay, timeOff, teamOff, open, ...rest]) if (result.error) throw result.error
+  const [coverRows, noteRows, punchNoteRows] = await extras
+  const rows = (result, from) => (result.error ? [] : result.data.map(from))
 
   const unique = (rows) => [...new Map(rows.map((r) => [r.id, r])).values()]
   const shifts = unique(rest.slice(0, shiftRanges.length).flatMap((r) => r.data)).map(shiftFromRow)
@@ -159,7 +190,9 @@ async function loadLive(email, week, period, today) {
     punches,
     timeOff: timeOff.data.map(timeOffFromRow),
     teamOff: teamOff.data.map(timeOffFromRow),
-    cover: [], // cover requests aren't in the database yet
+    cover: rows(coverRows, coverFromRow),
+    notes: rows(noteRows, noteFromRow),
+    punchNotes: rows(punchNoteRows, punchNoteFromRow),
     shop: settings.error ? null : shopFromRow(settings.data),
     settings: settings.error ? DEFAULT_SETTINGS : settingsFromRow(settings.data),
     privateById: priv.error ? {} : Object.fromEntries(priv.data.map((r) => [r.employee_id, privateFromRow(r)])),
@@ -255,9 +288,6 @@ const shiftOver = (shift) => new Date(fromKey(shift.date).getTime() + shift.end 
 const clashes = (state, personId, shift, giving) =>
   state.shifts.some((x) => x.employeeId === personId && x.id !== giving && x.date === shift.date && x.start < shift.end && shift.start < x.end) ||
   state.timeOff.some((t) => t.employeeId === personId && t.status === 'approved' && t.start <= shift.date && t.end >= shift.date)
-const PNOTES_SETUP = "Punch notes aren't set up in the database yet."
-const NOTES_SETUP = "Notes and tasks aren't set up in the database yet."
-const COVER_SETUP = "Cover requests aren't set up in the database yet."
 let sampleIds = Date.now()
 const newId = (prefix) => `${prefix}${++sampleIds}`
 
@@ -601,7 +631,7 @@ export function useTeamData({ signedIn, email, week, period }) {
     // manager), approved, declined (by a manager), passed (the asked person said no), cancelled.
     // kind: 'giveaway' or 'swap'. targetId: who was asked (null = the whole team).
     requestCover: async (shiftId, note, { targetId = null, swapShiftId = null } = {}) => {
-      if (usingSupabase) return COVER_SETUP
+      if (usingSupabase) return run(supabase.rpc('request_cover', { shift: shiftId, note: (note || '').trim(), target: targetId, swap_shift: swapShiftId }))
       const shift = sample.shifts.find((x) => x.id === shiftId)
       if (!shift || shift.employeeId !== viewAs) return "That isn't your shift."
       if (!shift.published) return "That shift isn't published yet."
@@ -627,7 +657,7 @@ export function useTeamData({ signedIn, email, week, period }) {
     // Staff: a note about today (or yesterday), like a forgotten clock-in or work outside the shop.
     // tag: forgotIn, forgotOut, outside or other. Managers see it on their Today screen.
     addPunchNote: async ({ text, tag = 'other', date }) => {
-      if (usingSupabase) return PNOTES_SETUP
+      if (usingSupabase) return run(supabase.rpc('add_punch_note', { day: date || dateKey(new Date()), note_tag: tag, note: text }))
       if (!text.trim()) return 'Type a note first.'
       return change((s) => {
         s.punchNotes = [...(s.punchNotes ?? []), { id: newId('pn'), employeeId: viewAs, date: date || dateKey(new Date()), tag, text: text.trim(), createdAt: new Date().toISOString(), ackAt: null, ackBy: '' }]
@@ -635,12 +665,12 @@ export function useTeamData({ signedIn, email, week, period }) {
       })
     },
     deletePunchNote: async (id) => {
-      if (usingSupabase) return PNOTES_SETUP
+      if (usingSupabase) return run(supabase.rpc('remove_punch_note', { note: id }))
       return change((s) => ({ ...s, punchNotes: (s.punchNotes ?? []).filter((n) => !(n.id === id && n.employeeId === viewAs && !n.ackAt)) }))
     },
     // Managers: mark a note as seen.
     ackPunchNote: async (id) => {
-      if (usingSupabase) return PNOTES_SETUP
+      if (usingSupabase) return run(supabase.rpc('ack_punch_note', { note: id }))
       if (!view.me?.isManager) return 'Only managers can do that.'
       return change((s) => {
         const n = (s.punchNotes ?? []).find((x) => x.id === id)
@@ -652,7 +682,13 @@ export function useTeamData({ signedIn, email, week, period }) {
     // assignees: the staff tagged on it (they can see it, and check off a task). notify: tell them
     // (a push notification once the app is online). sendText: also text them, when texting exists.
     addNote: async ({ text, kind = 'note', color = 0, dueDate = '', assignees = [], notify = true, sendText = false }) => {
-      if (usingSupabase) return NOTES_SETUP
+      if (usingSupabase) {
+        if (!text.trim()) return 'Type something first.'
+        return run(supabase.from('manager_notes').insert({
+          kind, text: text.trim(), color, due_date: kind === 'task' && dueDate ? dueDate : null, assignees,
+          notify: assignees.length > 0 && notify, send_text: assignees.length > 0 && sendText, created_by: myName,
+        }))
+      }
       if (!view.me?.isManager) return 'Only managers can add notes.'
       if (!text.trim()) return 'Type something first.'
       return change((s) => {
@@ -661,7 +697,12 @@ export function useTeamData({ signedIn, email, week, period }) {
       })
     },
     updateNote: async (id, changes) => {
-      if (usingSupabase) return NOTES_SETUP
+      if (usingSupabase) {
+        // Ticking a task off goes through finish_manager_task, so tagged staff can do it too.
+        const onlyDone = Object.keys(changes).every((k) => k === 'done')
+        if (onlyDone) return run(supabase.rpc('finish_manager_task', { note: id, is_done: changes.done }))
+        return run(supabase.from('manager_notes').update(noteChangesToRow(changes)).eq('id', id))
+      }
       const note = (sample.notes ?? []).find((x) => x.id === id)
       const manager = Boolean(view.me?.isManager)
       // Staff can only tick off a task they were tagged on.
@@ -678,12 +719,12 @@ export function useTeamData({ signedIn, email, week, period }) {
       })
     },
     deleteNote: async (id) => {
-      if (usingSupabase) return NOTES_SETUP
+      if (usingSupabase) return run(supabase.from('manager_notes').delete().eq('id', id))
       if (!view.me?.isManager) return 'Only managers can delete notes.'
       return change((s) => ({ ...s, notes: (s.notes ?? []).filter((x) => x.id !== id) }))
     },
     cancelCover: async (id) => {
-      if (usingSupabase) return COVER_SETUP
+      if (usingSupabase) return run(supabase.rpc('cancel_cover', { request: id }))
       return change((s) => {
         const c = (s.cover ?? []).find((x) => x.id === id)
         if (c && c.requesterId === viewAs && (c.status === 'open' || c.status === 'taken')) c.status = 'cancelled'
@@ -692,7 +733,7 @@ export function useTeamData({ signedIn, email, week, period }) {
     },
     // Say yes: take the shift (or, for a swap, agree to trade).
     takeCover: async (id) => {
-      if (usingSupabase) return COVER_SETUP
+      if (usingSupabase) return run(supabase.rpc('take_cover', { request: id }))
       const c = (sample.cover ?? []).find((x) => x.id === id)
       if (!c || c.status !== 'open') return 'That request is no longer open.'
       const shift = sample.shifts.find((x) => x.id === c.shiftId)
@@ -707,7 +748,7 @@ export function useTeamData({ signedIn, email, week, period }) {
     },
     // Say no to a request made to me.
     passCover: async (id) => {
-      if (usingSupabase) return COVER_SETUP
+      if (usingSupabase) return run(supabase.rpc('pass_cover', { request: id }))
       return change((s) => {
         const c = (s.cover ?? []).find((x) => x.id === id)
         if (c && c.status === 'open' && c.targetId === viewAs) Object.assign(c, { status: 'passed', passedAt: new Date().toISOString() })
@@ -715,7 +756,7 @@ export function useTeamData({ signedIn, email, week, period }) {
       })
     },
     decideCover: async (id, approve) => {
-      if (usingSupabase) return COVER_SETUP
+      if (usingSupabase) return run(supabase.rpc('decide_cover', { request: id, approve }))
       return change((s) => {
         const c = (s.cover ?? []).find((x) => x.id === id)
         if (!c || c.status !== 'taken') return s
