@@ -16,6 +16,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
   // Employees start on their own shifts; managers on the whole-team grid.
   const [view, setView] = useState(boss ? 'everyone' : 'mine')
   const [editing, setEditing] = useState(null)
+  const [span, setSpan] = useState('day') // manager on a phone: one day of cards, or the whole week grid
   const [message, setMessage] = useState('')
   const now = useNow()
   const today = dateKey(now)
@@ -76,8 +77,8 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       ) : view === 'everyone' ? (
         <>
-        <ManagerDay flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} people={people} shifts={shifts} onEdit={setEditing} />
-        <div className="tm-gridwrap mg-grid">
+        <ManagerDay span={span} onSpan={setSpan} flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} people={people} shifts={shifts} onEdit={setEditing} />
+        <div className={`tm-gridwrap mg-grid ${span === 'week' ? 'show-phone' : ''}`}>
           <table className="tm-grid">
             <thead>
               <tr>
@@ -152,7 +153,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
 // Manager's phone view of the whole team: pick a day on the strip, then see one
 // card per person with their shifts (tap a shift to change it, + to add one).
 // Wide screens show the grid above instead (see .mg-phone / .mg-grid in team.css).
-function ManagerDay({ view, onView, data, me, week, today, people, shifts, flash, onEdit }) {
+function ManagerDay({ span, onSpan, view, onView, data, me, week, today, people, shifts, flash, onEdit }) {
   const [picked, setPicked] = useState(null)
   const selected = week.includes(picked) ? picked : week.includes(today) ? today : week[0]
   const presets = data.settings?.shiftPresets
@@ -168,6 +169,11 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, flash
         <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>My shifts</button>
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>Whole team</button>
       </div>
+      <div className="sc-toggle sc-span" role="group" aria-label="Show a day or the week">
+        <button type="button" aria-pressed={span === 'day'} onClick={() => onSpan('day')}>Day</button>
+        <button type="button" aria-pressed={span === 'week'} onClick={() => onSpan('week')}>Week</button>
+      </div>
+      {span === 'day' && <>
       <DayStrip days={week} selected={selected} renderDay={(d) => {
           const any = shifts.some((s) => s.date === d)
           return (
@@ -208,6 +214,7 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, flash
         )
       })}
       </div>
+      </>}
     </div>
   )
 }

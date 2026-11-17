@@ -1409,3 +1409,20 @@ button.tm-shift:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba
 .tm-grid thead th:first-child, .tm-grid tbody th { width: 190px; }
 .tm-grid td.today { background: color-mix(in srgb, var(--navy) 8%, var(--paper)); }
 
+/* Manager on a phone: the Week switch shows the grid, squeezed to fit */
+.sc-span { margin-top: -2px; }
+.sc-span button { min-height: 36px; font-size: 14px; }
+@media (max-width: 767px) {
+  .mg-grid.show-phone { display: block; margin-top: 4px; }
+  .mg-grid.show-phone .tm-grid { min-width: 600px; font-size: 11px; }
+  .mg-grid.show-phone .tm-grid th, .mg-grid.show-phone .tm-grid td { padding: 5px; }
+  .mg-grid.show-phone .tm-grid thead th:first-child, .mg-grid.show-phone .tm-grid tbody th { width: 92px; }
+  .mg-grid.show-phone .gr-date { font-size: 16px; }
+  .mg-grid.show-phone .gr-person .tm-avatar, .mg-grid.show-phone .gr-person small:not(.tm-hrs) { display: none; }
+  .mg-grid.show-phone .gr-person b { font-size: 12px; }
+  .mg-grid.show-phone .tm-shift { padding: 5px 6px; border-radius: 10px; gap: 2px; }
+  .mg-grid.show-phone .tm-shift b { font-size: 11px; }
+  .mg-grid.show-phone .tm-shift .gr-meta, .mg-grid.show-phone .tm-shift-note { display: none; }
+  .mg-grid.show-phone .tm-shift .rl-badge { font-size: 0; gap: 0; padding: 3px; }
+  .mg-grid.show-phone .tm-off { font-size: 10px; padding: 3px 5px; }
+}
