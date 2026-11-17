@@ -9,7 +9,10 @@ Your location is not tracked at any other time. You can see your own clock-in an
 
 By tapping "I've read this", you acknowledge that you received this notice.`
 
+import { DEFAULT_FEATURES } from './features.js'
+
 export const DEFAULT_SETTINGS = {
+  features: DEFAULT_FEATURES, // which parts of the app this business uses (Settings → Features)
   clockInEarly: 30, // minutes before a shift that Clock in appears
   allowAnyway: true, // "Working a shift that isn't on the schedule? Clock in anyway"
   roundWithin: 10, // punches less than this many minutes from the hour count as on the hour (0 = off)
@@ -45,6 +48,7 @@ export function settingsFromRow(r) {
     roundWithin: pick(r.round_within, d.roundWithin),
     shiftPresets: Array.isArray(r.shift_presets) && r.shift_presets.length ? r.shift_presets : d.shiftPresets,
     roles: Array.isArray(r.roles) ? r.roles : d.roles,
+    features: { ...DEFAULT_FEATURES, ...(r.features ?? {}) },
     positions: Array.isArray(r.positions) && r.positions.length ? r.positions : d.positions,
     remindBefore: pick(r.remind_before, d.remindBefore),
     remindAfter: pick(r.remind_after, d.remindAfter),
@@ -62,6 +66,7 @@ export const settingsToRow = (s) => ({
   round_within: s.roundWithin,
   shift_presets: s.shiftPresets,
   roles: s.roles,
+  features: s.features,
   positions: s.positions,
   remind_before: s.remindBefore,
   remind_after: s.remindAfter,

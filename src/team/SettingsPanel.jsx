@@ -6,6 +6,7 @@ import { clockTime, dayLabel, fromTimeInput, scheduleOnly, toTimeInput } from '.
 import { NotifyOptions } from './NotifySettings.jsx'
 import ShopLocation from './ShopLocation.jsx'
 import { noticeAcked } from './settings.js'
+import { FEATURES, PRESETS, featuresOf, presetFeatures, useFeatures } from './features.js'
 import { dayName, say } from './words.js'
 
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
@@ -47,6 +48,7 @@ const explain = (problem) =>
 const outcome = (problem, ok = 'Saved.') => (problem ? { error: explain(problem) } : { ok })
 
 function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
+  const f = useFeatures()
   return (
     <>
       <section className="st-section">
@@ -61,10 +63,12 @@ function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
         <NotifyOptions data={data} boss={boss} />
       </section>
       <MyContact data={data} me={me} />
-      <section className="st-section">
-        <h3 className="tm-h3">Location notice</h3>
-        <LocationNotice data={data} me={me} />
-      </section>
+      {f.location && (
+        <section className="st-section">
+          <h3 className="tm-h3">Location notice</h3>
+          <LocationNotice data={data} me={me} />
+        </section>
+      )}
       <Account onSignOut={onSignOut} />
       <section className="st-section">
         <h3 className="tm-h3">Help</h3>
@@ -220,18 +224,20 @@ function Account({ onSignOut }) {
 // ---------- Business (managers) ----------
 
 function BusinessSettings({ data }) {
+  const f = useFeatures()
   return (
     <>
       {!data.settingsReady && (
         <p className="tm-warn">These use update 018. Run <code>supabase/updates/018-settings.sql</code> in Supabase, then reload, before saving here.</p>
       )}
-      <ShopLocation data={data} />
-      <ClockInRules data={data} />
+      <Features data={data} />
+      {f.location && <ShopLocation data={data} />}
+      {f.timeClock && <ClockInRules data={data} />}
       <ShiftPicks data={data} />
-      <Roles data={data} />
+      {f.roles && <Roles data={data} />}
       <Positions data={data} />
       <Reminders data={data} />
-      <NoticeEditor data={data} />
+      {f.location && <NoticeEditor data={data} />}
     </>
   )
 }
@@ -276,6 +282,44 @@ function ClockInRules({ data }) {
         The real times stay saved, and each punch's details show them.
       </div>
       <button type="button" className="btn btn-brand btn-sm mt-2" disabled={busy} onClick={() => save({ clockInEarly: early, allowAnyway: anyway, roundWithin: round })}>Save</button>
+      <Result result={result} />
+    </section>
+  )
+}
+
+// Which parts of the app this business uses. Switched-off features disappear for everyone;
+// nothing is deleted, so switching one back on brings everything back.
+function Features({ data }) {
+  const [features, setFeatures] = useState(() => featuresOf(data.settings))
+  const { busy, result, save } = useSave(data)
+  const chosen = PRESETS.find((p) => FEATURES.every((f) => Boolean(p.on.includes(f.id)) === Boolean(features[f.id])))?.id
+  const toggle = (id) => setFeatures({ ...features, [id]: !features[id] })
+  return (
+    <section className="st-section">
+      <h3 className="tm-h3">Features</h3>
+      <p className="tm-muted small mb-2">Pick what your team uses. Anything switched off is hidden for everyone, and nothing is deleted.</p>
+      <div className="ft-presets" role="group" aria-label="Starting point">
+        {PRESETS.map((p) => (
+          <button key={p.id} type="button" className="ft-preset" aria-pressed={chosen === p.id} onClick={() => setFeatures(presetFeatures(p))}>
+            <b>{p.label}</b>
+            <small>{p.help}</small>
+          </button>
+        ))}
+      </div>
+      <p className="ft-always">Always on: the schedule and your team list.</p>
+      {FEATURES.map((f) => {
+        const blocked = f.needs && !features[f.needs]
+        return (
+          <label key={f.id} className={`ft-row ${blocked ? 'blocked' : ''}`}>
+            <input type="checkbox" className="form-check-input" checked={Boolean(features[f.id]) && !blocked} disabled={blocked} onChange={() => toggle(f.id)} />
+            <span>
+              <b>{f.label}</b>
+              <small>{blocked ? `Needs ${FEATURES.find((x) => x.id === f.needs).label}.` : f.help}</small>
+            </span>
+          </label>
+        )
+      })}
+      <button type="button" className="btn btn-brand btn-sm mt-2" disabled={busy} onClick={() => save({ features })}>Save</button>
       <Result result={result} />
     </section>
   )

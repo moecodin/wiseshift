@@ -1568,3 +1568,17 @@ button.tl-bar:active { transform: scale(0.96); }
 .tl-yours small { display: block; margin-top: 2px; font-size: 13px; color: #d5ebe2; }
 .gr-dayhead { display: block; width: 100%; border: 0; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .tl-bar.flash, button.tl-bar { animation: none; transition: none; } }
+
+/* ---------- Settings → Features ---------- */
+.ft-presets { display: grid; gap: 8px; margin-bottom: 8px; }
+.ft-preset { display: block; width: 100%; text-align: left; padding: 10px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); color: var(--ink); transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
+.ft-preset b { display: block; font-size: 15px; }
+.ft-preset small { display: block; font-size: 13px; color: var(--muted); }
+.ft-preset[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ft-preset[aria-pressed='true'] small { color: inherit; opacity: 0.8; }
+.ft-always { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.ft-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.ft-row input { flex: none; width: 22px; height: 22px; margin-top: 2px; }
+.ft-row b { display: block; font-size: 15px; }
+.ft-row small { display: block; font-size: 13px; color: var(--muted); }
+.ft-row.blocked { opacity: 0.55; cursor: default; }
