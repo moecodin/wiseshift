@@ -7,6 +7,7 @@ import { PunchEditor } from './HoursTab.jsx'
 import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
 import { useFeatures } from './features.js'
+import ManagerNotes from './ManagerNotes.jsx'
 
 const LATE = 15 // minutes after the shift start that "On time" turns into "Late"
 const MISSING_AFTER = 10 // minutes after a shift starts before "hasn't clocked in" shows
@@ -168,6 +169,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
       )}
 
       {f.timeClock && <button type="button" className="to-link mt-more" onClick={() => onView('clock')}>{w.myClock}</button>}
+      {f.notes && <ManagerNotes data={data} />}
       </div>
       {fixing && <PunchEditor punch={fixing} data={data} onClose={() => setFixing(null)} />}
     </div>

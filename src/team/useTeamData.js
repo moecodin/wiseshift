@@ -206,6 +206,8 @@ function sampleView(state, viewAs) {
     timeOff: state.timeOff.filter(own),
     // Cover requests are public inside the team: everyone needs to see which shifts are open.
     cover: state.cover ?? [],
+    // Sticky notes and tasks are for managers only; staff never get them at all.
+    notes: boss ? state.notes ?? [] : [],
     teamOff: state.timeOff.filter((t) => t.status === 'approved').map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
     shop: state.shop ?? null,
     settings: { ...DEFAULT_SETTINGS, ...state.settings },
@@ -250,13 +252,14 @@ const shiftOver = (shift) => new Date(fromKey(shift.date).getTime() + shift.end 
 const clashes = (state, personId, shift, giving) =>
   state.shifts.some((x) => x.employeeId === personId && x.id !== giving && x.date === shift.date && x.start < shift.end && shift.start < x.end) ||
   state.timeOff.some((t) => t.employeeId === personId && t.status === 'approved' && t.start <= shift.date && t.end >= shift.date)
+const NOTES_SETUP = "Notes and tasks aren't set up in the database yet."
 const COVER_SETUP = "Cover requests aren't set up in the database yet."
 let sampleIds = Date.now()
 const newId = (prefix) => `${prefix}${++sampleIds}`
 
 // ---------- The hook ----------
 
-const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
+const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], notes: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
 
 export function useTeamData({ signedIn, email, week, period }) {
   const today = useMemo(() => startOfToday(), [])
@@ -616,6 +619,30 @@ export function useTeamData({ signedIn, email, week, period }) {
         s.cover = [...(s.cover ?? []), { id: newId('c'), kind: swapShiftId ? 'swap' : 'giveaway', shiftId, swapShiftId, targetId, requesterId: viewAs, note: (note || '').trim(), status: 'open', takerId: null, createdAt: new Date().toISOString() }]
         return s
       })
+    },
+    // Managers' sticky notes and tasks. kind: 'note' or 'task'. color: 0 to 3. Tasks can have a dueDate and be done.
+    addNote: async ({ text, kind = 'note', color = 0, dueDate = '' }) => {
+      if (usingSupabase) return NOTES_SETUP
+      if (!view.me?.isManager) return 'Only managers can add notes.'
+      if (!text.trim()) return 'Type something first.'
+      return change((s) => {
+        s.notes = [{ id: newId('n'), text: text.trim(), kind, color, dueDate: kind === 'task' ? dueDate : '', done: false, createdBy: myName, createdAt: new Date().toISOString() }, ...(s.notes ?? [])]
+        return s
+      })
+    },
+    updateNote: async (id, changes) => {
+      if (usingSupabase) return NOTES_SETUP
+      if (!view.me?.isManager) return 'Only managers can change notes.'
+      return change((s) => {
+        const n = (s.notes ?? []).find((x) => x.id === id)
+        if (n) Object.assign(n, changes, changes.done === true ? { doneAt: new Date().toISOString() } : {})
+        return s
+      })
+    },
+    deleteNote: async (id) => {
+      if (usingSupabase) return NOTES_SETUP
+      if (!view.me?.isManager) return 'Only managers can delete notes.'
+      return change((s) => ({ ...s, notes: (s.notes ?? []).filter((x) => x.id !== id) }))
     },
     cancelCover: async (id) => {
       if (usingSupabase) return COVER_SETUP

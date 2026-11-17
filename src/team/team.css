@@ -1668,3 +1668,26 @@ button.tl-bar:active { transform: scale(0.96); }
   .mg-shift:hover, .td-more:hover, .cv-choice:hover { border-color: var(--muted); }
 }
 @media print { .tm { padding-left: 0; } .tm-side { display: none !important; } }
+
+/* ---------- Manager tasks and sticky notes ---------- */
+.nt-add { display: flex; gap: 6px; }
+.nt-add button { min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--head); color: var(--ink); font-size: 13px; font-weight: 700; }
+.nt-task { display: flex; align-items: flex-start; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+.nt-task input { flex: none; width: 22px; height: 22px; margin-top: 1px; }
+.nt-text { flex: 1; border: 0; background: none; padding: 0; text-align: left; color: var(--ink); font: inherit; font-size: 15px; }
+.nt-text small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+.nt-text small.late { color: #b3361f; }
+[data-bs-theme='dark'] .nt-text small.late { color: #f19a96; }
+.nt-task.is-done .nt-text { text-decoration: line-through; color: var(--muted); }
+.nt-stickies { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.nt-sticky { min-height: 84px; padding: 10px 12px; border: 0; border-radius: 6px 6px 14px 6px; text-align: left; font-size: 14px; line-height: 1.35; color: #3a2f26; box-shadow: 0 2px 5px rgba(90, 60, 30, 0.18); transition: transform 0.12s ease; overflow-wrap: anywhere; }
+.nt-sticky:nth-child(odd) { transform: rotate(-1deg); } .nt-sticky:nth-child(even) { transform: rotate(0.8deg); }
+.nt-sticky:hover { transform: rotate(0) translateY(-2px); }
+.nt-sticky.c0, .nt-swatch.c0 { background: #fbe9a8; } .nt-sticky.c1, .nt-swatch.c1 { background: #cfe6d9; }
+.nt-sticky.c2, .nt-swatch.c2 { background: #f8d4cb; } .nt-sticky.c3, .nt-swatch.c3 { background: #d3e2f6; }
+.nt-colors { display: flex; gap: 10px; }
+.nt-swatch { width: 36px; height: 36px; border: 2px solid transparent; border-radius: 8px; box-shadow: 0 1px 3px rgba(90, 60, 30, 0.2); }
+.nt-swatch[aria-pressed='true'] { border-color: var(--ink); }
+.nt-done { margin-top: 8px; }
+@media (min-width: 900px) { .mt-right { display: flex; flex-direction: column; } .mt-right > .nt-card { order: -1; } }
+@media (prefers-reduced-motion: reduce) { .nt-sticky, .nt-sticky:hover { transition: none; transform: none; } }

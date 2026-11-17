@@ -12,6 +12,7 @@ export const FEATURES = [
   { id: 'cover', label: 'Shift swaps and cover', help: 'Staff give a shift away or swap with a coworker, and managers approve.' },
   { id: 'roles', label: 'Shift roles', help: 'Label a shift with what the person does, like Front desk or Kitchen.' },
   { id: 'coverage', label: 'Coverage warnings', help: "The manager's day view flags stretches with nobody, or only one person, working." },
+  { id: 'notes', label: 'Manager notes and tasks', help: "Sticky notes and a to-do list for managers, shown on their Today screen. Staff never see them." },
   { id: 'payRates', label: 'Pay rates and paycheck estimates', help: 'Managers store hourly rates and see a paycheck estimate. Staff never see pay.' },
 ]
 
