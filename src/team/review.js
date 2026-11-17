@@ -27,6 +27,10 @@ export function shiftFor(p, shifts) {
     .sort((a, b) => Math.abs(a.start - start) - Math.abs(b.start - start))[0] ?? null
 }
 
+// Only lateness gets the ⚠️: clocking in late, or clocking out after the shift ended.
+// The other reasons (away from the shop, early, no shift…) still show as plain text.
+export const isLateWarning = (w) => (w.startsWith('Clocked in ') && w.includes(' min late')) || w.includes('after the shift ended')
+
 // Everything worth a second look, as short sentences ("Clocked in 2.3 mi away").
 export function punchWarnings(p, shifts, shop, now = new Date()) {
   const out = []

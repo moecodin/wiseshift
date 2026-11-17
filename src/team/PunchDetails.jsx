@@ -4,7 +4,7 @@ import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
 import Avatar from './Avatar.jsx'
 import { PunchEditor } from './HoursTab.jsx'
 import { punchMinutes } from './paycheck.js'
-import { punchStatus, punchWarnings, shiftFor, STATUS_LABEL } from './review.js'
+import { isLateWarning, punchStatus, punchWarnings, shiftFor, STATUS_LABEL } from './review.js'
 import { shiftTimes, useNow } from './format.js'
 import { streetAddress } from './location.js'
 import SpotTag from './SpotTag.jsx'
@@ -103,7 +103,7 @@ export default function PunchDetails({ punch: start, data, onClose }) {
 
       {warnings.length > 0 && (
         <ul className="tm-pd-warn">
-          {warnings.map((w) => <li key={w}>⚠️ {w}</li>)}
+          {warnings.map((w) => <li key={w}>{isLateWarning(w) ? '⚠️ ' : ''}{w}</li>)}
         </ul>
       )}
 

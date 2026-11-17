@@ -3,14 +3,14 @@ import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
 import Avatar from './Avatar.jsx'
 import PunchDetails from './PunchDetails.jsx'
 import { payPeriodOf, punchMinutes } from './paycheck.js'
-import { punchStatus, punchWarnings, STATUS_LABEL } from './review.js'
+import { isLateWarning, punchStatus, punchWarnings, STATUS_LABEL } from './review.js'
 import { rangeLabel, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
 const duration = (minutes) => (minutes >= 1440 ? `${Math.floor(minutes / 1440)}d ` : '') + `${Math.floor((minutes % 1440) / 60)}h ${Math.round(minutes % 60)}m`
 
 // Managers: every punch, newest first, to approve (like Humanity's Manage list).
-// ⚠️ marks the ones worth a look; tap one for its details and map.
+// ⚠️ marks late clock-ins and clock-outs; tap one for its details and map.
 export default function ReviewList({ data }) {
   const now = useNow()
   const [range, setRange] = useState('week') // 'week' (past 7 days) or 'period' (this pay period)
@@ -67,7 +67,7 @@ export default function ReviewList({ data }) {
                     <b className="tm-rv-name">
                       <Avatar employee={person} size={24} />
                       {person?.name ?? '?'}
-                      {warnings.length > 0 && <span className="tm-rv-warn" title={warnings.join('\n')}> ⚠️</span>}
+                      {warnings.some(isLateWarning) && <span className="tm-rv-warn" title={warnings.filter(isLateWarning).join('\n')}> ⚠️</span>}
                     </b>
                     <span>
                       {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : ''}
@@ -98,8 +98,8 @@ export default function ReviewList({ data }) {
           <button type="button" className="btn btn-success w-100" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
             Approve all ({pending.length})
           </button>
-          {pending.some((p) => punchWarnings(p, data.shifts, data.shop, now).length) && (
-            <small>Includes punches with ⚠️. Tap one first to check it.</small>
+          {pending.some((p) => punchWarnings(p, data.shifts, data.shop, now).some(isLateWarning)) && (
+            <small>Includes late punches (⚠️). Tap one first to check it.</small>
           )}
         </div>
       )}
