@@ -5,6 +5,7 @@ import { offOn, scheduleOnly, shiftTimes } from './format.js'
 import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
 import DayStrip from './DayStrip.jsx'
+import { activeCover, CoverStatus, OpenShifts } from './CoverUI.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 
 // The phone schedule for employees: a strip of the week's days, a card for the
@@ -57,6 +58,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
 
       {view === 'mine' ? (
         <>
+          <OpenShifts data={data} me={me} lang={lang} />
           <div key={selected} className="sc-fade"><Hero data={data} me={me} date={selected} today={today} w={w} lang={lang} /></div>
           <WeekTotal data={data} me={me} week={week} lang={lang} />
           <h2 className="sc-h">{w.comingUp}</h2>
@@ -88,6 +90,7 @@ function Hero({ data, me, date, today, w, lang }) {
             <b>{shiftTimes(s)}</b>
             {s.role && <em className="sc-hero-role">{s.role}</em>}
             <span>{formatHours(shiftMinutes(s))} {w.hrs}{s.note ? ` · ${s.note}` : ''}</span>
+            <CoverStatus data={data} shift={s} lang={lang} />
           </div>
         ))
       ) : (
@@ -124,6 +127,7 @@ function Row({ data, me, date, w, lang, on }) {
               <span className="sc-time">{shiftTimes(s)}</span>
               {s.title && <span className={tagClass(s.title, data.settings?.shiftPresets)}>{s.title}</span>}
               <RoleBadge role={s.role} roles={data.settings?.roles} />
+              {activeCover(data.cover, s.id) && <span className="cv-tag">cover?</span>}
               {s.note && <small>{s.note}</small>}
             </div>
           ))

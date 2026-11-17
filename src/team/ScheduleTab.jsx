@@ -8,6 +8,7 @@ import MySchedule, { tagClass } from './MySchedule.jsx'
 import Avatar from './Avatar.jsx'
 import DayStrip from './DayStrip.jsx'
 import RoleBadge from './RoleBadge.jsx'
+import { activeCover } from './CoverUI.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -116,7 +117,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
                         <td key={d} className={d === today ? 'today' : ''}>
                           {off && <div className="tm-off">Time off</div>}
                           {dayShifts.map((s) => (
-                            <ShiftBox key={s.id} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={boss ? () => setEditing(s) : undefined} />
+                            <ShiftBox key={s.id} cover={activeCover(data.cover, s.id)} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={boss ? () => setEditing(s) : undefined} />
                           ))}
                           {boss && (
                             <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => setEditing({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>
@@ -204,6 +205,7 @@ function ManagerDay({ span, onSpan, view, onView, data, me, week, today, people,
                   <span className="sc-time">{shiftTimes(s)}</span>
                   {s.title && <span className={tagClass(s.title, presets)}>{s.title}</span>}
                   <RoleBadge role={s.role} roles={roles} />
+                  {activeCover(data.cover, s.id) && <span className="cv-tag">cover?</span>}
                   {!s.published && <small>Draft</small>}
                 </button>
               ))}
@@ -267,7 +269,7 @@ export function WeekTotal({ data, me, week, lang, onClick }) {
   )
 }
 
-function ShiftBox({ shift, roles, presets, flash, onClick }) {
+function ShiftBox({ shift, roles, presets, flash, cover, onClick }) {
   const Tag = onClick ? 'button' : 'div'
   // The shift type's color (Open, Close…) tints the box; no type means a plain cream box.
   const tint = shift.title ? tagClass(shift.title, presets).match(/t\d/)?.[0] : ''
@@ -276,6 +278,7 @@ function ShiftBox({ shift, roles, presets, flash, onClick }) {
       <b>{shiftTimes(shift)}</b>
       <span className="gr-meta">{shift.title ? `${shift.title} · ` : ''}{formatHours(shiftMinutes(shift))} hrs</span>
       {shift.role && <RoleBadge role={shift.role} roles={roles} />}
+      {cover && <span className="cv-tag">cover?</span>}
       {shift.note && <span className="tm-shift-note">{shift.note}</span>}
     </Tag>
   )
