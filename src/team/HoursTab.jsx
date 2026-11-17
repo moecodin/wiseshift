@@ -2,13 +2,14 @@ import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, formatClock, fromKey } from '../lib/dates.js'
 import CountUp from './CountUp.jsx'
-import { decimalHours, estimatePaycheck, formatHours, grossPay, moveDays, payPeriodOf, periodHours, punchMinutes } from './paycheck.js'
+import { decimalHours, estimatePaycheck, formatHours, grossPay, moveDays, payPeriodOf, periodHours } from './paycheck.js'
 import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { TAX_YEAR } from './taxRates.js'
 import { describeSpot } from './location.js'
 import SpotTag from './SpotTag.jsx'
 import MyHours from './MyHours.jsx'
 import { useFeatures } from './features.js'
+import ExportHours from './ExportHours.jsx'
 
 // Hours for a pay period (Friday to Thursday, two weeks) and the paycheck
 // estimate. Managers can look at anyone, fix punches, see everyone's timesheet
@@ -17,6 +18,7 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
   const now = useNow()
   const f = useFeatures()
   const [view, setView] = useState('person')
+  const [exporting, setExporting] = useState(false)
   const [who, setWho] = useState(me.id)
   const current = payPeriodOf(now)[0] === period[0]
 
@@ -35,6 +37,9 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
             <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet (everyone)</button>
           </div>
         )}
+        {boss && f.timesheets && (
+          <button type="button" className="btn btn-brand btn-sm ex-btn" onClick={() => setExporting(true)}>Export hours…</button>
+        )}
         {boss && view === 'person' && (
           <select className="form-select form-select-sm tm-who" value={who} onChange={(e) => setWho(e.target.value)} aria-label="Whose hours">
             {data.employees.filter((e) => !scheduleOnly(e)).map((e) => <option key={e.id} value={e.id}>{e.name}{e.active ? '' : ' (not active)'}</option>)}
@@ -48,6 +53,8 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
       ) : (
         <Person data={data} boss={boss} employee={data.employees.find((e) => e.id === who) ?? me} period={period} now={now} />
       )}
+      {boss && f.timesheets && <p className="ex-note">Exports are available on a computer.</p>}
+      {exporting && <ExportHours data={data} now={now} onClose={() => setExporting(false)} />}
     </div>
   )
 }
@@ -239,10 +246,6 @@ function Timesheet({ data, period, now }) {
   const stillIn = rows.filter((r) => r.hours.open)
   // Finished punches nobody has approved yet (Clock → Review).
   const unapproved = rows.flatMap((r) => r.hours.byDay.flatMap((d) => d.punches)).filter((p) => p.clockOut && !p.approvedAt).length
-  const downloadPayroll = () => {
-    if (unapproved && !window.confirm(`${unapproved} punch${unapproved === 1 ? '' : 'es'} in this pay period ${unapproved === 1 ? "isn't" : "aren't"} approved yet (Clock → Review). Download anyway?`)) return
-    downloadSummary(rows, period)
-  }
 
   return (
     <div>
@@ -304,56 +307,9 @@ function Timesheet({ data, period, now }) {
         </table>
       </div>
       <div className="tm-tools mt-3">
-        <button type="button" className="btn btn-brand btn-sm" onClick={downloadPayroll}>Download for payroll (CSV)</button>
-        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => downloadPunches(rows, period, now, data.shop)}>Download every punch (CSV)</button>
         <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => window.print()}>Print</button>
       </div>
       <p className="tm-muted small mt-2">Hours are exact, to the minute. Overtime is time and a half after 40 hours in each Friday–Thursday week.</p>
     </div>
   )
-}
-
-// ---------- Spreadsheets ----------
-
-const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
-function download(fileName, rows) {
-  const text = `﻿${rows.map((r) => r.map(cell).join(',')).join('\r\n')}\r\n`
-  const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  document.body.append(link)
-  link.click()
-  link.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
-
-// One line per person: what a payroll service asks for.
-function downloadSummary(rows, period) {
-  download(`wiseshift-payroll-${period[0]}-to-${period.at(-1)}.csv`, [
-    ['Employee', 'Email', 'Pay period start', 'Pay period end', 'Regular hours', 'Overtime hours', 'Total hours', 'Hourly rate', 'Gross pay (estimate)'],
-    ...rows.map(({ e, hours, rate, gross }) => [
-      e.name, e.email, period[0], period.at(-1), decimalHours(hours.regular), decimalHours(hours.overtime), decimalHours(hours.total),
-      e.payType === 'hourly' ? rate : 'commission', gross ?? '',
-    ]),
-  ])
-}
-
-// Every punch, for checking or keeping on file.
-function downloadPunches(rows, period, now, shop) {
-  const place = (spot) => (spot ? describeSpot(spot, shop).label : 'No location')
-  const coords = (spot) => (spot ? `${spot.lat.toFixed(6)}, ${spot.lng.toFixed(6)}` : '')
-  const lines = rows.flatMap(({ e, hours }) =>
-    hours.byDay.flatMap((d) =>
-      d.punches.map((p) => [
-        e.name, d.date, formatClock(p.clockIn), p.clockOut ? formatClock(p.clockOut) : 'still in', decimalHours(punchMinutes(p, now)),
-        place(p.inSpot), coords(p.inSpot), p.clockOut ? place(p.outSpot) : '', p.clockOut ? coords(p.outSpot) : '',
-        p.editedBy ? `Fixed by ${p.editedBy}` : '', p.note,
-      ]),
-    ),
-  )
-  download(`wiseshift-punches-${period[0]}-to-${period.at(-1)}.csv`, [
-    ['Employee', 'Date', 'Clock in', 'Clock out', 'Hours', 'Clocked in at', 'Clock-in map point', 'Clocked out at', 'Clock-out map point', 'Fixed', 'Note'],
-    ...lines,
-  ])
 }
