@@ -54,3 +54,7 @@ export function featuresOf(settings) {
 export const FeaturesContext = createContext(featuresOf(null))
 export const useFeatures = () => useContext(FeaturesContext)
 export const useFeature = (id) => useContext(FeaturesContext)[id]
+
+// Texting staff (SMS) isn't built yet. The notes editor already has the option; it shows as
+// unavailable until this is switched on and a texting service is connected.
+export const TEXTING_AVAILABLE = false

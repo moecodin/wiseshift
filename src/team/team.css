@@ -1732,3 +1732,15 @@ button.tl-bar:active { transform: scale(0.96); }
 .pn-got { border: 0; background: var(--navy); color: #fff; }
 .mh-staffnote { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: #8a5a00; }
 [data-bs-theme='dark'] .mh-staffnote { color: #f2c875; }
+
+/* ---------- Tagging staff on notes and tasks ---------- */
+.nt-people { display: flex; flex-wrap: wrap; gap: 8px; }
+.nt-person { gap: 6px; padding-left: 8px; }
+.nt-notify { margin-top: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 14px; }
+.nt-notify small { display: block; font-size: 12px; color: var(--muted); }
+.nt-notify .nt-off { opacity: 0.55; cursor: default; }
+.nt-text small.for, .nt-sticky small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.nt-sticky small { color: #6a5a4a; }
+.nt-flat { cursor: default; margin-top: 8px; }
+.nt-flat:hover { transform: none; }
+.nt-mine h2 { margin-bottom: 4px; }

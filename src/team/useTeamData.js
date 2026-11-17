@@ -209,7 +209,8 @@ function sampleView(state, viewAs) {
     // Notes staff leave about a day's punches. Managers see all of them; staff see only their own.
     punchNotes: (state.punchNotes ?? []).filter((n) => boss || n.employeeId === viewAs),
     // Sticky notes and tasks are for managers only; staff never get them at all.
-    notes: boss ? state.notes ?? [] : [],
+    // Staff see only the notes and tasks a manager tagged them on.
+    notes: boss ? state.notes ?? [] : (state.notes ?? []).filter((n) => (n.assignees ?? []).includes(viewAs)),
     teamOff: state.timeOff.filter((t) => t.status === 'approved').map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
     shop: state.shop ?? null,
     settings: { ...DEFAULT_SETTINGS, ...state.settings },
@@ -648,21 +649,31 @@ export function useTeamData({ signedIn, email, week, period }) {
       })
     },
     // Managers' sticky notes and tasks. kind: 'note' or 'task'. color: 0 to 3. Tasks can have a dueDate and be done.
-    addNote: async ({ text, kind = 'note', color = 0, dueDate = '' }) => {
+    // assignees: the staff tagged on it (they can see it, and check off a task). notify: tell them
+    // (a push notification once the app is online). sendText: also text them, when texting exists.
+    addNote: async ({ text, kind = 'note', color = 0, dueDate = '', assignees = [], notify = true, sendText = false }) => {
       if (usingSupabase) return NOTES_SETUP
       if (!view.me?.isManager) return 'Only managers can add notes.'
       if (!text.trim()) return 'Type something first.'
       return change((s) => {
-        s.notes = [{ id: newId('n'), text: text.trim(), kind, color, dueDate: kind === 'task' ? dueDate : '', done: false, createdBy: myName, createdAt: new Date().toISOString() }, ...(s.notes ?? [])]
+        s.notes = [{ id: newId('n'), text: text.trim(), kind, color, dueDate: kind === 'task' ? dueDate : '', assignees, notify: assignees.length > 0 && notify, sendText: assignees.length > 0 && sendText, done: false, createdBy: myName, createdAt: new Date().toISOString() }, ...(s.notes ?? [])]
         return s
       })
     },
     updateNote: async (id, changes) => {
       if (usingSupabase) return NOTES_SETUP
-      if (!view.me?.isManager) return 'Only managers can change notes.'
+      const note = (sample.notes ?? []).find((x) => x.id === id)
+      const manager = Boolean(view.me?.isManager)
+      // Staff can only tick off a task they were tagged on.
+      const mine = (note?.assignees ?? []).includes(viewAs) && Object.keys(changes).every((k) => k === 'done')
+      if (!manager && !mine) return 'Only managers can change notes.'
       return change((s) => {
         const n = (s.notes ?? []).find((x) => x.id === id)
-        if (n) Object.assign(n, changes, changes.done === true ? { doneAt: new Date().toISOString() } : {})
+        if (n) {
+          Object.assign(n, changes)
+          if (changes.done === true) Object.assign(n, { doneAt: new Date().toISOString(), doneBy: myName })
+          if (changes.done === false) Object.assign(n, { doneAt: null, doneBy: '' })
+        }
         return s
       })
     },

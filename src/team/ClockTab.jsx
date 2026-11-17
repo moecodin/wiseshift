@@ -7,6 +7,7 @@ import RoleBadge from './RoleBadge.jsx'
 import { OpenShifts } from './CoverUI.jsx'
 import { useFeatures } from './features.js'
 import { MyPunchNotes } from './PunchNotes.jsx'
+import { TaggedForMe } from './ManagerNotes.jsx'
 import { Countdown, MyRequests, TodayTeam } from './TodayExtras.jsx'
 import SpotTag from './SpotTag.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
@@ -93,6 +94,8 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
       )}
 
       {!boss && <OpenShifts data={data} me={me} lang={lang} />}
+
+      {!boss && f.notes && <TaggedForMe data={data} lang={lang} />}
 
       <section className="tm-card">
         <h2>{lang === 'es' ? 'Tu día' : 'Your day'}</h2>
