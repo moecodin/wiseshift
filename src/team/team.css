@@ -1304,3 +1304,23 @@ a.tm-spot:hover {
   .tm-pill { transition: none; }
 }
 
+/* ---------- Cards rise in one after another; buttons dip when pressed ---------- */
+.tm-page :is(.tm-card, .sc-row, .sc-hero, .hr-hero, .pt-person, .mg-person) { animation: tm-rise 0.35s ease-out both; }
+.tm-page > :nth-child(2) { animation-delay: 0.04s; }
+.tm-page > :nth-child(3) { animation-delay: 0.08s; }
+.tm-page > :nth-child(4) { animation-delay: 0.12s; }
+.tm-page > :nth-child(5) { animation-delay: 0.16s; }
+.tm-page > :nth-child(n + 6) { animation-delay: 0.2s; }
+.tm-page .tm-narrow > :nth-child(2) { animation-delay: 0.04s; }
+.tm-page .tm-narrow > :nth-child(3) { animation-delay: 0.08s; }
+.tm-page .tm-narrow > :nth-child(4) { animation-delay: 0.12s; }
+.tm-page .tm-narrow > :nth-child(5) { animation-delay: 0.16s; }
+.tm-page .tm-narrow > :nth-child(n + 6) { animation-delay: 0.2s; }
+@keyframes tm-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.tm :is(.btn, .sc-day, .rl-pick, .mg-shift, .mg-add, .mh-edit, .mh-add, .tm-summary, .pt-person, .tm-tabs button, .tm-icon, .sc-toggle button, .tm-seg button):active { transform: scale(0.96); }
+.tm :is(.btn, .sc-day, .rl-pick, .mg-shift, .mg-add, .mh-edit, .mh-add, .tm-summary, .pt-person, .tm-tabs button, .tm-icon, .sc-toggle button, .tm-seg button) { transition: transform 0.12s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .tm-page :is(.tm-card, .sc-row, .sc-hero, .hr-hero, .pt-person, .mg-person) { animation: none; }
+  .tm :is(.btn, .sc-day, .rl-pick, .mg-shift, .mg-add, .mh-edit, .mh-add, .tm-summary, .pt-person, .tm-tabs button, .tm-icon, .sc-toggle button, .tm-seg button):active { transform: none; }
+}
+
