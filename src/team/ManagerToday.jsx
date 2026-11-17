@@ -172,8 +172,8 @@ export default function ManagerToday({ data, me, lang, onView }) {
         </div></div>
       )}
 
-      {f.timeClock && <button type="button" className="to-link mt-more" onClick={() => onView('clock')}>{w.myClock}</button>}
       {f.notes && <ManagerNotes data={data} />}
+      {f.timeClock && <button type="button" className="td-more mt-more" onClick={() => onView('clock')}>{w.myClock}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg></button>}
       </div>
       {fixing && <PunchEditor punch={fixing} data={data} onClose={() => setFixing(null)} />}
     </div>
