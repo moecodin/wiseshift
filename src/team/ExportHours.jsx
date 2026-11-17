@@ -107,7 +107,7 @@ export default function ExportHours({ data, now, onClose }) {
   // Both downloads first check that there is something to export and that unapproved punches are OK.
   const ready = () => {
     if (!days.length || !rows.length) return false
-    return !unapproved || window.confirm(`${unapproved} punch${unapproved === 1 ? '' : 'es'} in this range ${unapproved === 1 ? "isn't" : "aren't"} approved yet (Clock → Review). Download anyway?`)
+    return !unapproved || window.confirm(`${unapproved} punch${unapproved === 1 ? '' : 'es'} in this range ${unapproved === 1 ? "isn't" : "aren't"} approved yet (Hours → Review). Download anyway?`)
   }
 
   const exportPdf = async () => {
@@ -255,7 +255,7 @@ export default function ExportHours({ data, now, onClose }) {
       </div>
 
       {stillIn.length > 0 && <p className="tm-warn">Still clocked in: {stillIn.map((r) => r.e.name).join(', ')}. Fix any forgotten clock-outs first.</p>}
-      {unapproved > 0 && <p className="tm-warn">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Today → Review before payroll.</p>}
+      {unapproved > 0 && <p className="tm-warn">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.</p>}
 
       <div className="tm-gridwrap ex-preview">
         <table className="tm-sheet">

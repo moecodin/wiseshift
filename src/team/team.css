@@ -1758,3 +1758,32 @@ button.tl-bar:active { transform: scale(0.96); }
 /* "Approved" badge on punch cards, in place of the small check mark */
 .hr-approved { display: inline-block; margin-left: 8px; padding: 1px 10px; border-radius: 999px; background: #e3efe8; color: #24574a; font-size: 12px; font-weight: 700; line-height: 1.5; vertical-align: 2px; }
 [data-bs-theme='dark'] .hr-approved { background: #2b4a40; color: #bfe6d6; }
+
+/* ---------- Printing the timesheet: one landscape page, light colors, a title ---------- */
+.ts-print-head { display: none; }
+.ts-away { color: var(--warn, #b26b00); font-weight: 700; }
+@page { size: landscape; margin: 10mm; }
+@media print {
+  html, html[data-bs-theme='dark'], html[data-bs-theme='light'] {
+    --paper: #fff; --desk: #fff; --head: #f2ede6; --ink: #1f1a16; --muted: #555; --line: #cfc6bb; --line-soft: #ddd5ca;
+  }
+  body, .tm { background: #fff !important; color: #1f1a16; }
+  .no-print, .app-banner, .ex-note, .ex-btn, .tm-back, .hr-seg { display: none !important; }
+  .tm-main, .tm-main.wide { max-width: none; padding: 0; margin: 0; }
+  .tm-page { animation: none !important; transform: none !important; }
+  .ts-print-head { display: flex; align-items: baseline; gap: 14px; margin: 0 0 8px; }
+  .ts-print-head b { font-family: 'Fraunces', Georgia, serif; font-size: 16pt; }
+  .ts-print-head span { font-size: 11pt; font-weight: 600; }
+  .ts-print-head small { margin-left: auto; font-size: 8pt; color: #555; }
+  .tm-gridwrap { overflow: visible !important; border: 0 !important; border-radius: 0; box-shadow: none; }
+  .tm-sheet { width: 100%; table-layout: fixed; font-size: 7pt; white-space: normal; border-collapse: collapse; }
+  .tm-sheet th, .tm-sheet td { padding: 3px 3px; border: 1px solid #cfc6bb; word-break: break-word; }
+  .tm-sheet tbody th { position: static; }
+  .tm-sheet thead th:first-child { width: 11%; }
+  .tm-sheet thead th:nth-child(2), .tm-sheet thead th:nth-child(3), .tm-sheet thead th:nth-child(4) { width: 5.6%; }
+  .tm-sheet thead th { word-break: normal; overflow-wrap: normal; hyphens: none; }
+  .tm-sheet thead th, .tm-sheet tfoot th, .tm-sheet tfoot td { background: #f2ede6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tm-sheet tr { break-inside: avoid; }
+  .tm-cell b { font-size: 7.5pt; }
+  .ts-print > p.tm-muted { font-size: 7.5pt; margin-top: 6px; }
+}

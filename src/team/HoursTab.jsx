@@ -275,6 +275,8 @@ export function PunchEditor({ punch, data, onClose }) {
 
 // Managers: everyone's hours for the pay period, like the Humanity timesheet summary.
 function Timesheet({ data, period, now }) {
+  const f = useFeatures()
+  const pay = f.payRates // rate and gross columns only when the business uses pay rates
   const rows = data.employees
     .filter((e) => !scheduleOnly(e))
     .map((e) => {
@@ -285,16 +287,21 @@ function Timesheet({ data, period, now }) {
     .filter((r) => r.e.active || r.hours.total > 0)
   const total = (fn) => rows.reduce((sum, r) => sum + fn(r), 0)
   const stillIn = rows.filter((r) => r.hours.open)
-  // Finished punches nobody has approved yet (Clock → Review).
+  // Finished punches nobody has approved yet (Hours → Review).
   const unapproved = rows.flatMap((r) => r.hours.byDay.flatMap((d) => d.punches)).filter((p) => p.clockOut && !p.approvedAt).length
 
   return (
-    <div>
+    <div className="ts-print">
+      <div className="ts-print-head">
+        <b>Timesheet</b>
+        <span>{dayLabel(period[0])} to {dayLabel(period.at(-1))}</span>
+        <small>Printed {now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</small>
+      </div>
       {stillIn.length > 0 && (
-        <p className="tm-warn">Still clocked in: {stillIn.map((r) => r.e.name).join(', ')}. Fix any forgotten clock-outs before payroll.</p>
+        <p className="tm-warn no-print">Still clocked in: {stillIn.map((r) => r.e.name).join(', ')}. Fix any forgotten clock-outs before payroll.</p>
       )}
       {unapproved > 0 && (
-        <p className="tm-warn">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Clock → Review before payroll.</p>
+        <p className="tm-warn no-print">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.</p>
       )}
       <div className="tm-gridwrap">
         <table className="tm-sheet">
@@ -305,8 +312,8 @@ function Timesheet({ data, period, now }) {
               <th scope="col">Regular</th>
               <th scope="col">Overtime</th>
               {period.map((d) => <th key={d} scope="col">{dayLabel(d)}</th>)}
-              <th scope="col">Rate</th>
-              <th scope="col">Gross (est.)</th>
+              {pay && <th scope="col">Rate</th>}
+              {pay && <th scope="col">Gross (est.)</th>}
             </tr>
           </thead>
           <tbody>
@@ -322,15 +329,15 @@ function Timesheet({ data, period, now }) {
                       const away = [p.inSpot, p.clockOut && p.outSpot].some((x) => x && describeSpot(x, data.shop).far)
                       return (
                         <div key={p.id} className={away ? 'tm-away' : ''} title={away ? 'Clocked in or out away from the shop' : undefined}>
-                          {formatClock(p.clockIn)}–{p.clockOut ? formatClock(p.clockOut) : 'in'}{away && ' 📍'}
+                          {formatClock(p.clockIn)}–{p.clockOut ? formatClock(p.clockOut) : 'in'}{away && <small className="ts-away"> away</small>}
                         </div>
                       )
                     })}
                     {d.minutes > 0 && <b>{formatHours(d.minutes)}</b>}
                   </td>
                 ))}
-                <td>{e.payType === 'hourly' ? money(rate) : 'Commission'}</td>
-                <td>{gross === null ? '—' : money(gross)}</td>
+                {pay && <td>{e.payType === 'hourly' ? money(rate) : 'Commission'}</td>}
+                {pay && <td>{gross === null ? '—' : money(gross)}</td>}
               </tr>
             ))}
           </tbody>
@@ -341,8 +348,8 @@ function Timesheet({ data, period, now }) {
               <td>{formatHours(total((r) => r.hours.regular))}</td>
               <td>{formatHours(total((r) => r.hours.overtime))}</td>
               {period.map((d, i) => <td key={d}>{formatHours(total((r) => r.hours.byDay[i].minutes))}</td>)}
-              <td />
-              <td>{money(total((r) => r.gross ?? 0))}</td>
+              {pay && <td />}
+              {pay && <td>{money(total((r) => r.gross ?? 0))}</td>}
             </tr>
           </tfoot>
         </table>
