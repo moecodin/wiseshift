@@ -100,6 +100,9 @@ function Person({ data, boss, employee, period, now }) {
                     <b>{date.getDate()}</b>
                   </div>
                   <div className="sc-body">
+                    {(data.punchNotes ?? []).filter((n) => n.employeeId === employee.id && n.date === d.date).map((n) => (
+                      <small key={n.id} className="mh-staffnote">Note from staff: {n.text}</small>
+                    ))}
                     {d.punches.map((p) => (
                       <div key={p.id} className="mh-punch">
                         <span className="hr-times">

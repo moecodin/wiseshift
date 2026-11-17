@@ -206,6 +206,8 @@ function sampleView(state, viewAs) {
     timeOff: state.timeOff.filter(own),
     // Cover requests are public inside the team: everyone needs to see which shifts are open.
     cover: state.cover ?? [],
+    // Notes staff leave about a day's punches. Managers see all of them; staff see only their own.
+    punchNotes: (state.punchNotes ?? []).filter((n) => boss || n.employeeId === viewAs),
     // Sticky notes and tasks are for managers only; staff never get them at all.
     notes: boss ? state.notes ?? [] : [],
     teamOff: state.timeOff.filter((t) => t.status === 'approved').map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
@@ -252,6 +254,7 @@ const shiftOver = (shift) => new Date(fromKey(shift.date).getTime() + shift.end 
 const clashes = (state, personId, shift, giving) =>
   state.shifts.some((x) => x.employeeId === personId && x.id !== giving && x.date === shift.date && x.start < shift.end && shift.start < x.end) ||
   state.timeOff.some((t) => t.employeeId === personId && t.status === 'approved' && t.start <= shift.date && t.end >= shift.date)
+const PNOTES_SETUP = "Punch notes aren't set up in the database yet."
 const NOTES_SETUP = "Notes and tasks aren't set up in the database yet."
 const COVER_SETUP = "Cover requests aren't set up in the database yet."
 let sampleIds = Date.now()
@@ -259,7 +262,7 @@ const newId = (prefix) => `${prefix}${++sampleIds}`
 
 // ---------- The hook ----------
 
-const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], notes: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
+const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], notes: [], punchNotes: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
 
 export function useTeamData({ signedIn, email, week, period }) {
   const today = useMemo(() => startOfToday(), [])
@@ -617,6 +620,30 @@ export function useTeamData({ signedIn, email, week, period }) {
       }
       return change((s) => {
         s.cover = [...(s.cover ?? []), { id: newId('c'), kind: swapShiftId ? 'swap' : 'giveaway', shiftId, swapShiftId, targetId, requesterId: viewAs, note: (note || '').trim(), status: 'open', takerId: null, createdAt: new Date().toISOString() }]
+        return s
+      })
+    },
+    // Staff: a note about today (or yesterday), like a forgotten clock-in or work outside the shop.
+    // tag: forgotIn, forgotOut, outside or other. Managers see it on their Today screen.
+    addPunchNote: async ({ text, tag = 'other', date }) => {
+      if (usingSupabase) return PNOTES_SETUP
+      if (!text.trim()) return 'Type a note first.'
+      return change((s) => {
+        s.punchNotes = [...(s.punchNotes ?? []), { id: newId('pn'), employeeId: viewAs, date: date || dateKey(new Date()), tag, text: text.trim(), createdAt: new Date().toISOString(), ackAt: null, ackBy: '' }]
+        return s
+      })
+    },
+    deletePunchNote: async (id) => {
+      if (usingSupabase) return PNOTES_SETUP
+      return change((s) => ({ ...s, punchNotes: (s.punchNotes ?? []).filter((n) => !(n.id === id && n.employeeId === viewAs && !n.ackAt)) }))
+    },
+    // Managers: mark a note as seen.
+    ackPunchNote: async (id) => {
+      if (usingSupabase) return PNOTES_SETUP
+      if (!view.me?.isManager) return 'Only managers can do that.'
+      return change((s) => {
+        const n = (s.punchNotes ?? []).find((x) => x.id === id)
+        if (n) Object.assign(n, { ackAt: new Date().toISOString(), ackBy: myName })
         return s
       })
     },

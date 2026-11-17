@@ -1711,3 +1711,24 @@ button.tl-bar:active { transform: scale(0.96); }
 .pd-mapbtn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .pd-mapbtn:active { transform: scale(0.96); }
 @media (hover: hover) { .pd-mapbtn:hover { border-color: var(--muted); } }
+
+/* ---------- Notes about punches (staff to manager) ---------- */
+.pn-mine { margin-top: 10px; }
+.pn-add { margin-top: 0; }
+.pn-list { margin: 10px 0 0; padding: 0; list-style: none; text-align: left; }
+.pn-list li { padding: 8px 12px; margin-top: 6px; border-radius: 14px; background: var(--head); font-size: 13px; }
+.pn-list small { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+.pn-chip { display: inline-block; padding: 1px 9px; border-radius: 999px; background: #fbebd6; color: #6b4a0b; font-size: 11px; font-weight: 700; }
+[data-bs-theme='dark'] .pn-chip { background: #54431f; color: #f2d79a; }
+.pn-text { display: block; margin-top: 4px; font-size: 14px; }
+.pn-row { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.pn-body { flex: 1; min-width: 0; }
+.pn-body b { display: block; font-size: 15px; }
+.pn-body small { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.pn-body p { margin: 6px 0 8px; font-size: 14px; overflow-wrap: anywhere; }
+.pn-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.pn-fix, .pn-got { min-height: 36px; padding: 0 16px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.pn-fix { border: 1.5px solid var(--ink); background: none; color: var(--ink); }
+.pn-got { border: 0; background: var(--navy); color: #fff; }
+.mh-staffnote { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: #8a5a00; }
+[data-bs-theme='dark'] .mh-staffnote { color: #f2c875; }

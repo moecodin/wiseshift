@@ -8,6 +8,7 @@ import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
 import { useFeatures } from './features.js'
 import ManagerNotes from './ManagerNotes.jsx'
+import { StaffNotes, missingPunch } from './PunchNotes.jsx'
 
 const LATE = 15 // minutes after the shift start that "On time" turns into "Late"
 const MISSING_AFTER = 10 // minutes after a shift starts before "hasn't clocked in" shows
@@ -50,7 +51,8 @@ export default function ManagerToday({ data, me, lang, onView }) {
   const week = scheduleWeekOf(now)
   const drafts = data.shifts.filter((s) => week.includes(s.date) && !s.published)
   const covers = !f.cover ? [] : (data.cover ?? []).filter((c) => c.status === 'taken' && data.shifts.some((s) => s.id === c.shiftId))
-  const count = notIn.length + requests.length + covers.length + stuck.length + (toReview > 0 ? 1 : 0)
+  const staffNotes = !f.timeClock ? [] : (data.punchNotes ?? []).filter((n) => !n.ackAt)
+  const count = notIn.length + requests.length + covers.length + stuck.length + staffNotes.length + (toReview > 0 ? 1 : 0)
 
   const othersOff = (t) => data.teamOff.filter((o) => o.employeeId !== t.employeeId && o.start <= t.end && o.end >= t.start).map((o) => first(o.employeeId))
 
@@ -121,6 +123,8 @@ export default function ManagerToday({ data, me, lang, onView }) {
           </div></div>
         )
       })}
+
+      {f.timeClock && <StaffNotes data={data} lang={lang} onFix={(n) => setFixing(missingPunch(n))} />}
 
       {stuck.map((p) => (
         <section key={p.id} className="mt-card">

@@ -6,6 +6,7 @@ import { currentSpot, streetAddress } from './location.js'
 import RoleBadge from './RoleBadge.jsx'
 import { OpenShifts } from './CoverUI.jsx'
 import { useFeatures } from './features.js'
+import { MyPunchNotes } from './PunchNotes.jsx'
 import { Countdown, MyRequests, TodayTeam } from './TodayExtras.jsx'
 import SpotTag from './SpotTag.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
@@ -85,6 +86,7 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
         {staleOpen && <p className="tm-warn">{w.stale(dayName(dateKey(new Date(open.clockIn)), lang))}</p>}
         {noSpot && <p className="tm-warn">{noSpot === 'denied' ? w.noSpotDenied : w.noSpot}</p>}
         {error && <p className="tm-error" role="alert">{error}</p>}
+        {!boss && <MyPunchNotes data={data} me={me} lang={lang} />}
         {!boss && <Countdown data={data} me={me} now={now} open={open} lang={lang} />}
         {f.location && <p className="tm-muted small mt-3 mb-0">{w.locationNote}</p>}
       </section>
