@@ -1754,3 +1754,7 @@ button.tl-bar:active { transform: scale(0.96); }
 .mh-punch .mh-edit { margin-right: 6px; }
 
 .hr-count { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; background: var(--red, #c8472e); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+/* "Approved" badge on punch cards, in place of the small check mark */
+.hr-approved { display: inline-block; margin-left: 8px; padding: 1px 10px; border-radius: 999px; background: #e3efe8; color: #24574a; font-size: 12px; font-weight: 700; line-height: 1.5; vertical-align: 2px; }
+[data-bs-theme='dark'] .hr-approved { background: #2b4a40; color: #bfe6d6; }

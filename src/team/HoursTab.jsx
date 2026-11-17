@@ -134,7 +134,7 @@ function Person({ data, boss, employee, period, now }) {
                       <div key={p.id} className="mh-punch">
                         <span className="hr-times">
                           {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : <i>still in</i>}
-                          {p.approvedAt && <span className="tm-ok-mark" title={`Approved by ${p.approvedBy ?? ''}`}> ✓</span>}
+                          {p.approvedAt && <span className="hr-approved" title={`Approved${p.approvedBy ? ` by ${p.approvedBy}` : ''}`}>Approved</span>}
                           {p.editedBy && <span className="tm-edited" title={`Fixed by ${p.editedBy}`}>fixed</span>}
                         </span>
                         <div className="tm-spots">
