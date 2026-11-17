@@ -4,6 +4,7 @@ import { formatHours, shiftMinutes } from './paycheck.js'
 import { clockTime, offOn, useNow } from './format.js'
 import Avatar from './Avatar.jsx'
 import { tagClass } from './tags.js'
+import { useFeatures } from './features.js'
 
 // One day as a timeline: an hour axis, a row for each person and a bar for each of their
 // shifts. Positions are percentages of the visible hours, so it fits any width.
@@ -48,6 +49,7 @@ const axisLabel = (m) => `${hour12(m)}${Math.floor(m / 60) % 24 < 12 ? 'a' : 'p'
 export default function DayTimeline({ data, me, date, today, lang, mode, onEdit, onAdd, flash = new Set() }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const manager = mode === 'manager'
+  const f = useFeatures()
   const now = useNow()
   const [message, setMessage] = useState('')
   const person = (id) => data.employees.find((e) => e.id === id)
@@ -126,7 +128,7 @@ export default function DayTimeline({ data, me, date, today, lang, mode, onEdit,
                     {list.map((s) => {
                       const tint = s.title ? tagClass(s.title, data.settings?.shiftPresets).match(/t\d/)?.[0] : 't-none'
                       const Tag = manager ? 'button' : 'div'
-                      const label = `${p.name}: ${clockTime(s.start)} – ${clockTime(s.end)}${s.title ? ` · ${s.title}` : ''}${s.role ? ` · ${s.role}` : ''}`
+                      const label = `${p.name}: ${clockTime(s.start)} – ${clockTime(s.end)}${s.title ? ` · ${s.title}` : ''}${f.roles && s.role ? ` · ${s.role}` : ''}`
                       return (
                         <Tag
                           key={s.id}
@@ -151,7 +153,7 @@ export default function DayTimeline({ data, me, date, today, lang, mode, onEdit,
 
       {manager ? (
         <>
-          {renderCoverage(shifts, w)}
+          {f.coverage && renderCoverage(shifts, w)}
           <div className="tl-tools">
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={copyYesterday}>{w.copyYesterday}</button>
             <button type="button" className="btn btn-success btn-sm" disabled={!drafts.length} onClick={publish}>{w.publish} ({drafts.length})</button>

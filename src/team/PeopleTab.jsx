@@ -6,6 +6,7 @@ import { dateKey } from '../lib/dates.js'
 import { dayLabel } from './format.js'
 import { noticeAcked } from './settings.js'
 import Avatar from './Avatar.jsx'
+import { useFeatures } from './features.js'
 
 const NEW_PAY = {
   hourlyRate: 0, filingStatus: 'single', step2: false, dependents: 0, otherIncome: 0, deductions: 0, extraWithholding: 0,
@@ -14,6 +15,7 @@ const NEW_PAY = {
 
 // Managers: who's on the team, their position, pay rate and tax settings.
 export default function PeopleTab({ data, me }) {
+  const f = useFeatures()
   const [editing, setEditing] = useState(null)
   const people = [...data.employees].sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name))
 
@@ -25,7 +27,7 @@ export default function PeopleTab({ data, me }) {
       </div>
       {people.map((e) => {
         const pay = data.payById[e.id]
-        const rate = scheduleOnly(e) ? 'Schedule only' : e.payType === 'commission' ? 'Commission' : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : 'No rate'
+        const rate = scheduleOnly(e) ? 'Schedule only' : !f.payRates ? '' : e.payType === 'commission' ? 'Commission' : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : 'No rate'
         return (
           <button key={e.id} type="button" className={`sc-row person pt-person ${e.active ? '' : 'inactive'}`} onClick={() => setEditing(e)}>
             <Avatar employee={e} size={44} />
@@ -63,6 +65,7 @@ export default function PeopleTab({ data, me }) {
 }
 
 function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
+  const f = useFeatures()
   const [e, setE] = useState({ ...employee })
   const [pay, setPay] = useState({ ...NEW_PAY, ...savedPay })
   const [error, setError] = useState('')
@@ -140,6 +143,8 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
       </div>
       {employee.id && !none && <Contact priv={data.privateById[employee.id]} settings={data.settings} />}
 
+      {f.payRates && (
+      <>
       <h3 className="tm-h3">Pay</h3>
       <div className="row g-2">
         <div className="col-sm-6">
@@ -214,6 +219,8 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
             Used only for the paycheck estimate. Bank details for direct deposit go in the payroll service, never here.
           </p>
         </>
+      )}
+      </>
       )}
       {error && <p className="tm-error mt-2" role="alert">{error}</p>}
     </Modal>

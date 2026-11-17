@@ -6,6 +6,7 @@ import { punchStatus, shiftFor } from './review.js'
 import { PunchEditor } from './HoursTab.jsx'
 import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
+import { useFeatures } from './features.js'
 
 const LATE = 15 // minutes after the shift start that "On time" turns into "Late"
 const MISSING_AFTER = 10 // minutes after a shift starts before "hasn't clocked in" shows
@@ -20,6 +21,7 @@ const WORDS = {
 export default function ManagerToday({ data, me, lang, onView }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const now = useNow()
+  const f = useFeatures() // parts of the app this business has switched off disappear from this screen
   const today = dateKey(now)
   const nowMin = now.getHours() * 60 + now.getMinutes()
   const [fixing, setFixing] = useState(null)
@@ -36,17 +38,17 @@ export default function ManagerToday({ data, me, lang, onView }) {
   const person = (id) => data.employees.find((e) => e.id === id)
   const first = (id) => name(id).split(' ')[0]
 
-  const myOpen = data.punches.find((p) => p.employeeId === me.id && !p.clockOut)
+  const myOpen = f.timeClock ? data.punches.find((p) => p.employeeId === me.id && !p.clockOut) : undefined
   const todaysShifts = data.shifts.filter((s) => s.date === today && s.published)
   const inToday = (id) => data.punches.some((p) => p.employeeId === id && dateKey(new Date(p.clockIn)) === today)
-  const notIn = todaysShifts.filter((s) => !scheduleOnly(person(s.employeeId)) && s.employeeId !== me.id && s.start + MISSING_AFTER <= nowMin && s.end > nowMin && !inToday(s.employeeId))
-  const requests = data.timeOff.filter((t) => t.status === 'pending').sort((a, b) => a.start.localeCompare(b.start))
-  const stuck = data.punches.filter((p) => !p.clockOut && dateKey(new Date(p.clockIn)) < today)
-  const toReview = data.punches.filter((p) => punchStatus(p) === 'pending').length
-  const open = data.punches.filter((p) => !p.clockOut && dateKey(new Date(p.clockIn)) === today).sort((a, b) => new Date(a.clockIn) - new Date(b.clockIn))
+  const notIn = !f.timeClock ? [] : todaysShifts.filter((s) => !scheduleOnly(person(s.employeeId)) && s.employeeId !== me.id && s.start + MISSING_AFTER <= nowMin && s.end > nowMin && !inToday(s.employeeId))
+  const requests = !f.timeOff ? [] : data.timeOff.filter((t) => t.status === 'pending').sort((a, b) => a.start.localeCompare(b.start))
+  const stuck = !f.timeClock ? [] : data.punches.filter((p) => !p.clockOut && dateKey(new Date(p.clockIn)) < today)
+  const toReview = !f.timeClock ? 0 : data.punches.filter((p) => punchStatus(p) === 'pending').length
+  const open = !f.timeClock ? [] : data.punches.filter((p) => !p.clockOut && dateKey(new Date(p.clockIn)) === today).sort((a, b) => new Date(a.clockIn) - new Date(b.clockIn))
   const week = scheduleWeekOf(now)
   const drafts = data.shifts.filter((s) => week.includes(s.date) && !s.published)
-  const covers = (data.cover ?? []).filter((c) => c.status === 'taken' && data.shifts.some((s) => s.id === c.shiftId))
+  const covers = !f.cover ? [] : (data.cover ?? []).filter((c) => c.status === 'taken' && data.shifts.some((s) => s.id === c.shiftId))
   const count = notIn.length + requests.length + covers.length + stuck.length + (toReview > 0 ? 1 : 0)
 
   const othersOff = (t) => data.teamOff.filter((o) => o.employeeId !== t.employeeId && o.start <= t.end && o.end >= t.start).map((o) => first(o.employeeId))
@@ -134,6 +136,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
         </section>
       )}
 
+      {f.timeClock && (
       <section className="mt-card">
         <div className="mt-line"><b>{w.working}</b><small>{w.clockedIn(open.length)}</small></div>
         {open.length === 0 && <p className="tm-muted mb-0">{w.nobody}</p>}
@@ -149,6 +152,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
           )
         })}
       </section>
+      )}
 
       {drafts.length > 0 && (
         <div className={`mt-fold ${leaving.draft ? 'leaving published' : ''}`}><div className="mt-fold-in">
@@ -160,7 +164,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
         </div></div>
       )}
 
-      <button type="button" className="to-link mt-more" onClick={() => onView('clock')}>{w.myClock}</button>
+      {f.timeClock && <button type="button" className="to-link mt-more" onClick={() => onView('clock')}>{w.myClock}</button>}
       {fixing && <PunchEditor punch={fixing} data={data} onClose={() => setFixing(null)} />}
     </div>
   )

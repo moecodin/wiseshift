@@ -8,12 +8,14 @@ import { TAX_YEAR } from './taxRates.js'
 import { describeSpot } from './location.js'
 import SpotTag from './SpotTag.jsx'
 import MyHours from './MyHours.jsx'
+import { useFeatures } from './features.js'
 
 // Hours for a pay period (Friday to Thursday, two weeks) and the paycheck
 // estimate. Managers can look at anyone, fix punches, see everyone's timesheet
 // and download it for the payroll service.
 export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
   const now = useNow()
+  const f = useFeatures()
   const [view, setView] = useState('person')
   const [who, setWho] = useState(me.id)
   const current = payPeriodOf(now)[0] === period[0]
@@ -27,7 +29,7 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, 1))} aria-label="Pay period after">›</button>
           {!current && <button type="button" className="btn btn-link btn-sm" onClick={() => onPeriod(payPeriodOf(new Date()))}>This pay period</button>}
         </div>
-        {boss && (
+        {boss && f.timesheets && (
           <div className="tm-seg hr-seg" role="group" aria-label="Show">
             <button type="button" aria-pressed={view === 'person'} onClick={() => setView('person')}>One person</button>
             <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet (everyone)</button>
@@ -39,7 +41,7 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
           </select>
         )}
       </div>
-      {boss && view === 'all' ? (
+      {boss && f.timesheets && view === 'all' ? (
         <Timesheet data={data} period={period} now={now} />
       ) : !boss ? (
         <MyHours data={data} me={me} period={period} now={now} lang={lang} />
@@ -51,6 +53,7 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
 }
 
 function Person({ data, boss, employee, period, now }) {
+  const f = useFeatures()
   const [editing, setEditing] = useState(null)
   const hours = periodHours(data.punches, employee.id, period, now)
   const pay = data.payById[employee.id]
@@ -116,7 +119,7 @@ function Person({ data, boss, employee, period, now }) {
         )
       })}
 
-      <Paycheck employee={employee} pay={pay} hours={hours} isMe={isMe} />
+      {f.payRates && <Paycheck employee={employee} pay={pay} hours={hours} isMe={isMe} />}
       {editing && <PunchEditor punch={editing} data={data} onClose={() => setEditing(null)} />}
     </div>
   )

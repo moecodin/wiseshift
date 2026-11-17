@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Avatar from './Avatar.jsx'
+import { useFeatures } from './features.js'
 
 const ICONS = {
   off: <><path d="M4 20c1-7 5-11 8-11s7 4 8 11z" /><path d="M12 9V4" /></>,
@@ -13,14 +14,15 @@ const Icon = ({ name }) => <svg className="mo-icon" viewBox="0 0 24 24" aria-hid
 const Chevron = () => <svg className="mo-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
 
 const WORDS = {
-  en: { off: 'Time off', people: 'Team', notify: 'Notifications', lang: 'Language', settings: 'Settings', out: 'Sign out', waiting: (n) => `${n} waiting`, peopleSub: 'People, pay rates, W-4', offSub: 'Ask for days off', signed: 'Signed in as' },
-  es: { off: 'Ausencias', people: 'Equipo', notify: 'Notificaciones', lang: 'Idioma', settings: 'Ajustes', out: 'Cerrar sesión', waiting: (n) => `${n} esperando`, peopleSub: 'Personas, pagos, W-4', offSub: 'Pedir días libres', signed: 'Sesión de' },
+  en: { off: 'Time off', people: 'Team', notify: 'Notifications', lang: 'Language', settings: 'Settings', out: 'Sign out', waiting: (n) => `${n} waiting`, peopleSub: 'People, pay rates, W-4', peopleOnly: 'People on your team', offSub: 'Ask for days off', signed: 'Signed in as' },
+  es: { off: 'Ausencias', people: 'Equipo', notify: 'Notificaciones', lang: 'Idioma', settings: 'Ajustes', out: 'Cerrar sesión', waiting: (n) => `${n} esperando`, peopleSub: 'Personas, pagos, W-4', peopleOnly: 'Personas en tu equipo', offSub: 'Pedir días libres', signed: 'Sesión de' },
 }
 
 // The More tab: who you are, then Time off, Team (managers), Notifications,
 // Language, Settings and Sign out.
 export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, onNotify, onSettings, onSignOut }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
+  const f = useFeatures()
   const [error, setError] = useState('')
   const pick = async (next) => setError((await data.actions.setLang(next)) || '')
   return (
@@ -34,15 +36,17 @@ export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, 
       </section>
 
       <section className="mo-card">
+        {f.timeOff && (
         <button type="button" className="mo-item" onClick={() => onOpen('off')}>
           <Icon name="off" />
           <span><b>{w.off}</b><small>{pending > 0 ? w.waiting(pending) : w.offSub}</small></span>
           <Chevron />
         </button>
+        )}
         {boss && (
           <button type="button" className="mo-item" onClick={() => onOpen('people')}>
             <Icon name="people" />
-            <span><b>{w.people}</b><small>{w.peopleSub}</small></span>
+            <span><b>{w.people}</b><small>{f.payRates ? w.peopleSub : w.peopleOnly}</small></span>
             <Chevron />
           </button>
         )}

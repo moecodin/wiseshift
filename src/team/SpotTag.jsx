@@ -1,4 +1,5 @@
 import { describeSpot, mapUrl } from './location.js'
+import { useFeature } from './features.js'
 
 // Spanish for the place labels (⚙️ Settings → Language).
 const toSpanish = (label) =>
@@ -6,6 +7,8 @@ const toSpanish = (label) =>
 
 // A punch's place: "📍 At the shop" or "📍 2.3 mi away", opening the map.
 export default function SpotTag({ spot, shop, prefix = '', lang = 'en' }) {
+  const on = useFeature('location')
+  if (!on) return null
   const { label, far, missing } = describeSpot(spot, shop)
   if (missing) return <span className="tm-spot missing" title="The phone didn't share its location">{prefix}{lang === 'es' ? 'Sin ubicación' : 'No location'}</span>
   return (

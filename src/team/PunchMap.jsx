@@ -1,10 +1,15 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { useFeature } from './features.js'
 
 // A small map with where someone clocked in (green) and out (red), and the shop's
 // circle. OpenStreetMap tiles. Loaded only when a punch's details are opened.
-export default function PunchMap({ inSpot, outSpot, shop }) {
+export default function PunchMap(props) {
+  return useFeature('location') ? <PunchMapView {...props} /> : null
+}
+
+function PunchMapView({ inSpot, outSpot, shop }) {
   const box = useRef(null)
 
   useEffect(() => {

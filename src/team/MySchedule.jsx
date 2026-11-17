@@ -4,6 +4,7 @@ import { formatHours, shiftMinutes } from './paycheck.js'
 import { offOn, shiftTimes } from './format.js'
 import RoleBadge from './RoleBadge.jsx'
 import DayStrip from './DayStrip.jsx'
+import { useFeatures } from './features.js'
 import DayTimeline from './DayTimeline.jsx'
 import WeekGrid from './WeekGrid.jsx'
 import { loadSpan, saveSpan } from './viewPref.js'
@@ -90,6 +91,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
 
 // The chosen day, big: today's card is green, other days are cream.
 function Hero({ data, me, date, today, w, lang }) {
+  const f = useFeatures()
   const mine = data.shifts.filter((s) => s.date === date && s.employeeId === me.id).sort((a, b) => a.start - b.start)
   const off = offOn(data.teamOff, me.id, date)
   const label = date === today ? w.today : fromKey(date).toLocaleDateString(locale(lang), { weekday: 'long', month: 'short', day: 'numeric' })
@@ -105,7 +107,7 @@ function Hero({ data, me, date, today, w, lang }) {
           <div key={s.id}>
             <small>{label}{s.title ? ` · ${s.title}` : ''}</small>
             <b>{shiftTimes(s)}</b>
-            {s.role && <em className="sc-hero-role">{s.role}</em>}
+            {f.roles && s.role && <em className="sc-hero-role">{s.role}</em>}
             <span>{formatHours(shiftMinutes(s))} {w.hrs}{s.note ? ` · ${s.note}` : ''}</span>
             <CoverStatus data={data} shift={s} lang={lang} />
           </div>
@@ -122,6 +124,7 @@ function Hero({ data, me, date, today, w, lang }) {
 
 // One day of my week, as a row.
 function Row({ data, me, date, w, lang, on }) {
+  const f = useFeatures()
   const mine = data.shifts.filter((s) => s.date === date && s.employeeId === me.id).sort((a, b) => a.start - b.start)
   const off = offOn(data.teamOff, me.id, date)
   const d = fromKey(date)
@@ -144,7 +147,7 @@ function Row({ data, me, date, w, lang, on }) {
               <span className="sc-time">{shiftTimes(s)}</span>
               {s.title && <span className={tagClass(s.title, data.settings?.shiftPresets)}>{s.title}</span>}
               <RoleBadge role={s.role} roles={data.settings?.roles} />
-              {activeCover(data.cover, s.id) && <span className="cv-tag">cover?</span>}
+              {f.cover && activeCover(data.cover, s.id) && <span className="cv-tag">cover?</span>}
               {s.note && <small>{s.note}</small>}
             </div>
           ))

@@ -5,10 +5,12 @@ import { activeCover } from './CoverUI.jsx'
 import Avatar from './Avatar.jsx'
 import SeenTick from './SeenTick.jsx'
 import ShiftBox from './ShiftBox.jsx'
+import { useFeatures } from './features.js'
 
 // The week: people down the side, days across. Managers (editable) tap a box to change
 // a shift and + to add one. Staff get a read-only copy. Tapping a day's heading calls onPickDay.
 export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, className = '' }) {
+  const f = useFeatures()
   return (
     <div className={`tm-gridwrap ${className}`}>
       <table className="tm-grid">
@@ -57,7 +59,7 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
                     <td key={d} className={d === today ? 'today' : ''}>
                       {off && <div className="tm-off">{editable ? 'Time off' : 'Off'}</div>}
                       {dayShifts.map((s) => (
-                        <ShiftBox key={s.id} cover={activeCover(data.cover, s.id)} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={editable ? () => onEdit(s) : undefined} />
+                        <ShiftBox key={s.id} cover={f.cover ? activeCover(data.cover, s.id) : undefined} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={editable ? () => onEdit(s) : undefined} />
                       ))}
                       {editable && (
                         <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => onEdit({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>

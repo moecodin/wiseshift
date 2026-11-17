@@ -6,6 +6,7 @@ import { clockTime, dayLabel, fromTimeInput, offOn, rangeLabel, shiftTimes, toTi
 import { rangeName, say } from './words.js'
 import MySchedule from './MySchedule.jsx'
 import WeekGrid from './WeekGrid.jsx'
+import { useFeature } from './features.js'
 import DayTimeline from './DayTimeline.jsx'
 import { loadSpan, saveSpan } from './viewPref.js'
 import DayStrip from './DayStrip.jsx'
@@ -155,6 +156,7 @@ function ShiftEditor({ shift, data, week, onClose }) {
   // Quick picks (⚙️ → Business), starting from the Humanity schedule.
   const presets = data.settings.shiftPresets
   const roles = data.settings.roles ?? []
+  const rolesOn = useFeature('roles')
   const [s, setS] = useState({ ...shift })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -231,6 +233,7 @@ function ShiftEditor({ shift, data, week, onClose }) {
           <label className="form-label" htmlFor="sh-break">Unpaid break (min)</label>
           <input id="sh-break" type="number" min="0" step="15" className="form-control" value={s.breakMin} onChange={set('breakMin')} />
         </div>
+        {rolesOn && (
         <div className="col-12">
           <span className="form-label d-block" id="sh-role-l">Role</span>
           <div className="rl-picks" role="group" aria-labelledby="sh-role-l">
@@ -243,6 +246,7 @@ function ShiftEditor({ shift, data, week, onClose }) {
             {s.role && !roles.some((r) => r.name === s.role) && <button type="button" className="rl-pick" aria-pressed="true"><i className="rl-dot none" aria-hidden="true" />{s.role}</button>}
           </div>
         </div>
+        )}
         <div className="col-12">
           <label className="form-label" htmlFor="sh-note">Note</label>
           <input id="sh-note" className="form-control" value={s.note} maxLength={200} onChange={set('note')} />

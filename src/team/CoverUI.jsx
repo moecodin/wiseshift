@@ -5,6 +5,7 @@ import { formatHours, shiftMinutes } from './paycheck.js'
 import { shiftTimes, useNow } from './format.js'
 import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
+import { useFeature } from './features.js'
 
 // Cover requests: give a shift away (to the whole team or one person) or swap it
 // for a coworker's. A request goes open → taken (a coworker says yes) → approved
@@ -50,13 +51,14 @@ const first = (name) => (name || '?').split(' ')[0]
 // Under one of my shifts: ask for cover, or where the request stands.
 export function CoverStatus({ data, shift, lang }) {
   const w = coverWords(lang)
+  const on = useFeature('cover')
   const now = useNow()
   const [asking, setAsking] = useState(false)
   const [error, setError] = useState('')
   const c = (data.cover ?? []).find((x) => x.shiftId === shift.id && isActive(x))
   // The last request on this shift that the asked person turned down.
   const passed = !c && [...(data.cover ?? [])].reverse().find((x) => x.shiftId === shift.id && x.status === 'passed')
-  if (!shift.published || ended(shift, now)) return null
+  if (!on || !shift.published || ended(shift, now)) return null
   if (!c && (data.cover ?? []).some((x) => isActive(x) && x.swapShiftId === shift.id)) return null // someone asked to swap for this shift
   const withdraw = async () => setError(await data.actions.cancelCover(c.id))
   const who = (id) => first(data.employees.find((e) => e.id === id)?.name)
@@ -158,6 +160,7 @@ function CoverAsk({ data, shift, lang, onClose }) {
 // Requests to me, shifts the whole team can take, and the ones I've said yes to and am waiting on.
 export function OpenShifts({ data, me, lang }) {
   const w = coverWords(lang)
+  const on = useFeature('cover')
   const now = useNow()
   const [errors, setErrors] = useState({})
   const shiftOf = (id) => data.shifts.find((s) => s.id === id)
@@ -165,7 +168,7 @@ export function OpenShifts({ data, me, lang }) {
   const live = (data.cover ?? []).filter((c) => shiftOf(c.shiftId) && !ended(shiftOf(c.shiftId), now) && (!c.swapShiftId || shiftOf(c.swapShiftId)))
   const forMe = live.filter((c) => c.status === 'open' && c.requesterId !== me.id && (c.targetId === me.id || !c.targetId))
   const waiting = live.filter((c) => c.status === 'taken' && c.takerId === me.id)
-  if (!forMe.length && !waiting.length) return null
+  if (!on || (!forMe.length && !waiting.length)) return null
   forMe.sort((a, b) => shiftOf(a.shiftId).date.localeCompare(shiftOf(b.shiftId).date))
   const act = async (id, fn) => setErrors({ ...errors, [id]: await fn(id) })
   const directed = forMe.some((c) => c.targetId === me.id)
