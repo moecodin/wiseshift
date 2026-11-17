@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { fromKey } from '../lib/dates.js'
 import { formatHours, shiftMinutes } from './paycheck.js'
-import { offOn, scheduleOnly, shiftTimes } from './format.js'
-import Avatar from './Avatar.jsx'
+import { offOn, shiftTimes } from './format.js'
 import RoleBadge from './RoleBadge.jsx'
 import DayStrip from './DayStrip.jsx'
+import DayTimeline from './DayTimeline.jsx'
+import WeekGrid from './WeekGrid.jsx'
+import { loadSpan, saveSpan } from './viewPref.js'
+import { tagClass } from './tags.js'
+export { tagClass }
 import { activeCover, CoverStatus, OpenShifts } from './CoverUI.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 
@@ -12,26 +16,21 @@ import { WeekTotal } from './ScheduleTab.jsx'
 // chosen day, then the whole week as a list. "My shifts" shows just yours;
 // "Whole team" shows who is working each day.
 
-// Shift names get a soft color (Open, Close, All day, then others by name).
-const NAMED = { open: 0, close: 1, 'all day': 2 }
-export function tagClass(title, presets = []) {
-  const t = (title || '').trim().toLowerCase()
-  const chosen = presets.find((p) => (p.title || '').trim().toLowerCase() === t)?.color
-  if (Number.isInteger(chosen)) return `sc-tag t${chosen}`
-  if (t in NAMED) return `sc-tag t${NAMED[t]}`
-  const hash = [...t].reduce((sum, c) => sum + c.charCodeAt(0), 0)
-  return `sc-tag t${3 + (hash % 5)}`
-}
-
 const WORDS = {
-  en: { mine: 'My shifts', team: 'Whole team', today: 'Today', week: 'This week', dayOff: 'Day off', nothing: 'Nothing scheduled', timeOff: 'Time off', approved: 'Approved', hrs: 'hrs', comingUp: 'The week', working: 'Working', off: 'Off', offShort: 'off', nobody: 'Nobody is scheduled this day.' },
-  es: { mine: 'Mis turnos', team: 'Todo el equipo', today: 'Hoy', week: 'Esta semana', dayOff: 'Día libre', nothing: 'Nada programado', timeOff: 'Ausencia', approved: 'Aprobada', hrs: 'hrs', comingUp: 'La semana', working: 'Trabajan', off: 'Libres', offShort: 'libre', nobody: 'Nadie está programado este día.' },
+  en: { mine: 'My shifts', team: 'Whole team', today: 'Today', week: 'This week', dayOff: 'Day off', nothing: 'Nothing scheduled', timeOff: 'Time off', approved: 'Approved', hrs: 'hrs', comingUp: 'The week', working: 'Working', off: 'Off', offShort: 'off', nobody: 'Nobody is scheduled this day.', day: 'Day', weekLabel: 'Week', dayOrWeek: 'Show a day or the week' },
+  es: { mine: 'Mis turnos', team: 'Todo el equipo', today: 'Hoy', week: 'Esta semana', dayOff: 'Día libre', nothing: 'Nada programado', timeOff: 'Ausencia', approved: 'Aprobada', hrs: 'hrs', comingUp: 'La semana', working: 'Trabajan', off: 'Libres', offShort: 'libre', nobody: 'Nadie está programado este día.', day: 'Día', weekLabel: 'Semana', dayOrWeek: 'Mostrar un día o la semana' },
 }
 const locale = (lang) => (lang === 'es' ? 'es-US' : 'en-US')
 
 export default function MySchedule({ data, me, week, today, lang, view, onView }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const [picked, setPicked] = useState(null)
+  // Whole team: the day timeline or the read-only week grid. The last choice is remembered.
+  const [span, setSpan] = useState(loadSpan)
+  const changeSpan = (next) => {
+    setSpan(next)
+    saveSpan(next)
+  }
   const selected = week.includes(picked) ? picked : week.includes(today) ? today : week[0]
   const shiftsOn = (d, id) => data.shifts.filter((s) => s.date === d && (id ? s.employeeId === id : true)).sort((a, b) => a.start - b.start)
   const dayName = (d, style) => fromKey(d).toLocaleDateString(locale(lang), { weekday: style })
@@ -43,7 +42,14 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>{w.team}</button>
       </div>
 
-      <DayStrip days={week} selected={selected} renderDay={(d) => {
+      {view === 'everyone' && (
+        <div className="sc-toggle sc-span" role="group" aria-label={w.dayOrWeek}>
+          <button type="button" aria-pressed={span === 'day'} onClick={() => changeSpan('day')}>{w.day}</button>
+          <button type="button" aria-pressed={span === 'week'} onClick={() => changeSpan('week')}>{w.weekLabel}</button>
+        </div>
+      )}
+
+      {!(view === 'everyone' && span === 'week') && <DayStrip days={week} selected={selected} renderDay={(d) => {
           const working = view === 'mine' ? shiftsOn(d, me.id).length > 0 : shiftsOn(d).length > 0
           // On "My shifts" a day with no shift says "off"; the team view only marks days someone works.
           const dayOff = view === 'mine' && !working
@@ -54,7 +60,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
               {dayOff ? <em>{w.offShort}</em> : <i className={working ? 'dot' : ''} />}
             </button>
           )
-        }} />
+        }} />}
 
       {view === 'mine' ? (
         <>
@@ -64,8 +70,19 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
           <h2 className="sc-h">{w.comingUp}</h2>
           {week.map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} on={d === selected} />)}
         </>
+      ) : span === 'week' ? (
+        <WeekGrid
+          className="mg-grid show-phone"
+          data={data}
+          me={me}
+          week={week}
+          today={today}
+          people={data.employees.filter((e) => e.active)}
+          shifts={data.shifts.filter((x) => week.includes(x.date) && x.published)}
+          onPickDay={(d) => { setPicked(d); changeSpan('day') }}
+        />
       ) : (
-        <div key={selected} className="sc-fade"><Everyone data={data} me={me} date={selected} today={today} w={w} lang={lang} /></div>
+        <div key={selected} className="sc-fade"><DayTimeline mode="staff" data={data} me={me} date={selected} today={today} lang={lang} /></div>
       )}
     </div>
   )
@@ -140,45 +157,5 @@ function Row({ data, me, date, w, lang, on }) {
       </div>
       {!off && mine.length > 0 && <span className="sc-hrs">{formatHours(mine.reduce((sum, s) => sum + shiftMinutes(s), 0))} {w.hrs}</span>}
     </div>
-  )
-}
-
-// The whole team on the chosen day: who works and when, then who is off.
-function Everyone({ data, me, date, today, w, lang }) {
-  const people = data.employees.filter((e) => e.active)
-  const shifts = data.shifts.filter((s) => s.date === date).sort((a, b) => a.start - b.start)
-  const working = shifts.map((s) => ({ s, person: people.find((p) => p.id === s.employeeId) })).filter((x) => x.person)
-  const offPeople = people.filter((p) => !shifts.some((s) => s.employeeId === p.id) && offOn(data.teamOff, p.id, date))
-  const label = date === today ? w.today : fromKey(date).toLocaleDateString(locale(lang), { weekday: 'long', month: 'short', day: 'numeric' })
-  return (
-    <>
-      <h2 className="sc-h">{label} · {w.working}</h2>
-      {working.length === 0 && <p className="tm-muted">{w.nobody}</p>}
-      {working.map(({ s, person }) => (
-        <div key={s.id} className={`sc-row person ${person.id === me.id ? 'me' : ''}`}>
-          <Avatar employee={person} size={42} />
-          <div className="sc-body">
-            <b>{person.name}{person.id === me.id ? (lang === 'es' ? ' (tú)' : ' (you)') : ''}</b>
-            <div>
-              <span className="sc-time">{shiftTimes(s)}</span>
-              {s.title && <span className={tagClass(s.title, data.settings?.shiftPresets)}>{s.title}</span>}
-              <RoleBadge role={s.role} roles={data.settings?.roles} />
-            </div>
-            {person.position && !scheduleOnly(person) && <small>{person.position}</small>}
-          </div>
-        </div>
-      ))}
-      {offPeople.length > 0 && (
-        <>
-          <h2 className="sc-h">{w.off}</h2>
-          {offPeople.map((p) => (
-            <div key={p.id} className="sc-row off person">
-              <Avatar employee={p} size={42} />
-              <div className="sc-body"><b>{p.name}</b><small>{w.timeOff}</small></div>
-            </div>
-          ))}
-        </>
-      )}
-    </>
   )
 }
