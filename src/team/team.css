@@ -1510,3 +1510,61 @@ button.tm-shift:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba
   .pu-root.leaving.saved .modal-content::after, .pu-root .modal-body.shake, .pu-root .tm-error, .cv-slide { animation: none; }
   .rl-pick, .cv-choice, .pu-root .btn { transition: none; }
 }
+
+/* ---------- Day timeline (whole team, one day) ---------- */
+.tl-card { background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 14px 14px 16px; margin-bottom: 10px; }
+.tl-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tl-head .sc-h { margin: 0 0 8px; }
+.tl-plus { flex: none; width: 36px; height: 36px; margin-bottom: 8px; border-radius: 50%; border: 0; background: var(--navy); color: #fff; font-size: 22px; line-height: 1; }
+.tl { --gut: 80px; }
+.tl-axis { display: flex; margin-bottom: 4px; }
+.tl-scale { position: relative; flex: 1; height: 20px; margin-left: var(--gut); font-size: 11px; font-weight: 600; color: var(--muted); }
+.tl-scale > span { position: absolute; top: 0; transform: translateX(-50%); }
+.tl-scale > .tl-nowpill { top: 1px; z-index: 2; padding: 0 7px; border-radius: 999px; background: var(--navy); color: #fff; font-size: 10px; line-height: 17px; }
+.tl-body { position: relative; }
+.tl-grid { position: absolute; inset: 0 0 0 var(--gut); pointer-events: none; }
+.tl-grid i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); opacity: 0.7; }
+.tl-grid b { position: absolute; top: -4px; bottom: 0; width: 2px; margin-left: -1px; background: var(--navy); z-index: 1; }
+.tl-row { display: flex; align-items: center; min-height: 42px; border-radius: 12px; }
+.tl-row.me { background: color-mix(in srgb, var(--navy) 9%, transparent); }
+.tl-who { display: flex; align-items: center; gap: 6px; width: var(--gut); flex: none; padding-left: 4px; font-size: 12px; font-weight: 700; min-width: 0; }
+.tl-who .tm-avatar { flex: none; }
+.tl-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-lane { position: relative; flex: 1; height: 34px; }
+.tl-bar { position: absolute; top: 2px; height: 30px; padding: 0 5px; border: 1px solid transparent; border-radius: 10px; background: var(--head); color: var(--ink); font-size: 11px; font-weight: 700; line-height: 28px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+button.tl-bar { cursor: pointer; transition: transform 0.12s ease, box-shadow 0.15s ease; }
+button.tl-bar:hover { box-shadow: 0 3px 8px rgba(90, 60, 30, 0.18); }
+button.tl-bar:active { transform: scale(0.96); }
+.tl-bar small { font-size: 9px; font-weight: 600; opacity: 0.8; }
+.tl-bar.draft { border-style: dashed; background: transparent; }
+.tl-bar.me { box-shadow: 0 0 0 2px var(--navy); }
+.tl-bar.t0 { background: #e3efe8; border-color: #9cc9b8; color: #24574a; } .tl-bar.t1 { background: #f8ddd6; border-color: #e5a898; color: #8e2f1d; }
+.tl-bar.t2 { background: #fbebd6; border-color: #e3c28f; color: #6b4a0b; } .tl-bar.t3 { background: #dfe9f8; border-color: #a9c0e8; color: #264a85; }
+.tl-bar.t4 { background: #eadff6; border-color: #c5aee6; color: #55318a; } .tl-bar.t5 { background: #f8dfe9; border-color: #e5a9c2; color: #8a2a55; }
+.tl-bar.t6 { background: #d9eef0; border-color: #96cdd3; color: #1f5e66; } .tl-bar.t7 { background: #e9e4dc; border-color: #cbbfae; color: #4f463c; }
+.tl-bar.t-none { background: var(--head); border-color: var(--line); }
+.tl-bar.draft[class*=' t'] { background: transparent; }
+[data-bs-theme='dark'] .tl-bar.t0 { background: #2b4a40; border-color: #4d8b78; color: #bfe6d6; } [data-bs-theme='dark'] .tl-bar.t1 { background: #55302a; border-color: #98584a; color: #f5c4b8; }
+[data-bs-theme='dark'] .tl-bar.t2 { background: #54431f; border-color: #92773a; color: #f2d79a; } [data-bs-theme='dark'] .tl-bar.t3 { background: #2c3f61; border-color: #5877ac; color: #c3d6f5; }
+[data-bs-theme='dark'] .tl-bar.t4 { background: #44335f; border-color: #7d63ac; color: #dccaf3; } [data-bs-theme='dark'] .tl-bar.t5 { background: #5a2f44; border-color: #a2587c; color: #f3c8da; }
+[data-bs-theme='dark'] .tl-bar.t6 { background: #254b50; border-color: #4d8c95; color: #b9e2e7; } [data-bs-theme='dark'] .tl-bar.t7 { background: #484136; border-color: #85796a; color: #e0d8cb; }
+[data-bs-theme='dark'] .tl-bar.draft[class*=' t'] { background: transparent; }
+.tl-bar.flash { animation: sh-ripple 1s ease-out; }
+.tl-off { position: absolute; left: 0; top: 2px; height: 30px; padding: 0 14px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 11px; font-weight: 700; line-height: 28px; }
+.tl-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tl-cover { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.tl-cover-title { display: block; margin-bottom: 6px; font-size: 13px; }
+.tl-strip { position: relative; height: 26px; margin-left: 80px; border-radius: 8px; overflow: hidden; background: var(--head); }
+.tl-seg { position: absolute; top: 0; bottom: 0; display: grid; place-items: center; background: #e3efe8; color: #24574a; font-size: 12px; font-weight: 800; border-right: 2px solid var(--paper); }
+.tl-seg.low { background: #fbebd6; color: #6b4a0b; }
+.tl-seg.idle { background: transparent; }
+[data-bs-theme='dark'] .tl-seg { background: #2b4a40; color: #bfe6d6; } [data-bs-theme='dark'] .tl-seg.low { background: #54431f; color: #f2d79a; } [data-bs-theme='dark'] .tl-seg.idle { background: transparent; }
+.tl-warnline, .tl-ok { margin: 8px 0 0; font-size: 13px; font-weight: 600; }
+.tl-warnline { color: #8a5a00; } [data-bs-theme='dark'] .tl-warnline { color: #f2c875; }
+.tl-ok { color: var(--muted); }
+.tl-yours { margin-top: 14px; padding: 14px 16px; border-radius: 20px; background: #2f6b5a; color: #fff; }
+.tl-yours b { display: block; font-size: 13px; opacity: 0.85; }
+.tl-yours span { display: block; font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.tl-yours small { display: block; margin-top: 2px; font-size: 13px; color: #d5ebe2; }
+.gr-dayhead { display: block; width: 100%; border: 0; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .tl-bar.flash, button.tl-bar { animation: none; transition: none; } }
