@@ -20,7 +20,8 @@ import { punchStatus } from './review.js'
 export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
   const now = useNow()
   const f = useFeatures()
-  const [view, setView] = useState('person')
+  // Managers start on Review (punches to approve); staff only have their own hours.
+  const [view, setView] = useState(boss ? 'review' : 'person')
   const [exporting, setExporting] = useState(false)
   const [who, setWho] = useState(me.id)
   const current = payPeriodOf(now)[0] === period[0]
@@ -41,9 +42,9 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
         )}
         {boss && (
           <div className="tm-seg hr-seg" role="group" aria-label="Show">
-            <button type="button" aria-pressed={view === 'person'} onClick={() => setView('person')}>One person</button>
-            {f.timesheets && <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet (everyone)</button>}
             <button type="button" aria-pressed={view === 'review'} onClick={() => setView('review')}>Review{toReview > 0 && <span className="hr-count">{toReview}</span>}</button>
+            <button type="button" aria-pressed={view === 'person'} onClick={() => setView('person')}>Employee</button>
+            {f.timesheets && <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet</button>}
           </div>
         )}
         {boss && f.timesheets && !reviewing && (
