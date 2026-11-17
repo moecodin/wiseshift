@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { usingSupabase } from '../lib/supabase.js'
 import { useAuth } from '../state/useAuth.js'
 import SignIn from '../components/SignIn.jsx'
@@ -113,6 +113,26 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   // on it (sample "View as"), fall back to More instead of showing a blank page.
   const page = tab === 'people' && !boss ? 'more' : tab
   const inMore = MORE.some((m) => m.id === page)
+  // Screens slide in from the side the tab is on: toward the right for tabs further
+  // along the bar (and pages opened from More), toward the left going back.
+  const [dir, setDir] = useState('r')
+  const rank = (id) => (TABS.includes(id) ? TABS.indexOf(id) : TABS.indexOf('more') + 0.5)
+  const go = (id) => {
+    if (id !== page) setDir(rank(id) >= rank(page) ? 'r' : 'l')
+    setTab(id)
+  }
+  // A pill that glides to the chosen tab.
+  const navRef = useRef(null)
+  const [pill, setPill] = useState(null)
+  useLayoutEffect(() => {
+    const place = () => {
+      const on = navRef.current?.querySelector('[aria-selected="true"]')
+      if (on) setPill({ left: on.offsetLeft, width: on.offsetWidth, top: on.offsetTop, height: on.offsetHeight })
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [page, inMore, me?.id, data.lang, boss])
   const lang = data.lang ?? 'en'
   const pending = boss ? data.timeOff.filter((t) => t.status === 'pending').length : 0
   // Note that I opened the app (on open and whenever it comes back on screen,
@@ -171,7 +191,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     body = (
       <>
         {inMore && (
-          <button type="button" className="tm-back" onClick={() => setTab('more')}>‹ {tabNames.more}</button>
+          <button type="button" className="tm-back" onClick={() => go('more')}>‹ {tabNames.more}</button>
         )}
         {needsNotice && page === 'clock' && (
           <section className="tm-card st-notice-card">
@@ -179,12 +199,12 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
             <LocationNotice data={data} me={me} />
           </section>
         )}
-        {page === 'clock' && <ClockTab {...shared} onGoTo={setTab} />}
+        {page === 'clock' && <ClockTab {...shared} onGoTo={go} />}
         {page === 'schedule' && <ScheduleTab {...shared} week={week} onWeek={setWeek} />}
         {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
         {page === 'off' && <TimeOffTab {...shared} />}
         {page === 'people' && boss && <PeopleTab {...shared} />}
-        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={setTab} onNotify={() => setNotifying(true)} onSettings={() => setSettingsOpen(true)} onSignOut={usingSupabase ? onSignOut : null} />}
+        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSettings={() => setSettingsOpen(true)} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
     )
   }
@@ -227,9 +247,10 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       )}
 
       {me && (
-        <nav className="tm-tabs" role="tablist" aria-label="Team page">
+        <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
+          {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
           {TABS.map((id) => (
-            <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => setTab(id)}>
+            <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => go(id)}>
               <TabIcon id={id === 'clock' && boss ? 'today' : id} />
               <span>{id === 'clock' && boss ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
               {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
@@ -242,7 +263,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
 
       <main className={`tm-main ${tab === 'schedule' || tab === 'people' || tab === 'hours' ? 'wide' : ''}`}>
         {data.error && me && <p className="tm-error" role="alert">Couldn't refresh: {data.error}</p>}
-        {body}
+        <div key={page} className={`tm-page slide-${dir}`}>{body}</div>
         <p className="tm-foot">{signOut}</p>
       </main>
       {settingsOpen && (

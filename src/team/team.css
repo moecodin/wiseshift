@@ -1292,3 +1292,15 @@ a.tm-spot:hover {
 @keyframes tm-pop { 0% { transform: scale(0.95); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .tm-holdwrap.pulse .tm-punch { animation: none; } }
 
+/* ---------- Tab switching: screens slide in, the pill glides ---------- */
+.tm-page { animation: tm-slide-r 0.22s ease-out both; }
+.tm-page.slide-l { animation-name: tm-slide-l; }
+@keyframes tm-slide-r { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes tm-slide-l { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.tm-pill { position: absolute; left: 0; top: 0; border-radius: 14px; background: var(--edit-bg); transition: transform 0.25s cubic-bezier(0.3, 0.8, 0.3, 1), width 0.25s ease; pointer-events: none; }
+.tm-tabs .tm-pill ~ button[aria-selected='true'] { background: none; }
+@media (prefers-reduced-motion: reduce) {
+  .tm-page { animation: none; }
+  .tm-pill { transition: none; }
+}
+
