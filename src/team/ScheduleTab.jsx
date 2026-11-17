@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, fromKey } from '../lib/dates.js'
 import { formatHours, moveDays, scheduleWeekOf, shiftMinutes } from './paycheck.js'
@@ -6,6 +6,7 @@ import { clockTime, dayLabel, fromTimeInput, offOn, rangeLabel, scheduleOnly, sh
 import { rangeName, say } from './words.js'
 import MySchedule, { tagClass } from './MySchedule.jsx'
 import Avatar from './Avatar.jsx'
+import DayStrip from './DayStrip.jsx'
 import RoleBadge from './RoleBadge.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
@@ -22,6 +23,20 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
   const shifts = data.shifts.filter((s) => week.includes(s.date)).sort((a, b) => a.start - b.start)
   const drafts = shifts.filter((s) => !s.published)
   const thisWeek = scheduleWeekOf(now)[0] === week[0]
+  // Shifts that were drafts a moment ago and are published now get a short ripple.
+  const [flash, setFlash] = useState(() => new Set())
+  const draftIds = useRef(new Set())
+  const flashTimer = useRef(0)
+  useEffect(() => {
+    const nowDrafts = new Set(drafts.map((s) => s.id))
+    const done = [...draftIds.current].filter((id) => !nowDrafts.has(id) && shifts.some((s) => s.id === id))
+    draftIds.current = nowDrafts
+    if (!done.length) return
+    setFlash(new Set(done))
+    clearTimeout(flashTimer.current)
+    flashTimer.current = setTimeout(() => setFlash(new Set()), 1100)
+  })
+  useEffect(() => () => clearTimeout(flashTimer.current), [])
 
   const copyLastWeek = async () => {
     const { error, copied } = await data.actions.copyWeek(moveDays(week, -1), week)
@@ -61,7 +76,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       ) : view === 'everyone' ? (
         <>
-        <ManagerDay view={view} onView={setView} data={data} me={me} week={week} today={today} people={people} shifts={shifts} onEdit={setEditing} />
+        <ManagerDay flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} people={people} shifts={shifts} onEdit={setEditing} />
         <div className="tm-gridwrap mg-grid">
           <table className="tm-grid">
             <thead>
@@ -90,7 +105,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
                         <td key={d} className={d === today ? 'today' : ''}>
                           {off && <div className="tm-off">Time off</div>}
                           {dayShifts.map((s) => (
-                            <ShiftBox key={s.id} shift={s} roles={data.settings?.roles} position={person.position} onClick={boss ? () => setEditing(s) : undefined} />
+                            <ShiftBox key={s.id} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} position={person.position} onClick={boss ? () => setEditing(s) : undefined} />
                           ))}
                           {boss && (
                             <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => setEditing({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>
@@ -127,7 +142,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
 // Manager's phone view of the whole team: pick a day on the strip, then see one
 // card per person with their shifts (tap a shift to change it, + to add one).
 // Wide screens show the grid above instead (see .mg-phone / .mg-grid in team.css).
-function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdit }) {
+function ManagerDay({ view, onView, data, me, week, today, people, shifts, flash, onEdit }) {
   const [picked, setPicked] = useState(null)
   const selected = week.includes(picked) ? picked : week.includes(today) ? today : week[0]
   const presets = data.settings?.shiftPresets
@@ -143,8 +158,7 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdi
         <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>My shifts</button>
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>Whole team</button>
       </div>
-      <div className="sc-strip" role="group" aria-label="Days">
-        {week.map((d) => {
+      <DayStrip days={week} selected={selected} renderDay={(d) => {
           const any = shifts.some((s) => s.date === d)
           return (
             <button key={d} type="button" className={`sc-day ${d === selected ? 'on' : ''}`} aria-pressed={d === selected} onClick={() => setPicked(d)}>
@@ -153,8 +167,8 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdi
               <i className={any ? 'dot' : ''} />
             </button>
           )
-        })}
-      </div>
+        }} />
+      <div key={selected} className="sc-fade">
       <h2 className="sc-h">{heading} <small className="mg-sum">{working} working · {formatHours(dayHours)} hrs</small></h2>
       {people.map((person) => {
         const theirs = shifts.filter((s) => s.employeeId === person.id)
@@ -170,7 +184,7 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdi
               </b>
               {off && <small>Time off</small>}
               {mine.map((s) => (
-                <button key={s.id} type="button" className={`mg-shift ${s.published ? '' : 'draft'}`} onClick={() => onEdit(s)}>
+                <button key={s.id} type="button" className={`mg-shift ${s.published ? '' : 'draft'} ${flash.has(s.id) ? 'flash' : ''}`} onClick={() => onEdit(s)}>
                   <span className="sc-time">{shiftTimes(s)}</span>
                   {s.title && <span className={tagClass(s.title, presets)}>{s.title}</span>}
                   <RoleBadge role={s.role} roles={roles} />
@@ -183,6 +197,7 @@ function ManagerDay({ view, onView, data, me, week, today, people, shifts, onEdi
           </div>
         )
       })}
+      </div>
     </div>
   )
 }
@@ -235,10 +250,10 @@ export function WeekTotal({ data, me, week, lang, onClick }) {
   )
 }
 
-function ShiftBox({ shift, position, roles, onClick }) {
+function ShiftBox({ shift, position, roles, flash, onClick }) {
   const Tag = onClick ? 'button' : 'div'
   return (
-    <Tag type={onClick ? 'button' : undefined} className={`tm-shift ${shift.published ? '' : 'draft'}`} onClick={onClick}>
+    <Tag type={onClick ? 'button' : undefined} className={`tm-shift ${shift.published ? '' : 'draft'} ${flash ? 'flash' : ''}`} onClick={onClick}>
       {shift.title && <b>{shift.title}</b>}
       {position && <span>{position}</span>}
       {shift.role && <RoleBadge role={shift.role} roles={roles} />}

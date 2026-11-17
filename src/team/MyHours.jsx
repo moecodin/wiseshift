@@ -1,5 +1,6 @@
 import { dateKey, formatClock, fromKey } from '../lib/dates.js'
-import { formatHours, periodHours, shiftMinutes } from './paycheck.js'
+import { decimalHours, formatHours, periodHours, shiftMinutes } from './paycheck.js'
+import CountUp from './CountUp.jsx'
 
 // An employee's own hours for the pay period: the total so far, how it compares
 // with what's scheduled, and a row for each day worked. Only a manager can fix a
@@ -24,7 +25,7 @@ export default function MyHours({ data, me, period, now, lang }) {
     <div className="tm-narrow">
       <section className="hr-hero">
         <small>{w.label}</small>
-        <div><b>{formatHours(hours.total)}</b> <span>{w.unit}</span></div>
+        <div><b><CountUp value={decimalHours(hours.total)} /></b> <span>{w.unit}</span></div>
         <div className="hr-bar" role="img" aria-label={`${pct}%`}><i style={{ width: `${pct}%` }} /></div>
         <small>{w.scheduled(formatHours(scheduled))}{needFix > 0 && w.fix(needFix)}</small>
       </section>

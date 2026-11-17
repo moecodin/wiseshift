@@ -4,6 +4,7 @@ import { formatHours, shiftMinutes } from './paycheck.js'
 import { offOn, scheduleOnly, shiftTimes } from './format.js'
 import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
+import DayStrip from './DayStrip.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
 
 // The phone schedule for employees: a strip of the week's days, a card for the
@@ -41,8 +42,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>{w.team}</button>
       </div>
 
-      <div className="sc-strip" role="group" aria-label="Days">
-        {week.map((d) => {
+      <DayStrip days={week} selected={selected} renderDay={(d) => {
           const working = view === 'mine' ? shiftsOn(d, me.id).length > 0 : shiftsOn(d).length > 0
           // On "My shifts" a day with no shift says "off"; the team view only marks days someone works.
           const dayOff = view === 'mine' && !working
@@ -53,18 +53,17 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
               {dayOff ? <em>{w.offShort}</em> : <i className={working ? 'dot' : ''} />}
             </button>
           )
-        })}
-      </div>
+        }} />
 
       {view === 'mine' ? (
         <>
-          <Hero data={data} me={me} date={selected} today={today} w={w} lang={lang} />
+          <div key={selected} className="sc-fade"><Hero data={data} me={me} date={selected} today={today} w={w} lang={lang} /></div>
           <WeekTotal data={data} me={me} week={week} lang={lang} />
           <h2 className="sc-h">{w.comingUp}</h2>
           {week.map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} on={d === selected} />)}
         </>
       ) : (
-        <Everyone data={data} me={me} date={selected} today={today} w={w} lang={lang} />
+        <div key={selected} className="sc-fade"><Everyone data={data} me={me} date={selected} today={today} w={w} lang={lang} /></div>
       )}
     </div>
   )

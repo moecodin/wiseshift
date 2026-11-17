@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { dateKey, formatClock } from '../lib/dates.js'
 import { scheduleWeekOf } from './paycheck.js'
 import { datesLabel, scheduleOnly, shiftTimes, useNow } from './format.js'
@@ -22,6 +22,15 @@ export default function ManagerToday({ data, me, lang, onView }) {
   const today = dateKey(now)
   const nowMin = now.getHours() * 60 + now.getMinutes()
   const [fixing, setFixing] = useState(null)
+  // A request or draft card plays a short fold-away (a check mark, then the gap closes)
+  // before the change is saved. leaving: id -> 'approved' | 'declined' | 'published'.
+  const [leaving, setLeaving] = useState({})
+  const timers = useRef([])
+  const leave = (id, result, save) => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return save()
+    setLeaving((l) => ({ ...l, [id]: result }))
+    timers.current.push(setTimeout(save, 650))
+  }
   const name = (id) => data.employees.find((e) => e.id === id)?.name ?? '?'
   const person = (id) => data.employees.find((e) => e.id === id)
   const first = (id) => name(id).split(' ')[0]
@@ -69,16 +78,19 @@ export default function ManagerToday({ data, me, lang, onView }) {
       {requests.map((t) => {
         const others = othersOff(t)
         return (
-          <section key={t.id} className="mt-card">
+          <div key={t.id} className={`mt-fold ${leaving[t.id] ? `leaving ${leaving[t.id]}` : ''}`}><div className="mt-fold-in">
+          <section className="mt-card">
+            {leaving[t.id] && <span className="mt-stamp" aria-hidden="true">{leaving[t.id] === 'approved' ? '✓' : '✕'}</span>}
             <div className="mt-who"><Avatar employee={person(t.employeeId)} size={42} /><div><small className="mt-eyebrow ok">{w.off}</small><b>{name(t.employeeId)}</b></div></div>
             <p className="mt-big">{datesLabel(t.start, t.end)}</p>
             {t.reason && <p className="mt-quote">“{t.reason}”</p>}
             <p className="mt-sub">{others.length ? w.alsoOff(others.join(', ')) : w.nobodyElse}</p>
             <div className="to-actions">
-              <button type="button" className="to-btn" onClick={() => data.actions.decideTimeOff(t.id, 'declined')}>{w.decline}</button>
-              <button type="button" className="to-btn yes" onClick={() => data.actions.decideTimeOff(t.id, 'approved')}>{w.approve}</button>
+              <button type="button" className="to-btn" disabled={Boolean(leaving[t.id])} onClick={() => leave(t.id, 'declined', () => data.actions.decideTimeOff(t.id, 'declined'))}>{w.decline}</button>
+              <button type="button" className="to-btn yes" disabled={Boolean(leaving[t.id])} onClick={() => leave(t.id, 'approved', () => data.actions.decideTimeOff(t.id, 'approved'))}>{w.approve}</button>
             </div>
           </section>
+          </div></div>
         )
       })}
 
@@ -107,7 +119,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
           return (
             <div key={p.id} className="mt-working">
               <Avatar employee={person(p.employeeId)} size={38} />
-              <div><b>{name(p.employeeId)}</b><small>{w.inAt(formatClock(p.clockIn))}{shift?.title ? ` · ${shift.title}` : ''}</small></div>
+              <div><b><i className="live-dot" aria-hidden="true" />{name(p.employeeId)}</b><small>{w.inAt(formatClock(p.clockIn))}{shift?.title ? ` · ${shift.title}` : ''}</small></div>
               <span className={`mt-pill ${late ? 'late' : ''}`}>{late ? w.late : w.onTime}</span>
             </div>
           )
@@ -115,10 +127,13 @@ export default function ManagerToday({ data, me, lang, onView }) {
       </section>
 
       {drafts.length > 0 && (
+        <div className={`mt-fold ${leaving.draft ? 'leaving published' : ''}`}><div className="mt-fold-in">
         <section className="mt-card mt-draft">
+          {leaving.draft && <span className="mt-stamp" aria-hidden="true">✓</span>}
           <div><b>{w.draft}</b><small>{w.changes(drafts.length)}</small></div>
-          <button type="button" onClick={() => data.actions.publishWeek(week)}>{w.publish}</button>
+          <button type="button" disabled={Boolean(leaving.draft)} onClick={() => leave('draft', 'published', () => data.actions.publishWeek(week))}>{w.publish}</button>
         </section>
+        </div></div>
       )}
 
       <button type="button" className="to-link mt-more" onClick={() => onView('clock')}>{w.myClock}</button>

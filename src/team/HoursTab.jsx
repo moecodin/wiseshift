@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, formatClock, fromKey } from '../lib/dates.js'
+import CountUp from './CountUp.jsx'
 import { decimalHours, estimatePaycheck, formatHours, grossPay, moveDays, payPeriodOf, periodHours, punchMinutes } from './paycheck.js'
 import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { TAX_YEAR } from './taxRates.js'
@@ -60,7 +61,7 @@ function Person({ data, boss, employee, period, now }) {
     <div className="tm-narrow">
       <section className="hr-hero">
         <small>{isMe ? 'Hours this pay period' : `${employee.name} · this pay period`}</small>
-        <div><b>{formatHours(hours.total)}</b> <span>hrs</span></div>
+        <div><b><CountUp value={decimalHours(hours.total)} /></b> <span>hrs</span></div>
         <small>
           Regular {formatHours(hours.regular)}
           {hours.overtime > 0 && <> · <span className="hr-ot">Overtime {formatHours(hours.overtime)}</span></>}

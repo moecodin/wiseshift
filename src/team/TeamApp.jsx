@@ -287,9 +287,9 @@ function Notice({ title, children }) {
 function Logo() {
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true">
-      <rect x="6" y="10" width="34" height="13" rx="6.5" fill="var(--navy)" />
-      <rect x="20" y="26" width="38" height="13" rx="6.5" fill="#2F6B5A" />
-      <rect x="10" y="42" width="30" height="13" rx="6.5" fill="#F6D580" />
+      <rect className="lg-bar b1" x="6" y="10" width="34" height="13" rx="6.5" fill="var(--navy)" />
+      <rect className="lg-bar b2" x="20" y="26" width="38" height="13" rx="6.5" fill="#2F6B5A" />
+      <rect className="lg-bar b3" x="10" y="42" width="30" height="13" rx="6.5" fill="#F6D580" />
     </svg>
   )
 }
