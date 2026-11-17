@@ -77,7 +77,8 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
   }
 
   return (
-    <div className="tm-narrow">
+    <div className="tm-narrow desk td-grid">
+      <div className="td-col">
       {f.timeClock && (
       <section className="tm-card tm-clock">
         <ClockHero lang={lang} open={open} busy={busy} onPunch={punch} now={now} data={data} me={me} staleOpen={staleOpen} todayMinutes={todayMinutes} onGoTo={onGoTo} />
@@ -120,6 +121,8 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
         {!f.timeClock && !boss && <Countdown data={data} me={me} now={now} open={undefined} lang={lang} />}
       </section>
 
+      </div>
+      <div className="td-col">
       {!boss && <TodayTeam data={data} me={me} today={today} now={now} lang={lang} onMore={() => onGoTo('schedule')} />}
 
       {!boss && <MyRequests data={data} me={me} now={now} lang={lang} onGoTo={onGoTo} />}
@@ -138,6 +141,7 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
       )}
 
       {boss && <WhoIsIn data={data} now={now} today={today} />}
+      </div>
     </div>
   )
 }

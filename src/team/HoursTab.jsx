@@ -68,7 +68,8 @@ function Person({ data, boss, employee, period, now }) {
   const weeks = [hours.byDay.slice(0, 7), hours.byDay.slice(7)]
 
   return (
-    <div className="tm-narrow">
+    <div className="tm-narrow desk hr-grid">
+      <div className="hr-side">
       <section className="hr-hero">
         <small>{isMe ? 'Hours this pay period' : `${employee.name} · this pay period`}</small>
         <div><b><CountUp value={decimalHours(hours.total)} /></b> <span>hrs</span></div>
@@ -78,6 +79,9 @@ function Person({ data, boss, employee, period, now }) {
         </small>
       </section>
       {hours.open && <p className="tm-warn">{isMe ? "You're" : `${employee.name} is`} still clocked in, so these hours keep counting.</p>}
+      </div>
+
+      <div className="hr-weeks">
 
       {weeks.map((days, i) => {
         const worked = days.filter((d) => d.punches.length > 0).reverse()
@@ -126,7 +130,11 @@ function Person({ data, boss, employee, period, now }) {
         )
       })}
 
+      </div>
+
+      <div className="hr-pay">
       {f.payRates && <Paycheck employee={employee} pay={pay} hours={hours} isMe={isMe} />}
+      </div>
       {editing && <PunchEditor punch={editing} data={data} onClose={() => setEditing(null)} />}
     </div>
   )

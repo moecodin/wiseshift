@@ -16,6 +16,7 @@ import SettingsPanel, { LocationNotice } from './SettingsPanel.jsx'
 import { noticeAcked } from './settings.js'
 import { TABS_ES, themeById } from './themes/index.js'
 import { FeaturesContext, featuresOf } from './features.js'
+import Avatar from './Avatar.jsx'
 import { say } from './words.js'
 import MoreTab from './MoreTab.jsx'
 import { MORE } from './more.js'
@@ -253,16 +254,23 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       )}
 
       {me && (
-        <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
-          {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
-          {tabs.map((id) => (
-            <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => go(id)}>
-              <TabIcon id={id === 'clock' ? 'today' : id} />
-              <span>{id === 'clock' ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
-              {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
-            </button>
-          ))}
-        </nav>
+        <div className="tm-side">
+          <a className="tm-brand" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /><b>WiseShift</b></a>
+          <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
+            {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
+            {tabs.map((id) => (
+              <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => go(id)}>
+                <TabIcon id={id === 'clock' ? 'today' : id} />
+                <span>{id === 'clock' ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
+                {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
+              </button>
+            ))}
+          </nav>
+          <div className="tm-me">
+            <Avatar employee={me} size={36} />
+            <span><b>{me.name}</b><small>{me.position || (boss ? 'Manager' : 'Team')}</small></span>
+          </div>
+        </div>
       )}
 
       <AppBanners />

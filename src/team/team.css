@@ -1624,3 +1624,47 @@ button.tl-bar:active { transform: scale(0.96); }
 .ex-preview { max-height: 320px; overflow: auto; }
 .ex-sub th, .ex-sub td { background: var(--head); font-weight: 700; }
 .ex-preview .tm-sheet { width: 100%; }
+
+/* ---------- Computer layout (900px and wider): sidebar, two columns, wider screens ---------- */
+.tm-side { display: contents; }
+.tm-brand, .tm-me { display: none; }
+@media (min-width: 900px) {
+  .tm { --side: 232px; padding-left: var(--side); }
+  .tm-side { position: fixed; z-index: 20; top: 0; bottom: 0; left: 0; width: var(--side); display: flex; flex-direction: column; padding: 22px 14px 16px; background: var(--paper); border-right: 1px solid var(--line); }
+  .tm-brand { display: flex; align-items: center; gap: 10px; margin: 0 6px 22px; color: var(--ink); text-decoration: none; font-family: 'Fraunces', Georgia, serif; font-size: 21px; }
+  .tm-brand svg { width: 34px; height: 34px; }
+  .tm-side .tm-tabs { position: relative; left: auto; right: auto; bottom: auto; z-index: auto; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; padding: 0; background: none; border-top: 0; }
+  .tm-side .tm-tabs button, .tm-side .tm-tabs button:first-child, .tm-side .tm-tabs button:last-child { flex: none; max-width: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; font-size: 15px; border-radius: 14px; }
+  .tm-side .tm-tabs button:hover { background: var(--head); }
+  .tm-side .tm-tabs button[aria-selected='true']:hover { background: none; }
+  .tm-side .tm-tabs .tm-badge { position: static; margin: 0 0 0 auto; }
+  .tm-me { display: flex; align-items: center; gap: 10px; margin-top: auto; padding: 14px 6px 0; border-top: 1px solid var(--line); min-width: 0; }
+  .tm-me .tm-avatar { flex: none; }
+  .tm-me b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-me small { display: block; font-size: 12px; color: var(--muted); }
+
+  .tm-head { grid-template-columns: 1fr auto; max-width: none; padding: 24px 32px 10px; }
+  .tm-logo { display: none; }
+  .tm-hello { text-align: left; font-size: 30px; }
+  .tm-main { max-width: 1280px; padding: 0 32px 40px; }
+  .tm-narrow.desk { max-width: 1180px; }
+  .tm-narrow.desk .sc-toggle { max-width: 440px; }
+  .tm-narrow.desk .sc-strip { max-width: 780px; }
+
+  /* Today */
+  .td-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 0 28px; align-items: start; }
+  .mt.desk { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 28px; align-items: start; }
+  .mt.desk > .mt-in { grid-column: 1 / -1; }
+  /* Schedule */
+  .sc-mine { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 0 28px; align-items: start; }
+  /* Hours */
+  .hr-grid { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); grid-template-areas: 'side weeks' 'pay weeks'; grid-template-rows: auto 1fr; gap: 0 28px; align-items: start; }
+  .hr-side { grid-area: side; } .hr-weeks { grid-area: weeks; } .hr-pay { grid-area: pay; }
+  /* Team */
+  .pt-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+}
+@media (hover: hover) {
+  .pt-person:hover, .mo-item:hover, .td-req:hover { background: var(--head); }
+  .mg-shift:hover, .td-more:hover, .cv-choice:hover { border-color: var(--muted); }
+}
+@media print { .tm { padding-left: 0; } .tm-side { display: none !important; } }

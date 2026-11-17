@@ -54,7 +54,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
   const othersOff = (t) => data.teamOff.filter((o) => o.employeeId !== t.employeeId && o.start <= t.end && o.end >= t.start).map((o) => first(o.employeeId))
 
   return (
-    <div className="tm-narrow mt">
+    <div className="tm-narrow desk mt">
       {myOpen && (
         <div className="mt-in">
           <div><small>{w.youIn}</small><b>{w.since(formatClock(myOpen.clockIn))}</b></div>
@@ -62,6 +62,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
         </div>
       )}
 
+      <div className="mt-left">
       <h2 className="sc-h mt-h">{w.attention} {count > 0 && <span className="mt-count">{count}</span>}</h2>
       {count === 0 && <p className="tm-muted">{w.clear}</p>}
 
@@ -135,7 +136,9 @@ export default function ManagerToday({ data, me, lang, onView }) {
           <button type="button" className="to-btn wide" onClick={() => onView('review')}>{w.sched}</button>
         </section>
       )}
+      </div>
 
+      <div className="mt-right">
       {f.timeClock && (
       <section className="mt-card">
         <div className="mt-line"><b>{w.working}</b><small>{w.clockedIn(open.length)}</small></div>
@@ -165,6 +168,7 @@ export default function ManagerToday({ data, me, lang, onView }) {
       )}
 
       {f.timeClock && <button type="button" className="to-link mt-more" onClick={() => onView('clock')}>{w.myClock}</button>}
+      </div>
       {fixing && <PunchEditor punch={fixing} data={data} onClose={() => setFixing(null)} />}
     </div>
   )

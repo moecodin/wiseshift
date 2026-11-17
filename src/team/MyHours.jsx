@@ -22,14 +22,17 @@ export default function MyHours({ data, me, period, now, lang }) {
   const pct = scheduled > 0 ? Math.min(100, Math.round((hours.total / scheduled) * 100)) : 0
 
   return (
-    <div className="tm-narrow">
+    <div className="tm-narrow desk hr-grid">
+      <div className="hr-side">
       <section className="hr-hero">
         <small>{w.label}</small>
         <div><b><CountUp value={decimalHours(hours.total)} /></b> <span>{w.unit}</span></div>
         <div className="hr-bar" role="img" aria-label={`${pct}%`}><i style={{ width: `${pct}%` }} /></div>
         <small>{w.scheduled(formatHours(scheduled))}{needFix > 0 && w.fix(needFix)}</small>
       </section>
+      </div>
 
+      <div className="hr-weeks">
       <h2 className="sc-h">{w.days}</h2>
       {days.length === 0 && <p className="tm-muted">{w.none}</p>}
       {days.map((d) => {
@@ -58,6 +61,7 @@ export default function MyHours({ data, me, period, now, lang }) {
         )
       })}
       <p className="tm-muted small">{w.note}</p>
+      </div>
     </div>
   )
 }

@@ -37,7 +37,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
   const dayName = (d, style) => fromKey(d).toLocaleDateString(locale(lang), { weekday: style })
 
   return (
-    <div className="tm-narrow">
+    <div className="tm-narrow desk">
       <div className="sc-toggle" role="group" aria-label="Whose shifts">
         <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>{w.mine}</button>
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>{w.team}</button>
@@ -66,10 +66,16 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
       {view === 'mine' ? (
         <>
           <OpenShifts data={data} me={me} lang={lang} />
-          <div key={selected} className="sc-fade"><Hero data={data} me={me} date={selected} today={today} w={w} lang={lang} /></div>
-          <WeekTotal data={data} me={me} week={week} lang={lang} />
-          <h2 className="sc-h">{w.comingUp}</h2>
-          {week.map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} on={d === selected} />)}
+          <div className="sc-mine">
+            <div className="sc-mine-l">
+              <div key={selected} className="sc-fade"><Hero data={data} me={me} date={selected} today={today} w={w} lang={lang} /></div>
+              <WeekTotal data={data} me={me} week={week} lang={lang} />
+            </div>
+            <div className="sc-mine-r">
+              <h2 className="sc-h">{w.comingUp}</h2>
+              {week.map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} on={d === selected} />)}
+            </div>
+          </div>
         </>
       ) : span === 'week' ? (
         <WeekGrid

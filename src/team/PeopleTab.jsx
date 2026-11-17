@@ -20,11 +20,12 @@ export default function PeopleTab({ data, me }) {
   const people = [...data.employees].sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name))
 
   return (
-    <div className="tm-narrow">
+    <div className="tm-narrow desk">
       <div className="pt-head">
         <h2 className="sc-h">Team <small className="mg-sum">{people.filter((e) => e.active).length} active</small></h2>
         <button type="button" className="btn btn-brand btn-sm" onClick={() => setEditing({ name: '', email: '', position: '', isManager: false, payType: 'hourly', active: true })}>+ Add person</button>
       </div>
+      <div className="pt-list">
       {people.map((e) => {
         const pay = data.payById[e.id]
         const rate = scheduleOnly(e) ? 'Schedule only' : !f.payRates ? '' : e.payType === 'commission' ? 'Commission' : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : 'No rate'
@@ -44,6 +45,7 @@ export default function PeopleTab({ data, me }) {
           </button>
         )
       })}
+      </div>
       <details className="pt-help">
         <summary>How to give someone a login</summary>
         <ol>
