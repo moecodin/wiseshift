@@ -121,7 +121,7 @@ export default function Modal({ title, children, footer, onClose, size }) {
   return createPortal(
     <div className="pu-root" ref={root} onClickCapture={(e) => e.target.closest?.('.btn-brand') && (lastPrimary.current = performance.now())}>
       <div className="modal d-block" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-        <div className={`modal-dialog modal-dialog-centered ${size ? `modal-${size}` : ''}`}>
+        <div className={`modal-dialog modal-dialog-centered modal-dialog-scrollable ${size ? `modal-${size}` : ''}`}>
           <div className="modal-content pop-in" ref={content}>
             <div className="modal-header pu-grab" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
               <h2 className="modal-title fs-5">{title}</h2>

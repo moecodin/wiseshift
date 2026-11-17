@@ -33,6 +33,9 @@ export default function PunchDetails({ punch: start, data, onClose }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [events, setEvents] = useState(null)
+  // The map is big, so it starts closed; Show map opens it.
+  const [showMap, setShowMap] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   // Follow the punch as it changes (after Approve or Edit), by its id.
   const punch = data.punches.find((p) => p.id === start.id) ?? start
   const person = data.employees.find((e) => e.id === punch.employeeId)
@@ -40,6 +43,7 @@ export default function PunchDetails({ punch: start, data, onClose }) {
   const warnings = punchWarnings(punch, data.shifts, data.shop, now)
   const status = punchStatus(punch)
   const day = fromKey(dateKey(new Date(punch.clockIn)))
+  const hasSpot = Boolean(punch.inSpot || punch.outSpot)
 
   const { punchEvents } = data.actions
   const eventsKey = `${punch.id}|${punch.clockIn}|${punch.clockOut}|${punch.approvedAt}`
@@ -65,6 +69,7 @@ export default function PunchDetails({ punch: start, data, onClose }) {
   return (
     <Modal
       title="Punch details"
+      size="lg"
       onClose={onClose}
       footer={
         <>
@@ -79,72 +84,70 @@ export default function PunchDetails({ punch: start, data, onClose }) {
         </>
       }
     >
-      <div className="tm-pd-dur">
-        <small>Time clocked</small>
-        <b>{duration(punchMinutes(punch, now))}</b>
-        <span className={`tm-chip st-${status}`}>{STATUS_LABEL[status]}</span>
-      </div>
-
-      <div className="tm-pd-who">
+      <div className="pd-top">
         <Avatar employee={person} size={44} />
-        <div>
+        <div className="pd-who">
           <b>{person?.name}</b>
-          <small>{person?.position}</small>
+          <small>
+            {person?.position ? `${person.position} · ` : ''}{DAY_NAMES[day.getDay()].slice(0, 3)}, {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </small>
+          <small>{shift ? `${shift.title ? `${shift.title} · ` : ''}${shiftTimes(shift)} scheduled` : 'No shift scheduled that day'}</small>
+        </div>
+        <div className="pd-dur">
+          <b>{duration(punchMinutes(punch, now))}</b>
+          <span className={`tm-chip st-${status}`}>{STATUS_LABEL[status]}</span>
         </div>
       </div>
-
-      <div className="tm-pd-shift">
-        <div className="tm-datebox">
-          <small>{DAY_NAMES[day.getDay()].slice(0, 3).toUpperCase()}</small>
-          <b>{day.getDate()}</b>
-        </div>
-        <div>
-          {shift ? (
-            <>
-              {shift.title && <div>{shift.title}</div>}
-              <b>{shiftTimes(shift)}</b>
-              <small>Scheduled shift</small>
-            </>
-          ) : (
-            <span className="tm-muted">No shift scheduled that day</span>
-          )}
-        </div>
-      </div>
-
-      <div className="tm-pd-times">
-        <Side label="Clock in" at={punch.clockIn} actual={punch.actualIn} spot={punch.inSpot} address={punch.inAddress} shop={data.shop} typed={punch.editedBy && !punch.inSpot} />
-        <Side label="Clock out" at={punch.clockOut} actual={punch.actualOut} spot={punch.outSpot} address={punch.outAddress} shop={data.shop} typed={punch.editedBy && !punch.outSpot} />
-      </div>
-
-      {(punch.inSpot || punch.outSpot) && (
-        <Suspense fallback={<div className="tm-map" />}>
-          <PunchMap inSpot={punch.inSpot} outSpot={punch.clockOut ? punch.outSpot : null} shop={data.shop} />
-        </Suspense>
-      )}
 
       {warnings.length > 0 && (
         <ul className="tm-pd-warn">
           {warnings.map((w) => <li key={w}>⚠️ {w}</li>)}
         </ul>
       )}
+
+      <div className="pd-grid">
+        <div className="pd-times">
+          <Side label="Clock in" at={punch.clockIn} actual={punch.actualIn} spot={punch.inSpot} address={punch.inAddress} shop={data.shop} typed={punch.editedBy && !punch.inSpot} />
+          <Side label="Clock out" at={punch.clockOut} actual={punch.actualOut} spot={punch.outSpot} address={punch.outAddress} shop={data.shop} typed={punch.editedBy && !punch.outSpot} />
+        </div>
+        {hasSpot && (
+          <div className="pd-map">
+            <button type="button" className="pd-mapbtn" aria-expanded={showMap} onClick={() => setShowMap(!showMap)}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.4" /></svg>
+              {showMap ? 'Hide map' : 'Show map'}
+            </button>
+            {showMap && (
+              <Suspense fallback={<div className="tm-map" />}>
+                <PunchMap inSpot={punch.inSpot} outSpot={punch.clockOut ? punch.outSpot : null} shop={data.shop} />
+              </Suspense>
+            )}
+          </div>
+        )}
+      </div>
+
       {punch.note && <p className="tm-muted small">Note: {punch.note}</p>}
 
-      <h3 className="tm-h3">History</h3>
-      {events === null ? (
-        <p className="tm-muted small">Loading…</p>
-      ) : events.length ? (
-        <ol className="tm-timeline">
-          {events.map((e) => (
-            <li key={e.id}>
-              <i className={`tm-dot ${EVENT[e.kind]?.dot ?? 'edit'}`} aria-hidden="true" />
-              <span>{EVENT[e.kind]?.text(e) ?? e.kind}</span>
-              <time>{formatClock(e.at)}{dateKey(new Date(e.at)) !== dateKey(new Date(punch.clockIn)) ? `, ${new Date(e.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</time>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <p className="tm-muted small">No history saved for this punch (from before update 015).</p>
-      )}
+      <div className="pd-history">
+        <h3 className="tm-h3">History</h3>
+        {events === null ? (
+          <p className="tm-muted small">Loading…</p>
+        ) : events.length ? (
+          <>
+            <ol className="tm-timeline">
+              {(showAll ? events : events.slice(-3)).map((e) => (
+                <li key={e.id}>
+                  <i className={`tm-dot ${EVENT[e.kind]?.dot ?? 'edit'}`} aria-hidden="true" />
+                  <span>{EVENT[e.kind]?.text(e) ?? e.kind}</span>
+                  <time>{formatClock(e.at)}{dateKey(new Date(e.at)) !== dateKey(new Date(punch.clockIn)) ? `, ${new Date(e.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</time>
+                </li>
+              ))}
+            </ol>
+            {events.length > 3 && <button type="button" className="tm-link small" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show less' : `Show all (${events.length})`}</button>}
+          </>
+        ) : (
+          <p className="tm-muted small">No history saved for this punch (from before update 015).</p>
+        )}
+      </div>
       {error && <p className="tm-error" role="alert">{error}</p>}
     </Modal>
   )
