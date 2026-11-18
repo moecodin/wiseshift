@@ -33,7 +33,8 @@ export default function MyHours({ data, me, period, now, lang }) {
       </div>
 
       <div className="hr-weeks">
-      <h2 className="sc-h">{w.days}</h2>
+      <div className="hr-week">
+      <h2 className="sc-h">{w.days} <small className="mg-sum">{formatHours(hours.total)} {w.unit.replace(' so far', '').replace(' hasta ahora', '')}</small></h2>
       {days.length === 0 && <p className="tm-muted">{w.none}</p>}
       {days.map((d) => {
         const date = fromKey(d.date)
@@ -41,7 +42,7 @@ export default function MyHours({ data, me, period, now, lang }) {
         const live = d.punches.some((p) => !p.clockOut) && d.date === today
         const fixed = d.punches.some((p) => p.editedBy)
         return (
-          <div key={d.date} className={`sc-row hr-day ${stuck ? 'warn' : ''}`}>
+          <div key={d.date} className={`sc-row hr-day mh-day ${stuck ? 'warn' : ''}`}>
             <div className="sc-date">
               <small>{date.toLocaleDateString(locale, { weekday: 'short' }).replace('.', '').toUpperCase()}</small>
               <b>{date.getDate()}</b>
@@ -60,6 +61,7 @@ export default function MyHours({ data, me, period, now, lang }) {
           </div>
         )
       })}
+      </div>
       <p className="tm-muted small">{w.note}</p>
       </div>
     </div>
