@@ -227,6 +227,10 @@ export function PunchEditor({ punch, data, onClose }) {
     if (!clockOut && data.punches.some((p) => p.employeeId === punch.employeeId && !p.clockOut && p.id !== punch.id)) {
       return setError(`${person?.name} is already clocked in. Add a clock-out time.`)
     }
+    // Same rule the database enforces (update 027): one person can't have two punches at the same time.
+    const end = clockOut ?? '9999'
+    const clash = data.punches.find((p) => p.employeeId === punch.employeeId && p.id !== punch.id && p.clockIn < end && clockIn < (p.clockOut ?? '9999'))
+    if (clash) return setError(`This overlaps another punch for ${person?.name} (${formatClock(clash.clockIn)} – ${clash.clockOut ? formatClock(clash.clockOut) : 'still in'}).`)
     setBusy(true)
     const problem = await data.actions.savePunch({ id: punch.id, employeeId: punch.employeeId, clockIn, clockOut, actualIn: punch.actualIn, actualOut: punch.actualOut, note: note.trim() })
     setBusy(false)
