@@ -151,7 +151,18 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     }
     place()
     window.addEventListener('resize', place)
-    return () => window.removeEventListener('resize', place)
+    // Measure again when the tabs change size (fonts loading, labels in another language, the
+    // dock's layout settling), so the pill always sits exactly behind the chosen tab.
+    const watch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place)
+    if (watch && navRef.current) {
+      watch.observe(navRef.current)
+      navRef.current.querySelectorAll('button').forEach((b) => watch.observe(b))
+    }
+    document.fonts?.ready.then(place)
+    return () => {
+      window.removeEventListener('resize', place)
+      watch?.disconnect()
+    }
   }, [page, inMore, me?.id, data.lang, boss, tabs.length])
   const lang = data.lang ?? 'en'
   const pending = boss && features.timeOff ? data.timeOff.filter((t) => t.status === 'pending').length : 0

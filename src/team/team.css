@@ -2957,3 +2957,10 @@ a:hover { color: var(--navy-hover); }
   .tn-what b { font-size: 16px; }
   .tn-hrs { font-size: 18px; }
 }
+
+/* Phone dock: even spacing. Equal gaps between the four tabs, the icon and its label centred in
+   the tab with room above and below, so the selected pill doesn't hug its contents. */
+@media (max-width: 899px) {
+  .tm-tabs { padding: 6px; gap: 6px; }
+  .tm-tabs button, .tm-tabs button:first-child, .tm-tabs button:last-child { min-height: 58px; padding: 9px 4px; gap: 5px; justify-content: center; line-height: 1.1; }
+}
