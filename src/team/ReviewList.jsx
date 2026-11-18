@@ -98,10 +98,12 @@ export default function ReviewList({ data }) {
                     </span>
                   )}
                 </button>
-                {status === 'pending' && (
-                  <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>
-                )}
-                {status === 'approved' && <span className="rc-done" title={`Approved by ${p.approvedBy ?? ''}`}>✓ Approved</span>}
+                <div className="rc-foot">
+                  {status === 'pending' && (
+                    <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>
+                  )}
+                  <button type="button" className="btn btn-outline-secondary rc-details" onClick={() => setOpen(p)}>Details</button>
+                </div>
               </article>
             )
           })}

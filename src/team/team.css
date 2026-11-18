@@ -2174,3 +2174,10 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 .sc-hero .cv-status p + .cv-btn { margin-top: 0; }
 .sc-hero > div { row-gap: 4px; }
 @media (min-width: 900px) { .sc-mine { grid-template-columns: minmax(300px, 410px) minmax(0, 1fr); } }
+.rc-foot { display: flex; gap: 8px; margin: 0 12px 12px; }
+.rc-foot .rc-ok { flex: 1 1 auto; margin: 0; min-width: 0; }
+.rc-foot .rc-details { flex: 0 0 auto; margin: 0; padding-left: 18px; padding-right: 18px; }
+.rc-foot .rc-details:only-child { flex: 1 1 auto; }
+.rc-foot .rc-ok { white-space: nowrap; padding-left: 8px; padding-right: 8px; font-size: 14px; }
+.rc-foot .rc-details { padding-left: 14px; padding-right: 14px; }
+@media (min-width: 900px) { .rc-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
