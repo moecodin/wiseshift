@@ -57,11 +57,13 @@ export function MyPunchNotes({ data, me, lang }) {
   )
 }
 
-function NoteForm({ data, lang, today, yesterday, onClose }) {
+// `lockDate` / `initialTag` / `initialText` let another pop-up open this form already filled in
+// (the "a manager clocked you out" notice) for one fixed day.
+export function NoteForm({ data, lang, today, yesterday, onClose, lockDate, initialTag = 'forgotIn', initialText = '' }) {
   const w = noteWords(lang)
-  const [date, setDate] = useState(today)
-  const [tag, setTag] = useState('forgotIn')
-  const [text, setText] = useState('')
+  const [date, setDate] = useState(lockDate ?? today)
+  const [tag, setTag] = useState(initialTag)
+  const [text, setText] = useState(initialText)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const send = async () => {
@@ -83,11 +85,15 @@ function NoteForm({ data, lang, today, yesterday, onClose }) {
       }
     >
       <p className="tm-muted small">{w.hint}</p>
-      <span className="form-label d-block">{w.when}</span>
-      <div className="rl-picks mb-2" role="group" aria-label={w.when}>
-        <button type="button" className="rl-pick" aria-pressed={date === today} onClick={() => setDate(today)}>{w.today}</button>
-        <button type="button" className="rl-pick" aria-pressed={date === yesterday} onClick={() => setDate(yesterday)}>{w.yesterday}</button>
-      </div>
+      {!lockDate && (
+        <>
+          <span className="form-label d-block">{w.when}</span>
+          <div className="rl-picks mb-2" role="group" aria-label={w.when}>
+            <button type="button" className="rl-pick" aria-pressed={date === today} onClick={() => setDate(today)}>{w.today}</button>
+            <button type="button" className="rl-pick" aria-pressed={date === yesterday} onClick={() => setDate(yesterday)}>{w.yesterday}</button>
+          </div>
+        </>
+      )}
       <span className="form-label d-block">{w.what}</span>
       <div className="rl-picks mb-2" role="group" aria-label={w.what}>
         {Object.entries(w.tags).map(([id, label]) => (

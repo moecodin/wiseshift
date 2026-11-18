@@ -17,6 +17,7 @@ import { noticeAcked } from './settings.js'
 import { TABS_ES, themeById } from './themes/index.js'
 import { FeaturesContext, featuresOf } from './features.js'
 import Avatar from './Avatar.jsx'
+import ClockedOutNotice from './ClockedOutNotice.jsx'
 import { say } from './words.js'
 import MoreTab from './MoreTab.jsx'
 import { MORE } from './more.js'
@@ -297,6 +298,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         <SettingsPanel data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => setSettingsOpen(false)} />
       )}
       {notifying && <NotifySettings data={data} boss={boss} onClose={() => setNotifying(false)} />}
+      {me && features.timeClock && <ClockedOutNotice data={data} me={me} lang={lang} />}
     </div>
     </FeaturesContext.Provider>
   )
