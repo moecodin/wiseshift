@@ -33,7 +33,7 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
     <div>
       <div className="tm-toolbar">
         {!reviewing && (
-        <div className="tm-weeknav">
+        <div className="tm-weeknav nav-center">
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, -1))} aria-label="Pay period before">‹</button>
           <b>{rangeLabel(period)}</b>
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, 1))} aria-label="Pay period after">›</button>

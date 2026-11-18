@@ -2964,3 +2964,8 @@ a:hover { color: var(--navy-hover); }
   .tm-tabs { padding: 6px; gap: 6px; }
   .tm-tabs button, .tm-tabs button:first-child, .tm-tabs button:last-child { min-height: 58px; padding: 9px 4px; gap: 5px; justify-content: center; line-height: 1.1; }
 }
+
+/* Phone, Hours and Schedule: the pay period / week picker sits in the middle of the page */
+@media (max-width: 899px) {
+  .tm-weeknav.nav-center { width: 100%; justify-content: center; }
+}

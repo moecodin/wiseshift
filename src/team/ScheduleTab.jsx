@@ -59,7 +59,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
   return (
     <div>
       <div className="tm-toolbar">
-        <div className="tm-weeknav">
+        <div className="tm-weeknav nav-center">
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onWeek(moveDays(week, -1))} aria-label="Week before">‹</button>
           <b>{rangeLabel(week)}</b>
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onWeek(moveDays(week, 1))} aria-label="Week after">›</button>
