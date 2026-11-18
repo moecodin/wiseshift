@@ -2408,3 +2408,37 @@ a:hover { color: var(--navy-hover); }
 [data-bs-theme='light'] .sc-hero.today .cv-btn { color: #e0a44f; }
 [data-bs-theme='light'] .tm-clock::before { background: #f3dfae; }
 [data-bs-theme='light'] .tm-clock::after { background: #efe0c4; }
+
+/* ---------- Phone Today: four summary tiles (Your day, Coming up, Worked this pay period, My requests) ---------- */
+.tt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px 0 14px; }
+.tt {
+  display: flex; flex-direction: column; gap: 6px; min-height: 124px; padding: 14px;
+  border: 1px solid var(--line); border-radius: 20px; text-align: left; color: inherit;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--navy) 9%, var(--paper)), var(--paper) 70%);
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+.tt:active { transform: scale(0.98); }
+.tt:hover { border-color: var(--navy); }
+.tt-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.tt-top svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; padding: 3px; box-sizing: content-box; border-radius: 50%; background: var(--head); }
+.tt-big { margin-top: auto; font-size: 20px; line-height: 1.2; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.tt-big span { font-size: 13px; font-weight: 700; color: var(--muted); }
+.tt-sub { font-size: 12.5px; font-weight: 600; color: var(--muted); line-height: 1.3; }
+.tt.live { border-color: var(--ok); }
+.tt.live .tt-sub { color: var(--ok); }
+.tt.warn .tt-big { color: var(--navy); }
+.tt.off .tt-big { color: var(--muted); }
+
+/* The tiles replace these cards on a phone; a computer keeps the full cards */
+@media (max-width: 899px) {
+  .td-grid .td-yourday, .td-grid .tm-next, .td-grid .tm-summary, .td-grid .td-requests { display: none; }
+  .tm-clock { border-radius: 24px; background: linear-gradient(170deg, color-mix(in srgb, var(--navy) 14%, var(--paper)), var(--paper) 65%); }
+}
+@media (min-width: 900px) { .tt-grid { display: none; } }
+.tt-big { font-size: 18px; }
+@media (max-width: 899px) {
+  .tm-clock { padding: 18px 14px 14px; }
+  .tm-clock .tm-now { font-size: 40px; }
+  .tm-clock .tm-holdhint { margin-top: 2px; }
+  .tm-clock .tm-muted.small { font-size: 12px; margin-top: 10px !important; }
+}

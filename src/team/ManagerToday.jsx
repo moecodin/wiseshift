@@ -8,6 +8,7 @@ import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
 import { useFeatures } from './features.js'
 import ManagerNotes from './ManagerNotes.jsx'
+import TodayTiles from './TodayTiles.jsx'
 import { StaffNotes, missingPunch } from './PunchNotes.jsx'
 
 const LATE = 15 // minutes after the shift start that "On time" turns into "Late"
@@ -20,7 +21,7 @@ const WORDS = {
 
 // The manager's Today screen: what needs a decision, who is working, and the
 // week's draft. "My clock" and "Review" open from here.
-export default function ManagerToday({ data, me, lang, onView }) {
+export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const now = useNow()
   const f = useFeatures() // parts of the app this business has switched off disappear from this screen
@@ -64,6 +65,8 @@ export default function ManagerToday({ data, me, lang, onView }) {
           <button type="button" onClick={() => onView('clock')}>{w.myClock}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg></button>
         </div>
       )}
+
+      <TodayTiles data={data} me={me} lang={lang} onGoTo={onGoTo} />
 
       <div className="mt-stats">
         <div className={`mt-stat ${count > 0 ? 'warn' : 'ok'}`}><small>{w.attention}</small><b>{count}</b></div>

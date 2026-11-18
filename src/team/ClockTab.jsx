@@ -14,6 +14,7 @@ import { WeekTotal } from './ScheduleTab.jsx'
 import ReviewList from './ReviewList.jsx'
 import ClockHero from './themes/ClockHero.jsx'
 import ManagerToday from './ManagerToday.jsx'
+import TodayTiles from './TodayTiles.jsx'
 import { dayName, rangeName, say } from './words.js'
 
 const UPCOMING = 4 // shifts listed under "My next shifts"
@@ -23,7 +24,7 @@ const UPCOMING = 4 // shifts listed under "My next shifts"
 export default function ClockTab({ data, me, boss, look, lang, onGoTo }) {
   const [view, setView] = useState('today')
   if (!boss) return <MyClock data={data} me={me} boss={boss} look={look} lang={lang} onGoTo={onGoTo} />
-  if (view === 'today') return <ManagerToday data={data} me={me} lang={lang} onView={setView} />
+  if (view === 'today') return <ManagerToday data={data} me={me} lang={lang} onView={setView} onGoTo={onGoTo} />
   return (
     <>
       <div className="tm-narrow">
@@ -93,11 +94,13 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
       </section>
       )}
 
+      <TodayTiles data={data} me={me} lang={lang} onGoTo={onGoTo} />
+
       {!boss && <OpenShifts data={data} me={me} lang={lang} />}
 
       {!boss && f.notes && <TaggedForMe data={data} lang={lang} />}
 
-      <section className="tm-card">
+      <section className="tm-card td-yourday">
         <h2>{lang === 'es' ? 'Tu día' : 'Your day'}</h2>
         {off && <p className="tm-offline">{w.timeOffToday}</p>}
         {todayShifts.length ? (
