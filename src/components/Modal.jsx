@@ -48,6 +48,29 @@ export default function Modal({ title, children, footer, onClose, size }) {
     return unlockPage
   }, [])
 
+  // Keyboard focus stays inside the pop-up: it starts there, Tab wraps around at the ends,
+  // and when the pop-up closes focus goes back to whatever opened it.
+  useEffect(() => {
+    const opener = document.activeElement
+    const box = content.current
+    if (box && !box.contains(document.activeElement)) box.focus({ preventScroll: true })
+    const trap = (e) => {
+      if (e.key !== 'Tab' || !box) return
+      const items = [...box.querySelectorAll('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter((el) => !el.disabled && el.type !== 'hidden' && el.offsetParent !== null)
+      if (items.length === 0) return e.preventDefault()
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (!box.contains(document.activeElement)) { e.preventDefault(); first.focus() }
+      else if (e.shiftKey && (document.activeElement === first || document.activeElement === box)) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
+    document.addEventListener('keydown', trap)
+    return () => {
+      document.removeEventListener('keydown', trap)
+      if (opener?.isConnected && typeof opener.focus === 'function') opener.focus({ preventScroll: true })
+    }
+  }, [])
+
   // React removes the pop-up the moment it closes, so to fade it out a copy is left behind
   // for a moment, playing the leaving animation, then removed.
   useLayoutEffect(() => {
@@ -122,7 +145,7 @@ export default function Modal({ title, children, footer, onClose, size }) {
     <div className="pu-root" ref={root} onClickCapture={(e) => e.target.closest?.('.btn-brand, .btn-success') && (lastPrimary.current = performance.now())}>
       <div className="modal d-block" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
         <div className={`modal-dialog modal-dialog-centered modal-dialog-scrollable ${size ? `modal-${size}` : ''}`}>
-          <div className="modal-content pop-in" ref={content}>
+          <div className="modal-content pop-in" ref={content} tabIndex={-1}>
             <div className="modal-header pu-grab" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
               <h2 className="modal-title fs-5">{title}</h2>
               <button type="button" className="btn-close" aria-label="Close" onClick={onClose} />
