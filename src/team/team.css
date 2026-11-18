@@ -1809,3 +1809,86 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 
 /* Digits line up in columns and don't jiggle as a running clock or hours total changes. */
 .tm-now, .tm-datebox, .sc-date, .mg-sum, .hr-day, .tm-punches, table, time { font-variant-numeric: tabular-nums; }
+
+/* ---------- Redesign layer: one shape scale, a floating tab dock, a filled sidebar item ---------- */
+:root { --r-sm: 10px; --r-md: 14px; --r-lg: 18px; }
+
+/* Cards: flatter, outlined, one corner size */
+.tm-card { border-radius: var(--r-lg); border: 1px solid var(--line); box-shadow: none; }
+.hr-hero, .sc-hero, .mt-in, .mt-alert { border-radius: var(--r-lg); }
+.modal-content { border-radius: var(--r-lg); }
+.btn { --bs-btn-border-radius: var(--r-md); }
+.form-control, .form-select { border-radius: var(--r-md); }
+
+/* Buttons and toggles: rounded rectangles instead of full pills */
+.to-ask, .mt-draft button, .cv-row .cv-take, .mt-in button, .mt-call, .td-more, .to-btn { border-radius: var(--r-md); }
+.sc-toggle, .tm-seg { border-radius: var(--r-md); }
+.sc-toggle button, .tm-seg button { border-radius: var(--r-sm); }
+.sc-toggle button[aria-pressed='true'], .tm-seg button[aria-pressed='true'] { background: var(--navy); color: var(--on-navy); }
+.sc-day { border-radius: var(--r-md); }
+
+/* The sliding highlight behind the selected tab is now solid brand color */
+.tm-pill { background: var(--navy); border-radius: var(--r-md); }
+.tm-tabs .tm-pill ~ button[aria-selected='true'] { background: none; color: var(--on-navy); }
+.tm-tabs button[aria-selected='true'] { background: var(--navy); color: var(--on-navy); }
+.tm-tabs button { font-weight: 700; }
+
+/* Phone: the tab bar floats above the page as a rounded dock */
+@media (max-width: 899px) {
+  .tm-tabs {
+    left: 12px; right: 12px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 10px 28px rgba(3, 60, 100, 0.2);
+  }
+  .tm-tabs button { min-height: 54px; border-radius: 18px; }
+  .tm-pill { border-radius: 18px; }
+  .tm-main { padding-bottom: 120px; }
+}
+
+/* Desktop: the sidebar is a clean column with a filled current item */
+@media (min-width: 900px) {
+  .tm-side { border-right: 0; box-shadow: 1px 0 0 var(--line); }
+  .tm-side .tm-tabs button { border-radius: var(--r-md); }
+  .tm-side .tm-tabs button:hover:not([aria-selected='true']) { background: var(--head); }
+}
+
+/* ---------- Redesign layer: one button system ----------
+   Every action button is a rounded rectangle at least 44px tall with bold text.
+   Solid = the main action, outlined = the other choice. Small label chips stay pills. */
+.btn, .to-ask, .to-btn, .mt-in button, .mt-call, .mt-draft button, .mh-edit, .cv-btn, .cv-row .cv-take, .cv-pass,
+.nt-add button, .pd-mapbtn, .pn-fix, .pn-got, .mh-pending button, .mh-approve, .td-more {
+  border-radius: var(--r-md);
+  min-height: 44px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0.5rem 1.1rem; }
+.btn-sm { min-height: 36px; border-radius: var(--r-sm); padding: 0.3rem 0.8rem; }
+
+/* Solid (main action): flat fill, a darker edge, darker on hover */
+.btn-brand, .btn-success, .to-btn.yes, .cv-row .cv-take, .mh-approve, .to-ask, .pn-got {
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+}
+.btn-brand:hover, .to-btn.yes:hover, .cv-row .cv-take:hover, .mh-approve:hover, .to-ask:hover { filter: brightness(0.94); }
+
+/* Outlined (the other choice): brand-colored line and text, soft fill on hover */
+.to-btn:not(.yes), .btn-outline-secondary, .btn-outline-primary {
+  border: 1.5px solid var(--navy);
+  color: var(--navy);
+  background: transparent;
+}
+.to-btn:not(.yes):hover, .btn-outline-secondary:hover, .btn-outline-primary:hover { background: var(--edit-bg); color: var(--navy); border-color: var(--navy); }
+.btn-outline-danger { border-width: 1.5px; }
+
+/* Pressed: a quick dip, never for people who asked for less motion */
+.btn:active, .to-btn:active, .to-ask:active, .cv-btn:active, .mt-in button:active, .mt-draft button:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) {
+  .btn:active, .to-btn:active, .to-ask:active, .cv-btn:active, .mt-in button:active, .mt-draft button:active { transform: none; }
+}
+
+/* Choice chips (roles, filters) are rounded rectangles like the other controls */
+.rl-pick, .mo-seg, .mo-seg button { border-radius: var(--r-sm); }
+.mo-seg { border-radius: var(--r-md); }
