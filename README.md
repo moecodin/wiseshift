@@ -45,3 +45,4 @@ Other commands: `npm run build`, `npm run lint`.
 | `src/lib/`, `src/state/` | Dates, Supabase connection, sign-in state |
 | `public/` | Service worker and app manifest |
 | `supabase/legacy/` | Old single-business database scripts (reference only) |
+| `docs/redesign.md` | The November 2026 redesign: the look, where the colours live, what changed in behaviour, what was and wasn't checked |
