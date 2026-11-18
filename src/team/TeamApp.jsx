@@ -50,6 +50,11 @@ export default function TeamApp() {
     const dark = window.matchMedia('(prefers-color-scheme: dark)')
     const apply = () => {
       document.documentElement.dataset.bsTheme = theme ?? (dark.matches ? 'dark' : 'light')
+      // The phone's browser bar takes the page's color, in light and in dark.
+      requestAnimationFrame(() => {
+        const bar = document.querySelector('meta[name="theme-color"]')
+        if (bar) bar.content = getComputedStyle(document.body).backgroundColor
+      })
     }
     apply()
     dark.addEventListener('change', apply)
@@ -109,6 +114,13 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     const wanted = new URLSearchParams(window.location.search).get('tab')
     return PAGES.includes(wanted) ? wanted : 'clock'
   })
+  // Keep the address in step with the tab, so a refresh or a shared link comes back to the same tab.
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (tab === 'clock') url.searchParams.delete('tab')
+    else url.searchParams.set('tab', tab)
+    window.history.replaceState(window.history.state, '', url)
+  }, [tab])
   const me = data.me
   const boss = Boolean(me?.isManager)
   // The Team page is for managers only; if the person changes to an employee while
