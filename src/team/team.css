@@ -2442,3 +2442,29 @@ a:hover { color: var(--navy-hover); }
   .tm-clock .tm-holdhint { margin-top: 2px; }
   .tm-clock .tm-muted.small { font-size: 12px; margin-top: 10px !important; }
 }
+
+/* ---------- Phone: a compact clock card (time and status on the left, the round button on the right) ---------- */
+@media (max-width: 899px) {
+  .tm-clock {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'now btn' 'date btn' 'status btn' '. hint';
+    column-gap: 12px;
+    align-items: center;
+    padding: 14px 16px;
+    text-align: left;
+  }
+  .tm-clock .tm-now { grid-area: now; font-size: 34px; line-height: 1.1; text-align: left; }
+  .tm-clock .tm-date { grid-area: date; text-align: left; margin: 0; font-size: 14px; }
+  .tm-clock .tm-status { grid-area: status; text-align: left; margin: 6px 0 0; font-size: 13px; line-height: 1.35; }
+  .tm-clock .tm-holdwrap { grid-area: btn; justify-self: end; padding: 6px; }
+  .tm-clock .tm-punch { width: 88px; height: 88px; font-size: 15px; box-shadow: 0 4px 12px rgba(60, 40, 10, 0.25); }
+  .tm-clock .tm-holdhint { grid-area: hint; justify-self: center; margin: 2px 0 0; font-size: 11.5px; text-align: center; }
+
+  /* Everything else on the card (warnings, Add a note, countdown, location note) runs full width, tightly */
+  .tm-clock > :not(.tm-now):not(.tm-date):not(.tm-holdwrap):not(.tm-holdhint):not(.tm-status) { grid-column: 1 / -1; }
+  .tm-clock .pn-mine { margin-top: 8px; }
+  .tm-clock .pn-mine .td-more { min-height: 36px; margin: 0; }
+  .tm-clock .td-countdown { margin: 8px 0 0; font-size: 13px; }
+  .tm-clock .tm-muted.small { margin-top: 6px !important; font-size: 11.5px; line-height: 1.35; }
+}
