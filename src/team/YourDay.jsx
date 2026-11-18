@@ -12,14 +12,14 @@ const WORDS = {
     clock: 'Time clock', notIn: 'Not clocked in yet', startedAt: (t) => `Your shift started at ${t}`, startsAt: (t) => `Your shift starts at ${t}`,
     since: (t) => `Clocked in since ${t}`, soFar: (h) => `Worked so far: ${h}`, out: (t) => `Clocked out at ${t}`, outBy: (n) => `Clocked out by ${n}`, worked: (h) => `${h} worked`,
     shift: 'Shift today', until: (t) => `until ${t}`, left: (h) => `${h} left`, over: 'Shift is over', total: (h) => `${h} scheduled`,
-    tasks: 'Tasks for today', noTasks: 'Nothing assigned yet.', tasksHint: 'Tasks you are given will show up here.',
+    tasks: 'Tasks for today', noTasks: 'Nothing assigned yet.', tasksHint: 'Take one on the Tasks tab, or a manager can give you one.', needSomeone: (n) => `${n} more ${n === 1 ? 'task needs' : 'tasks need'} someone`, anytime: 'Anytime',
   },
   es: {
     title: 'Tu día', timeOff: 'Ausencia hoy', dayOff: 'Día libre. Nada programado.',
     clock: 'Reloj', notIn: 'Aún no has marcado entrada', startedAt: (t) => `Tu turno empezó a las ${t}`, startsAt: (t) => `Tu turno empieza a las ${t}`,
     since: (t) => `Entrada desde las ${t}`, soFar: (h) => `Trabajado hasta ahora: ${h}`, out: (t) => `Salida a las ${t}`, outBy: (n) => `Salida registrada por ${n}`, worked: (h) => `${h} trabajadas`,
     shift: 'Turno de hoy', until: (t) => `hasta las ${t}`, left: (h) => `faltan ${h}`, over: 'El turno terminó', total: (h) => `${h} programadas`,
-    tasks: 'Tareas de hoy', noTasks: 'Aún no tienes tareas.', tasksHint: 'Las tareas que te asignen aparecerán aquí.',
+    tasks: 'Tareas de hoy', noTasks: 'Aún no tienes tareas.', tasksHint: 'Toma una en la pestaña Tareas, o un gerente te la puede dar.', needSomeone: (n) => `${n} ${n === 1 ? 'tarea necesita' : 'tareas necesitan'} a alguien`, anytime: 'Cualquier hora',
   },
 }
 const locale = (lang) => (lang === 'es' ? 'es-US' : 'en-US')
@@ -46,6 +46,10 @@ export default function YourDay({ data, me, lang, onClose }) {
   // hidden. A clock that's already running or finished today still shows, so nobody's punch hides.
   const scheduled = todays.length > 0 && !off
   const showClock = f.timeClock && (scheduled || punches.length > 0)
+
+  const todaysTasks = (data.tasks ?? []).filter((t) => t.date === today)
+  const myTasks = todaysTasks.filter((t) => t.claimedBy === me.id).sort((a, b) => (a.time ?? 1440) - (b.time ?? 1440))
+  const unclaimed = todaysTasks.filter((t) => !t.claimedBy && !t.doneAt).length
 
   // How much of the shift is left: the one under way, else the next one, else the last.
   const current = todays.find((s) => s.start <= minutes && s.end > minutes)
@@ -86,11 +90,24 @@ export default function YourDay({ data, me, lang, onClose }) {
       )}
       {!showClock && scheduled && leftNote && <p className="yd-left alone">{leftNote}</p>}
 
-      {/* Placeholder until tasks exist: the real list goes in this section. */}
-      {scheduled && (
+      {/* Today's tasks I have (taken, or handed to me), and how many still need someone. */}
+      {scheduled && f.teamTasks && (
         <section className="yd-block yd-tasks">
           <small className="yd-label">{w.tasks}</small>
-          <span className="yd-empty"><b>{w.noTasks}</b> {w.tasksHint}</span>
+          {myTasks.length ? (
+            <ul className="yd-tasklist">
+              {myTasks.map((t) => (
+                <li key={t.id} className={t.doneAt ? 'done' : ''}>
+                  <span className="yd-check" aria-hidden="true">{t.doneAt ? '✓' : ''}</span>
+                  <span>{t.title}</span>
+                  <small>{t.time == null ? w.anytime : clockTime(t.time)}</small>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <span className="yd-empty"><b>{w.noTasks}</b> {w.tasksHint}</span>
+          )}
+          {unclaimed > 0 && <span className="yd-sub">{w.needSomeone(unclaimed)}</span>}
         </section>
       )}
     </Modal>

@@ -18,6 +18,7 @@ import { TABS_ES, themeById } from './themes/index.js'
 import { FeaturesContext, featuresOf } from './features.js'
 import Avatar from './Avatar.jsx'
 import ClockedOutNotice from './ClockedOutNotice.jsx'
+import TasksTab from './TasksTab.jsx'
 import { say } from './words.js'
 import MoreTab from './MoreTab.jsx'
 import { MORE } from './more.js'
@@ -35,7 +36,7 @@ function savedTheme() {
 
 // The tabs, in order. Their names come from the person's theme. Time off and Team open
 // from More.
-const TABS = ['clock', 'schedule', 'hours', 'more']
+const TABS = ['clock', 'schedule', 'tasks', 'hours', 'more']
 const PAGES = [...TABS, ...MORE.map((m) => m.id)]
 
 // The team page (/team): time clock, schedules, hours and
@@ -130,8 +131,8 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   // Which parts of the app this business uses (Settings → Features). A tab or page for a
   // feature that is off is skipped, even if someone opens an old link to it.
   const features = featuresOf(data.settings)
-  const tabs = features.timeClock ? TABS : TABS.filter((t) => t !== 'hours')
-  const page = tab === 'people' && !boss ? 'more' : tab === 'hours' && !features.timeClock ? 'clock' : tab === 'off' && !features.timeOff ? 'more' : tab
+  const tabs = TABS.filter((t) => (t !== 'hours' || features.timeClock) && (t !== 'tasks' || features.teamTasks))
+  const page = tab === 'people' && !boss ? 'more' : tab === 'hours' && !features.timeClock ? 'clock' : tab === 'tasks' && !features.teamTasks ? 'clock' : tab === 'off' && !features.timeOff ? 'more' : tab
   const inMore = MORE.some((m) => m.id === page)
   // Screens slide in from the side the tab is on: toward the right for tabs further
   // along the bar (and pages opened from More), toward the left going back.
@@ -232,6 +233,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         )}
         {page === 'clock' && <ClockTab {...shared} onGoTo={go} />}
         {page === 'schedule' && <ScheduleTab {...shared} week={week} onWeek={setWeek} />}
+        {page === 'tasks' && <TasksTab {...shared} />}
         {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
         {page === 'off' && <TimeOffTab {...shared} />}
         {page === 'people' && boss && <PeopleTab {...shared} />}
@@ -339,6 +341,7 @@ const ICONS = {
   today: <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   schedule: <><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
+  tasks: <><rect x="4" y="4" width="16" height="16" rx="4" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></>,
   hours: <><path d="M5 20V10M12 20V4M19 20v-7" /></>,
   more: <><circle cx="6" cy="12" r="1.2" /><circle cx="12" cy="12" r="1.2" /><circle cx="18" cy="12" r="1.2" /></>,
 }

@@ -63,6 +63,12 @@ const shiftFromRow = (r) => ({
 const shiftToRow = (s) => ({
   employee_id: s.employeeId, date: s.date, start_min: s.start, end_min: s.end, break_min: s.breakMin || 0, title: s.title ?? '', role: s.role ?? '', note: s.note ?? '', published: Boolean(s.published),
 })
+// Update 029: the team's tasks for a day (claimed with "I'll take it", or handed out by a manager).
+const taskFromRow = (r) => ({
+  id: r.id, date: r.date, time: r.time, title: r.title, note: r.note ?? '', claimedBy: r.claimed_by, assigned: Boolean(r.assigned), assignedBy: r.assigned_by ?? '',
+  claimedAt: r.claimed_at, doneAt: r.done_at, doneBy: r.done_by ?? '', createdBy: r.created_by ?? '', createdAt: r.created_at,
+})
+
 // Update 024: cover requests, managers' notes and tasks, staff notes about punches.
 const coverFromRow = (r) => ({
   id: r.id, kind: r.kind, shiftId: r.shift_id, swapShiftId: r.swap_shift_id, requesterId: r.requester_id, targetId: r.target_id, takerId: r.taker_id,
@@ -156,6 +162,8 @@ async function loadLive(email, week, period, today) {
     supabase.from('cover_requests').select('*').or(`status.in.(open,taken),created_at.gte."${extrasFrom}"`),
     supabase.from('manager_notes').select('*').order('created_at', { ascending: false }),
     supabase.from('punch_notes').select('*').gte('date', addDays(offFrom, -14)),
+    // Update 029 (empty, not a failure, before it is run): yesterday through the next two weeks.
+    supabase.from('team_tasks').select('*').gte('date', addDays(todayKey, -1)).lte('date', addDays(todayKey, 14)).order('time', { nullsFirst: false }),
   ])
   const [seen, priv, prefs, total, settings, pay, timeOff, teamOff, open, ...rest] = await Promise.all([
     // When people last opened the app (update 019). Your own, or everyone's for a manager.
@@ -175,7 +183,7 @@ async function loadLive(email, week, period, today) {
     ...punchQueries,
   ])
   for (const result of [pay, timeOff, teamOff, open, ...rest]) if (result.error) throw result.error
-  const [coverRows, noteRows, punchNoteRows] = await extras
+  const [coverRows, noteRows, punchNoteRows, taskRows] = await extras
   const rows = (result, from) => (result.error ? [] : result.data.map(from))
 
   const unique = (rows) => [...new Map(rows.map((r) => [r.id, r])).values()]
@@ -193,6 +201,7 @@ async function loadLive(email, week, period, today) {
     cover: rows(coverRows, coverFromRow),
     notes: rows(noteRows, noteFromRow),
     punchNotes: rows(punchNoteRows, punchNoteFromRow),
+    tasks: rows(taskRows, taskFromRow),
     shop: settings.error ? null : shopFromRow(settings.data),
     settings: settings.error ? DEFAULT_SETTINGS : settingsFromRow(settings.data),
     privateById: priv.error ? {} : Object.fromEntries(priv.data.map((r) => [r.employee_id, privateFromRow(r)])),
@@ -211,7 +220,11 @@ async function loadLive(email, week, period, today) {
 function loadSample() {
   try {
     const saved = localStorage.getItem(SAMPLE_KEY)
-    if (saved) return JSON.parse(saved)
+    if (saved) {
+      const state = JSON.parse(saved)
+      // Sample data saved before tasks existed starts with none.
+      return state.tasks ? state : { ...state, tasks: [] }
+    }
   } catch {
     // Start over with fresh sample data.
   }
@@ -241,6 +254,8 @@ function sampleView(state, viewAs) {
     cover: state.cover ?? [],
     // Notes staff leave about a day's punches. Managers see all of them; staff see only their own.
     punchNotes: (state.punchNotes ?? []).filter((n) => boss || n.employeeId === viewAs),
+    // Tasks are for the whole team: everyone sees who has what.
+    tasks: state.tasks ?? [],
     // Sticky notes and tasks are for managers only; staff never get them at all.
     // Staff see only the notes and tasks a manager tagged them on.
     notes: boss ? state.notes ?? [] : (state.notes ?? []).filter((n) => (n.assignees ?? []).includes(viewAs)),
@@ -293,7 +308,7 @@ const newId = (prefix) => `${prefix}${++sampleIds}`
 
 // ---------- The hook ----------
 
-const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], notes: [], punchNotes: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
+const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], notes: [], punchNotes: [], tasks: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
 
 export function useTeamData({ signedIn, email, week, period }) {
   const today = useMemo(() => startOfToday(), [])
@@ -739,6 +754,58 @@ export function useTeamData({ signedIn, email, week, period }) {
       if (usingSupabase) return run(supabase.from('manager_notes').delete().eq('id', id))
       if (!view.me?.isManager) return 'Only managers can delete notes.'
       return change((s) => ({ ...s, notes: (s.notes ?? []).filter((x) => x.id !== id) }))
+    },
+    // Team tasks (update 029). Managers add and delete; staff take, give back and finish their own.
+    addTask: async ({ title, note = '', date, time = null, assigneeId = '' }) => {
+      if (!title.trim()) return 'Type the task first.'
+      if (usingSupabase) {
+        const { data: added, error: problem } = await supabase.from('team_tasks').insert({ date, time, title: title.trim(), note: note.trim(), created_by: myName }).select('id').single()
+        if (problem) return problem.message || 'Something went wrong'
+        if (assigneeId && added?.id) {
+          const { error: handOut } = await supabase.rpc('set_team_task', { task: added.id, who: assigneeId })
+          if (handOut) return handOut.message || 'Something went wrong'
+        }
+        return run(Promise.resolve({ error: null }))
+      }
+      if (!view.me?.isManager) return 'Only managers can add tasks.'
+      return change((s) => {
+        const handed = assigneeId ? { claimedBy: assigneeId, assigned: assigneeId !== viewAs, assignedBy: assigneeId !== viewAs ? myName : '', claimedAt: new Date().toISOString() } : {}
+        s.tasks = [...(s.tasks ?? []), { id: newId('t'), date, time, title: title.trim(), note: note.trim(), claimedBy: null, assigned: false, assignedBy: '', claimedAt: null, doneAt: null, doneBy: '', createdBy: myName, createdAt: new Date().toISOString(), ...handed }]
+        return s
+      })
+    },
+    // who: your own id to take it, null to give it back, someone else's id (managers) to hand it over.
+    setTaskHolder: async (id, who) => {
+      if (usingSupabase) return run(supabase.rpc('set_team_task', { task: id, who }))
+      const task = (sample.tasks ?? []).find((t) => t.id === id)
+      if (!task) return 'That task is gone.'
+      const boss = Boolean(view.me?.isManager)
+      if (who === null) {
+        if (!boss && (task.claimedBy !== viewAs || task.assigned)) return 'Only the person who took it can give it back.'
+      } else if (!boss && (who !== viewAs || (task.claimedBy && task.claimedBy !== viewAs))) {
+        return task.claimedBy ? 'Someone already took this one.' : 'Only a manager can hand a task to someone else.'
+      }
+      return change((s) => {
+        const t = s.tasks.find((x) => x.id === id)
+        if (who === null) Object.assign(t, { claimedBy: null, assigned: false, assignedBy: '', claimedAt: null, doneAt: null, doneBy: '' })
+        else Object.assign(t, { claimedBy: who, assigned: who !== viewAs, assignedBy: who !== viewAs ? myName : '', claimedAt: new Date().toISOString(), doneAt: null, doneBy: '' })
+        return s
+      })
+    },
+    finishTask: async (id, done = true) => {
+      if (usingSupabase) return run(supabase.rpc('finish_team_task', { task: id, is_done: done }))
+      const task = (sample.tasks ?? []).find((t) => t.id === id)
+      if (!task) return 'That task is gone.'
+      if (!view.me?.isManager && task.claimedBy !== viewAs) return 'Take the task first.'
+      return change((s) => {
+        Object.assign(s.tasks.find((x) => x.id === id), done ? { doneAt: new Date().toISOString(), doneBy: myName } : { doneAt: null, doneBy: '' })
+        return s
+      })
+    },
+    deleteTask: async (id) => {
+      if (usingSupabase) return run(supabase.from('team_tasks').delete().eq('id', id))
+      if (!view.me?.isManager) return 'Only managers can delete tasks.'
+      return change((s) => ({ ...s, tasks: (s.tasks ?? []).filter((x) => x.id !== id) }))
     },
     cancelCover: async (id) => {
       if (usingSupabase) return run(supabase.rpc('cancel_cover', { request: id }))
