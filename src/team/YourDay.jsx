@@ -8,14 +8,14 @@ import { useFeatures } from './features.js'
 // where you are in today's clock, today's shift, and (once tasks exist) today's tasks.
 const WORDS = {
   en: {
-    title: 'Your day', close: 'Close', timeOff: 'Time off today', dayOff: 'Day off. Nothing scheduled.',
+    title: 'Your day', timeOff: 'Time off today', dayOff: 'Day off. Nothing scheduled.',
     clock: 'Time clock', notIn: 'Not clocked in yet', startedAt: (t) => `Your shift started at ${t}`, startsAt: (t) => `Your shift starts at ${t}`,
     since: (t) => `Clocked in since ${t}`, soFar: (h) => `Worked so far: ${h}`, out: (t) => `Clocked out at ${t}`, outBy: (n) => `Clocked out by ${n}`, worked: (h) => `${h} worked`,
     shift: 'Shift today', until: (t) => `until ${t}`, left: (h) => `${h} left`, over: 'Shift is over', total: (h) => `${h} scheduled`,
     tasks: 'Tasks for today', noTasks: 'Nothing assigned yet.', tasksHint: 'Tasks you are given will show up here.',
   },
   es: {
-    title: 'Tu día', close: 'Cerrar', timeOff: 'Ausencia hoy', dayOff: 'Día libre. Nada programado.',
+    title: 'Tu día', timeOff: 'Ausencia hoy', dayOff: 'Día libre. Nada programado.',
     clock: 'Reloj', notIn: 'Aún no has marcado entrada', startedAt: (t) => `Tu turno empezó a las ${t}`, startsAt: (t) => `Tu turno empieza a las ${t}`,
     since: (t) => `Entrada desde las ${t}`, soFar: (h) => `Trabajado hasta ahora: ${h}`, out: (t) => `Salida a las ${t}`, outBy: (n) => `Salida registrada por ${n}`, worked: (h) => `${h} trabajadas`,
     shift: 'Turno de hoy', until: (t) => `hasta las ${t}`, left: (h) => `faltan ${h}`, over: 'El turno terminó', total: (h) => `${h} programadas`,
@@ -63,7 +63,7 @@ export default function YourDay({ data, me, lang, onClose }) {
   }
 
   return (
-    <Modal title={w.title} onClose={onClose} footer={<button type="button" className="btn btn-brand" onClick={onClose}>{w.close}</button>}>
+    <Modal title={w.title} onClose={onClose}>
       <p className="yd-date">{date}</p>
       {/* Under the title: today's shift times as bullets (or the day off / time off line). */}
       <ul className="yd-bullets">

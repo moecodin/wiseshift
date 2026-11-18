@@ -7,8 +7,8 @@ import { shiftMinutes } from './paycheck.js'
 // the schedule from now on (published ones; the day's already-finished shifts are left out),
 // plus any approved time off, in date order.
 const WORDS = {
-  en: { title: 'Coming up', close: 'Close', today: 'Today', tomorrow: 'Tomorrow', empty: 'Nothing coming up.', hint: 'Shifts show here once your manager publishes the schedule.', timeOff: 'Time off', now: 'On now', count: (n) => `${n} ${n === 1 ? 'shift' : 'shifts'} scheduled` },
-  es: { title: 'Próximamente', close: 'Cerrar', today: 'Hoy', tomorrow: 'Mañana', empty: 'Nada próximo.', hint: 'Los turnos aparecen aquí cuando tu gerente publica el horario.', timeOff: 'Ausencia', now: 'Ahora', count: (n) => `${n} ${n === 1 ? 'turno programado' : 'turnos programados'}` },
+  en: { title: 'Coming up', today: 'Today', tomorrow: 'Tomorrow', empty: 'Nothing coming up.', hint: 'Shifts show here once your manager publishes the schedule.', timeOff: 'Time off', now: 'On now', count: (n) => `${n} ${n === 1 ? 'shift' : 'shifts'} scheduled` },
+  es: { title: 'Próximamente', today: 'Hoy', tomorrow: 'Mañana', empty: 'Nada próximo.', hint: 'Los turnos aparecen aquí cuando tu gerente publica el horario.', timeOff: 'Ausencia', now: 'Ahora', count: (n) => `${n} ${n === 1 ? 'turno programado' : 'turnos programados'}` },
 }
 const locale = (lang) => (lang === 'es' ? 'es-US' : 'en-US')
 
@@ -29,7 +29,7 @@ export default function ComingUp({ data, me, lang, onClose }) {
   const dayName = (d) => (d === today ? w.today : d === tomorrow ? w.tomorrow : fromKey(d).toLocaleDateString(locale(lang), { weekday: 'short', month: 'short', day: 'numeric' }))
 
   return (
-    <Modal title={w.title} onClose={onClose} footer={<button type="button" className="btn btn-brand" onClick={onClose}>{w.close}</button>}>
+    <Modal title={w.title} onClose={onClose}>
       {rows.length === 0 ? (
         <p className="yd-empty"><b>{w.empty}</b> {w.hint}</p>
       ) : (
