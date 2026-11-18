@@ -2042,12 +2042,11 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 
 /* ---------- Redesign layer: Hours > Review as punch cards ---------- */
 .rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; margin-top: 4px; }
-.rc { display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: var(--r-md); overflow: hidden; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-.rc.st-pending { border-top-color: var(--warn); }
-.rc.st-progress { border-top-color: var(--navy); }
-.rc.st-approved { border-top-color: var(--ok); }
+.rc { display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.rc.st-pending { border-color: color-mix(in srgb, var(--warn) 55%, var(--line)); }
+.rc.st-progress { border-color: color-mix(in srgb, var(--navy) 55%, var(--line)); }
+.rc.st-approved { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
 .rc:hover { border-color: var(--navy); box-shadow: 0 4px 14px rgba(80, 60, 10, 0.1); }
-.rc:hover.st-pending { border-top-color: var(--warn); }
 .rc-main { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-content: start; flex: 1; width: 100%; padding: 14px 16px 12px; border: 0; background: none; color: inherit; text-align: left; font: inherit; cursor: pointer; }
 .rc-top { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .rc-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
@@ -2312,9 +2311,9 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 [data-bs-theme='dark'][data-dark-style='gold'] :is(.hr-week .sc-h, .sc-mine-r .sc-h, .tm-grid thead th, .tm-sheet thead th) { background: color-mix(in srgb, var(--head) 80%, transparent); }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-side { background: color-mix(in srgb, var(--paper) 80%, transparent); box-shadow: 1px 0 0 var(--glass-line); }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs { border-color: var(--glass-line); }
-[data-bs-theme='dark'][data-dark-style='gold'] .rc { border-top-color: var(--glass-line); }
-[data-bs-theme='dark'][data-dark-style='gold'] .rc.st-pending { border-top-color: var(--navy); }
-[data-bs-theme='dark'][data-dark-style='gold'] .rc.st-progress { border-top-color: var(--faint); }
+[data-bs-theme='dark'][data-dark-style='gold'] .rc { border-color: var(--glass-line); }
+[data-bs-theme='dark'][data-dark-style='gold'] .rc.st-pending { border-color: color-mix(in srgb, var(--navy) 55%, transparent); }
+[data-bs-theme='dark'][data-dark-style='gold'] .rc.st-progress { border-color: color-mix(in srgb, var(--faint) 70%, transparent); }
 [data-bs-theme='dark'][data-dark-style='gold'] .rc:hover { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy), 0 8px 24px rgba(0, 0, 0, 0.5); }
 
 /* Gold for the numbers that matter */
@@ -2569,10 +2568,9 @@ a:hover { color: var(--navy-hover); }
   backdrop-filter: var(--g-blur);
 }
 [data-bs-theme='light'] :is(.hr-week, .sc-mine-r, .tm-gridwrap, .tl-card, .tm-card, .mt-card, .rc) { background: var(--g-fill-strong); }
-[data-bs-theme='light'] .rc { border-top: 3px solid var(--g-edge-dark); }
-[data-bs-theme='light'] .rc.st-pending { border-top-color: var(--navy); }
-[data-bs-theme='light'] .rc.st-progress { border-top-color: var(--faint); }
-[data-bs-theme='light'] .rc.st-approved { border-top-color: var(--ok); }
+[data-bs-theme='light'] .rc.st-pending { border-color: var(--navy-edge, var(--navy)); }
+[data-bs-theme='light'] .rc.st-progress { border-color: color-mix(in srgb, var(--faint) 55%, var(--g-edge)); }
+[data-bs-theme='light'] .rc.st-approved { border-color: color-mix(in srgb, var(--ok) 45%, var(--g-edge)); }
 [data-bs-theme='light'] .rc:hover { border-color: var(--navy); }
 
 /* Lighter fills for list rows (no blur, there are many of them) */
