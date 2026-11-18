@@ -1,3 +1,4 @@
+import { autoFocusOnDesktop } from '../lib/focus.js'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase.js'
 
@@ -47,7 +48,7 @@ export function SetUpLogin({ onChoosing, onBack }) {
           <>
             <p className="text-secondary small">For your first time, or if you forgot your password. Use the email your manager has for you.</p>
             <label className="form-label" htmlFor="setup-email">Email</label>
-            <input id="setup-email" className="form-control mb-3" type="email" autoComplete="username" autoFocus value={email} onChange={(e) => { setEmail(e.target.value); setError('') }} />
+            <input id="setup-email" className="form-control mb-3" type="email" autoComplete="username" autoFocus={autoFocusOnDesktop()} value={email} onChange={(e) => { setEmail(e.target.value); setError('') }} />
             {error && <p className="text-danger small" role="alert">{error}</p>}
             <button type="submit" className="btn btn-brand w-100" disabled={busy}>{busy ? 'Sending…' : 'Email me a code'}</button>
           </>
@@ -55,7 +56,7 @@ export function SetUpLogin({ onChoosing, onBack }) {
           <>
             <p className="text-secondary small">We sent a code to <b>{email.trim()}</b>. It can take a minute; check spam too.</p>
             <label className="form-label" htmlFor="setup-code">Code</label>
-            <input id="setup-code" className="form-control mb-3" inputMode="numeric" autoComplete="one-time-code" autoFocus value={code} onChange={(e) => { setCode(e.target.value); setError('') }} />
+            <input id="setup-code" className="form-control mb-3" inputMode="numeric" autoComplete="one-time-code" autoFocus={autoFocusOnDesktop()} value={code} onChange={(e) => { setCode(e.target.value); setError('') }} />
             {error && <p className="text-danger small" role="alert">{error}</p>}
             <button type="submit" className="btn btn-brand w-100" disabled={busy}>{busy ? 'Checking…' : 'Continue'}</button>
             <button type="button" className="btn btn-link btn-sm w-100 mt-2 text-secondary" onClick={() => { setStep('email'); setCode(''); setError('') }}>
@@ -94,7 +95,7 @@ export function ChoosePassword({ email, onDone }) {
         <p className="text-secondary small">For signing in as <b>{email}</b> next time.</p>
         <input type="hidden" name="username" autoComplete="username" value={email} />
         <label className="form-label" htmlFor="new-password">New password</label>
-        <input id="new-password" className="form-control mb-3" type="password" autoComplete="new-password" autoFocus value={password} onChange={(e) => { setPassword(e.target.value); setError('') }} />
+        <input id="new-password" className="form-control mb-3" type="password" autoComplete="new-password" autoFocus={autoFocusOnDesktop()} value={password} onChange={(e) => { setPassword(e.target.value); setError('') }} />
         <label className="form-label" htmlFor="new-password-again">Type it again</label>
         <input id="new-password-again" className="form-control mb-3" type="password" autoComplete="new-password" value={again} onChange={(e) => { setAgain(e.target.value); setError('') }} />
         {error && <p className="text-danger small" role="alert">{error}</p>}

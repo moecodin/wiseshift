@@ -1,3 +1,4 @@
+import { autoFocusOnDesktop } from '../lib/focus.js'
 import { useState } from 'react'
 
 
@@ -52,7 +53,7 @@ export default function SignIn({ onSignIn, presetEmail = '', labels = {}, footer
           <input type="hidden" name="username" autoComplete="username" value={presetEmail} />
         )}
         <label className="form-label" htmlFor="signin-password">{t.password}</label>
-        <input id="signin-password" className="form-control mb-3" type="password" autoComplete="current-password" autoFocus value={password} onChange={(e) => { setPassword(e.target.value); setError('') }} />
+        <input id="signin-password" className="form-control mb-3" type="password" autoComplete="current-password" autoFocus={autoFocusOnDesktop()} value={password} onChange={(e) => { setPassword(e.target.value); setError('') }} />
         {error && <p className="text-danger small" role="alert">{error}</p>}
         <button type="submit" className="btn btn-brand w-100" disabled={busy}>{busy ? t.signingIn : t.signIn}</button>
         {presetEmail && allowOtherAccount && (

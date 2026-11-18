@@ -1,3 +1,4 @@
+import { autoFocusOnDesktop } from '../lib/focus.js'
 import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, fromKey } from '../lib/dates.js'
@@ -94,7 +95,7 @@ function NoteForm({ data, lang, today, yesterday, onClose }) {
         ))}
       </div>
       <label className="form-label" htmlFor="pn-text">{w.note}</label>
-      <textarea id="pn-text" className="form-control" rows={3} maxLength={300} autoFocus placeholder={w.placeholder} value={text} onChange={(e) => setText(e.target.value)} />
+      <textarea id="pn-text" className="form-control" rows={3} maxLength={300} autoFocus={autoFocusOnDesktop()} placeholder={w.placeholder} value={text} onChange={(e) => setText(e.target.value)} />
       {error && <p className="tm-error mt-2" role="alert">{error}</p>}
     </Modal>
   )

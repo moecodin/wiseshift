@@ -1,3 +1,4 @@
+import { autoFocusOnDesktop } from '../lib/focus.js'
 import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey } from '../lib/dates.js'
@@ -115,7 +116,7 @@ function NoteEditor({ note, data, onClose }) {
         <button type="button" className="rl-pick" aria-pressed={n.kind === 'note'} onClick={() => setN({ ...n, kind: 'note' })}>Sticky note</button>
       </div>
       <label className="form-label" htmlFor="nt-text">{n.kind === 'task' ? 'What needs doing?' : 'Note'}</label>
-      <textarea id="nt-text" className="form-control" rows={3} maxLength={300} autoFocus value={n.text} onChange={(e) => setN({ ...n, text: e.target.value })} />
+      <textarea id="nt-text" className="form-control" rows={3} maxLength={300} autoFocus={autoFocusOnDesktop()} value={n.text} onChange={(e) => setN({ ...n, text: e.target.value })} />
       {n.kind === 'task' ? (
         <div className="mt-3">
           <label className="form-label" htmlFor="nt-due">Due date (optional)</label>
@@ -144,7 +145,7 @@ function NoteEditor({ note, data, onClose }) {
         {n.assignees.length > 0 && (
           <div className="nt-notify">
             <label className="ex-check"><input type="checkbox" className="form-check-input" checked={n.notify} onChange={(e) => setN({ ...n, notify: e.target.checked })} /><span>Notify them in the app<small>They get a notification once online sync is set up. Nothing is sent in this demo.</small></span></label>
-            <label className={`ex-check ${TEXTING_AVAILABLE ? '' : 'nt-off'}`}><input type="checkbox" className="form-check-input" disabled={!TEXTING_AVAILABLE} checked={TEXTING_AVAILABLE && n.sendText} onChange={(e) => setN({ ...n, sendText: e.target.checked })} /><span>Also send it as a text<small>{TEXTING_AVAILABLE ? 'Sent to their phone number.' : "Texting isn't available yet."}</small></span></label>
+            <label className={`ex-check ${TEXTING_AVAILABLE ? '' : 'nt-off'}`}><input type="checkbox" className="form-check-input" disabled={!TEXTING_AVAILABLE} checked={TEXTING_AVAILABLE && n.sendText} onChange={(e) => setN({ ...n, sendText: e.target.checked })} /><span>Also send it as a text<small>{TEXTING_AVAILABLE ? 'Sent to their phone number.' : "Texting isn’t available yet."}</small></span></label>
           </div>
         )}
       </div>
