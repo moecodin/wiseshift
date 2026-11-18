@@ -13,6 +13,7 @@ import ReviewList from './ReviewList.jsx'
 import ClockCard from './ClockCard.jsx'
 import ManagerToday from './ManagerToday.jsx'
 import TodayTiles from './TodayTiles.jsx'
+import NextShiftCards from './NextShiftCards.jsx'
 import { dayName, rangeName, say } from './words.js'
 
 const UPCOMING = 4 // shifts listed under "My next shifts"
@@ -116,6 +117,8 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
       )}
 
       {boss && <WhoIsIn data={data} now={now} today={today} />}
+
+      {!boss && <NextShiftCards data={data} me={me} lang={lang} />}
       </div>
     </div>
   )
