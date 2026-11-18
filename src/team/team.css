@@ -2753,3 +2753,25 @@ a:hover { color: var(--navy-hover); }
   [data-bs-theme='light'] .pu-root .modal-content { background-image: none; background-color: #ffffff; }
   [data-bs-theme='light'] .pu-root .st-section { background: #ffffff; }
 }
+
+/* Light glass, desktop: the clock card's corner decorations are soft round glows, not the old ribbon shapes */
+@media (min-width: 900px) {
+  [data-bs-theme='light'] .tm-clock::before, [data-bs-theme='light'] .tm-clock::after { background-image: none; border-radius: 50%; }
+  [data-bs-theme='light'] .tm-clock::before { width: 190px; height: 190px; top: -80px; left: -70px; right: auto; bottom: auto; }
+  [data-bs-theme='light'] .tm-clock::after { width: 150px; height: 150px; right: -50px; bottom: -60px; left: auto; top: auto; }
+}
+
+/* Manager Today: on a phone the clock card (like staff) replaces the "You're clocked in" bar; a computer keeps the bar */
+.mt-clockcard { display: none; }
+@media (max-width: 899px) {
+  .mt-clockcard { display: block; }
+  .mt-in { display: none; }
+}
+
+/* The "Who's working today" tile: overlapping faces, a green ring on whoever is on right now */
+.tt-team .tt-faces { margin-top: auto; display: flex; align-items: center; min-height: 36px; }
+.tt-face { display: inline-flex; margin-left: -8px; border-radius: 50%; box-shadow: 0 0 0 2px var(--paper); position: relative; }
+.tt-face:first-child { margin-left: 0; }
+.tt-face.live { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ok); }
+.tt-more { margin-left: 6px; font-size: 13px; font-weight: 800; color: var(--muted); }
+@media (max-width: 899px) { .td-grid .td-team { display: none; } }

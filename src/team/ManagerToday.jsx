@@ -9,6 +9,7 @@ import RoleBadge from './RoleBadge.jsx'
 import { useFeatures } from './features.js'
 import ManagerNotes from './ManagerNotes.jsx'
 import TodayTiles from './TodayTiles.jsx'
+import ClockCard from './ClockCard.jsx'
 import { StaffNotes, missingPunch } from './PunchNotes.jsx'
 
 const LATE = 15 // minutes after the shift start that "On time" turns into "Late"
@@ -65,6 +66,8 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
           <button type="button" onClick={() => onView('clock')}>{w.myClock}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg></button>
         </div>
       )}
+
+      <div className="mt-clockcard"><ClockCard data={data} me={me} boss lang={lang} onGoTo={onGoTo} /></div>
 
       <TodayTiles data={data} me={me} lang={lang} onGoTo={onGoTo} />
 
