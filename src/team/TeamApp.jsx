@@ -21,6 +21,7 @@ import { say } from './words.js'
 import MoreTab from './MoreTab.jsx'
 import { MORE } from './more.js'
 import './team.css'
+import './darkStyle.js'
 
 const THEME_KEY = 'wiseshift-theme'
 function savedTheme() {

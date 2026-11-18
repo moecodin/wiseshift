@@ -8,6 +8,7 @@ import ShopLocation from './ShopLocation.jsx'
 import { noticeAcked } from './settings.js'
 import { FEATURES, PRESETS, featuresOf, presetFeatures, useFeatures } from './features.js'
 import { dayName, say } from './words.js'
+import { getDarkStyle, setDarkStyle } from './darkStyle.js'
 
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
@@ -49,6 +50,12 @@ const outcome = (problem, ok = 'Saved.') => (problem ? { error: explain(problem)
 
 function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
   const f = useFeatures()
+  const [darkStyle, setStyle] = useState(getDarkStyle)
+  const es = data.lang === 'es'
+  const pickStyle = (style) => {
+    setDarkStyle(style)
+    setStyle(style)
+  }
   return (
     <>
       <section className="st-section">
@@ -56,6 +63,11 @@ function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
         <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onToggleTheme}>
           {data.lang === 'es' ? 'Cambiar claro / oscuro' : 'Switch light / dark'}
         </button>
+        <div className="tm-seg st-darkstyle mt-2" role="group" aria-label={es ? 'Estilo oscuro' : 'Dark style'}>
+          <button type="button" aria-pressed={darkStyle === 'charcoal'} onClick={() => pickStyle('charcoal')}>{es ? 'Carbón' : 'Charcoal'}</button>
+          <button type="button" aria-pressed={darkStyle === 'gold'} onClick={() => pickStyle('gold')}>{es ? 'Negro y dorado' : 'Black & Gold'}</button>
+        </div>
+        <small className="form-text d-block">{es ? 'Se usa en modo oscuro.' : 'Used in dark mode.'}</small>
       </section>
       <Language data={data} />
       <section className="st-section">
