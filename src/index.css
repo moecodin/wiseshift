@@ -13,6 +13,9 @@
   --red: #dc2626;
   --on-red: #ffffff;
   --on-ok: #ffffff;
+  --yellow: #f6d580; /* the yellow in the WiseShift logo, used for positive action buttons */
+  --yellow-hover: #efc65c;
+  --on-yellow: #2b2100;
 
   --desk: #f0f9ff;
   --paper: #ffffff;
@@ -50,42 +53,45 @@
 }
 
 [data-bs-theme='dark'] {
-  /* Dark, but soft: deep blue-gray surfaces, not black */
+  /* Dark, but soft: neutral charcoal surfaces, not black */
   --navy: #38bdf8;
   --navy-hover: #7dd3fc;
   --on-navy: #082f49;
   --red: #f87171;
   --on-red: #450a0a;
   --on-ok: #052e16;
+  --yellow: #f6d580;
+  --yellow-hover: #efc65c;
+  --on-yellow: #2b2100;
 
-  --desk: #0b1620;
-  --paper: #12212e;
-  --head: #1a2d3d;
-  --ink: #e6f1f8;
-  --muted: #9fb3c4;
-  --faint: #7c93a6;
-  --line: #263d50;
-  --line-soft: #1e3345;
-  --hover: #172a3a;
+  --desk: #111418;
+  --paper: #1a1e23;
+  --head: #242a30;
+  --ink: #eceff1;
+  --muted: #a7b0b8;
+  --faint: #7f8a94;
+  --line: #323a42;
+  --line-soft: #292f36;
+  --hover: #20262c;
   --pen: #4ade80;
   --ok: #4ade80;
   --warn: #f2c875;
   --warn-bg: #4a3b1c;
   --bad: #f19a96;
   --bad-bg: #4f2825;
-  --gone: #7c93a6;
+  --gone: #7f8a94;
   --alt: #c4b5f4;
   --alt-bg: #3a3450;
-  --edit-bg: #12344a;
+  --edit-bg: #17334a;
   --edit-line: #1e5578;
-  --drop-bg: #14405c;
-  --done-row: #173a2a;
-  --gone-row: #1b2a36;
+  --drop-bg: #17405c;
+  --done-row: #193628;
+  --gone-row: #222831;
   --shared-row: #2f3320;
 
-  --glass-bg: rgba(18, 33, 46, 0.8);
+  --glass-bg: rgba(26, 30, 35, 0.85);
   --glass-line: rgba(255, 255, 255, 0.16);
-  --glass-ink: #e6f1f8;
+  --glass-ink: #eceff1;
   --shadow: 0 1px 0.125rem rgba(0, 0, 0, 0.28), 0 0.375rem 1.125rem rgba(0, 0, 0, 0.22);
 
   --bs-body-color: var(--ink);

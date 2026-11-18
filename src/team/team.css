@@ -2008,3 +2008,13 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
   /* Two actions side by side, equal width */
   .mt.desk .to-actions { display: flex; gap: 10px; }
 }
+
+/* ---------- Redesign layer: positive action buttons use the logo yellow instead of green ----------
+   Approve, Take it, Approve punches, Clock in. The dark text keeps them readable on yellow. */
+.to-btn.yes, .cv-row .cv-take, .mh-pending button, .mh-approve, .tm-punch.in, .btn-success {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--on-yellow);
+}
+.to-btn.yes:hover, .cv-row .cv-take:hover, .mh-pending button:hover, .mh-approve:hover, .tm-punch.in:hover { background: var(--yellow-hover); filter: none; }
+.btn-success { --bs-btn-bg: var(--yellow); --bs-btn-border-color: var(--yellow); --bs-btn-color: var(--on-yellow); --bs-btn-hover-bg: var(--yellow-hover); --bs-btn-hover-border-color: var(--yellow-hover); --bs-btn-hover-color: var(--on-yellow); --bs-btn-active-bg: var(--yellow-hover); --bs-btn-active-border-color: var(--yellow-hover); --bs-btn-active-color: var(--on-yellow); --bs-btn-disabled-bg: var(--yellow); --bs-btn-disabled-border-color: var(--yellow); --bs-btn-disabled-color: var(--on-yellow); }
