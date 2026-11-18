@@ -2862,3 +2862,9 @@ a:hover { color: var(--navy-hover); }
 .mt-out { flex: none; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--paper); color: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; }
 .mt-out:hover { border-color: var(--navy); color: var(--navy); }
 .rc-foot .rc-out { flex: 1 1 auto; margin: 0; min-width: 0; white-space: nowrap; }
+
+/* The whole week view slides up into place (My shifts → Week, the team week grid) */
+.sc-up { animation: sc-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.sc-up .sc-row, .sc-up .mg-person { animation: none; }
+@keyframes sc-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sc-up { animation: none; } }

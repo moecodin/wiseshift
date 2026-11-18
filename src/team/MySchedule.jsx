@@ -67,7 +67,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
         <>
           <OpenShifts data={data} me={me} lang={lang} />
           {span === 'week' ? (
-            <div className="sc-mine week">
+            <div className="sc-mine week sc-up">
               <div className="sc-mine-l">
                 <WeekTotal data={data} me={me} week={week} lang={lang} />
               </div>

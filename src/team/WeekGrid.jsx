@@ -12,7 +12,7 @@ import { useFeatures } from './features.js'
 export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, className = '' }) {
   const f = useFeatures()
   return (
-    <div className={`tm-gridwrap ${className}`}>
+    <div className={`tm-gridwrap sc-up ${className}`}>
       <table className="tm-grid">
         <thead>
           <tr>
