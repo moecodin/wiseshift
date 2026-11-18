@@ -8,6 +8,8 @@ import Avatar from './Avatar.jsx'
 import RoleBadge from './RoleBadge.jsx'
 import { useFeatures } from './features.js'
 import ManagerNotes from './ManagerNotes.jsx'
+import ManagerStats from './ManagerStats.jsx'
+import WeekHoursChart from './WeekHoursChart.jsx'
 import TodayTiles from './TodayTiles.jsx'
 import ClockCard from './ClockCard.jsx'
 import { StaffNotes, missingPunch } from './PunchNotes.jsx'
@@ -71,14 +73,10 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
 
       <TodayTiles data={data} me={me} lang={lang} onGoTo={onGoTo} />
 
-      <div className="mt-stats">
-        <div className={`mt-stat ${count > 0 ? 'warn' : 'ok'}`}><small>{w.attention}</small><b>{count}</b></div>
-        {f.timeClock && <div className="mt-stat"><small>{w.statWorking}</small><b>{open.length}</b></div>}
-        {f.timeClock && <div className={`mt-stat ${toReview > 0 ? 'warn' : ''}`}><small>{w.statReview}</small><b>{toReview}</b></div>}
-        <div className={`mt-stat ${drafts.length > 0 ? 'warn' : ''}`}><small>{w.statDraft}</small><b>{drafts.length}</b></div>
-      </div>
+      {f.timeClock && <ManagerStats data={data} lang={lang} onReview={() => onView('review')} />}
 
       <div className="mt-left">
+      {f.timeClock && <WeekHoursChart data={data} lang={lang} />}
       <h2 className="sc-h mt-h">{w.attention} {count > 0 && <span className="mt-count">{count}</span>}</h2>
       {count === 0 && <p className="tm-muted">{w.clear}</p>}
 
