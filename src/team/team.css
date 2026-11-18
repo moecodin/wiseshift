@@ -2791,7 +2791,6 @@ a:hover { color: var(--navy-hover); }
 }
 .tm-punch.locked[aria-disabled='true'] { cursor: default; }
 .tm-punch.locked:hover { background-color: color-mix(in srgb, var(--muted) 24%, transparent); }
-.tm-clock .tm-locked small { display: none; } /* the dimmed button's caption already says when it opens */
 
 /* Light glass: the current tab is glossy logo-yellow glass, like the Clock in button */
 [data-bs-theme='light'] .tm-pill,
@@ -2804,3 +2803,4 @@ a:hover { color: var(--navy-hover); }
 [data-bs-theme='light'] .tm-tabs button[aria-selected='true'],
 [data-bs-theme='light'] .tm-tabs .tm-pill ~ button[aria-selected='true'] { color: var(--on-yellow); }
 [data-bs-theme='light'] .tm-tabs button[aria-selected='true'] .tm-badge { box-shadow: 0 0 0 2px var(--yellow); }
+.tm-locked .tm-locked-note { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: var(--muted); }

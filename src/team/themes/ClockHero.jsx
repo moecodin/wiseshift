@@ -13,13 +13,15 @@ import { dayName, say } from '../words.js'
 // opens, with a small "clock in anyway" for work that isn't on the schedule
 // (Review flags it) unless a manager turned that off.
 export default function ClockHero(props) {
-  const [anyway, setAnyway] = useState(false)
   const f = clockFacts(props)
-  const locked = !props.open && !f.windowShift && !anyway
+  const outside = !props.open && !f.windowShift // not within a shift window
+  const canAnyway = props.data.settings?.allowAnyway !== false
+  // Outside a shift the real button still works (the punch is flagged for review), unless a manager turned that off.
+  const disabled = outside && !canAnyway
   return (
     <>
-      <ClassicHero {...props} locked={locked} lockedHint={lockedHint(f, props.lang)} onAnyway={props.data.settings?.allowAnyway === false ? null : () => setAnyway(true)} />
-      {locked && <ClockLocked f={f} lang={props.lang} doneToday={props.todayMinutes > 0} onAnyway={props.data.settings?.allowAnyway === false ? null : () => setAnyway(true)} />}
+      <ClassicHero {...props} locked={disabled} lockedHint={lockedHint(f, props.lang)} />
+      {outside && <ClockLocked f={f} lang={props.lang} doneToday={props.todayMinutes > 0} canAnyway={canAnyway} />}
     </>
   )
 }
@@ -33,7 +35,7 @@ function lockedHint(f, lang) {
   return next.date === f.today ? w.opensAt(opens) : w.opensOn(dayName(next.date, lang), opens)
 }
 
-function ClockLocked({ f, lang, doneToday, onAnyway }) {
+function ClockLocked({ f, lang, doneToday, canAnyway }) {
   const w = say(lang)
   const next = f.nextShift
   const opens = next && clock(Math.max(0, next.start - f.early))
@@ -51,7 +53,7 @@ function ClockLocked({ f, lang, doneToday, onAnyway }) {
       ) : (
         <div>{w.noUpcoming}</div>
       )}
-      {onAnyway && <button type="button" className="tm-link small" onClick={onAnyway}>{w.anyway}</button>}
+      {canAnyway && <p className="tm-locked-note">{w.flagNote}</p>}
     </div>
   )
 }
@@ -121,7 +123,7 @@ function HoldButton({ open, busy, onPunch, w }) {
   )
 }
 
-function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, locked, lockedHint, onAnyway, lang }) {
+function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, locked, lockedHint, lang }) {
   const w = say(lang)
   return (
     <>
@@ -135,9 +137,9 @@ function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, 
       )}
       {locked && (
         <>
-          {/* Not your shift yet: the button stays, dimmed, and says when it opens. Tapping it offers "clock in anyway". */}
+          {/* A manager turned "clock in anyway" off and it is not this person's shift yet: the button stays, dimmed, and says when it opens. */}
           <div className="tm-holdwrap locked">
-            <button type="button" className="tm-punch in locked" aria-disabled={!onAnyway} aria-label={`${w.clockIn}. ${lockedHint}`} onClick={onAnyway ?? undefined}>{w.clockIn}</button>
+            <button type="button" className="tm-punch in locked" aria-disabled="true" aria-label={`${w.clockIn}. ${lockedHint}`}>{w.clockIn}</button>
           </div>
           <div className="tm-holdhint">{lockedHint}</div>
         </>
