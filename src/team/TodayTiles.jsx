@@ -8,6 +8,7 @@ import { rangeName } from './words.js'
 import YourDay from './YourDay.jsx'
 import ComingUp from './ComingUp.jsx'
 import WorkedPeriod from './WorkedPeriod.jsx'
+import WhoWorking from './WhoWorking.jsx'
 
 // Four summary tiles for the phone Today screens (staff and managers): my day, what is coming
 // up, hours worked this pay period, and where my requests stand. Each tile opens the full screen.
@@ -47,6 +48,7 @@ export default function TodayTiles({ data, me, lang, onGoTo }) {
   const [showDay, setShowDay] = useState(false)
   const [showNext, setShowNext] = useState(false)
   const [showWorked, setShowWorked] = useState(false)
+  const [showCrew, setShowCrew] = useState(false)
   const today = dateKey(now)
   const minutes = now.getHours() * 60 + now.getMinutes()
   const mine = data.shifts.filter((s) => s.employeeId === me.id).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start)
@@ -85,7 +87,8 @@ export default function TodayTiles({ data, me, lang, onGoTo }) {
       {f.timeClock && (
         <Tile title={w.worked} big={<>{formatHours(hours.total)} <span>{w.hrs}</span></>} sub={hours.overtime > 0 ? `${w.overtime} ${formatHours(hours.overtime)}` : rangeName(period, lang)} onClick={() => setShowWorked(true)} />
       )}
-      <button type="button" className="tt tt-team" onClick={() => onGoTo('schedule')}>
+      {/* Managers get a pop-up with everyone's clock status; staff still go to the schedule. */}
+      <button type="button" className="tt tt-team" onClick={() => (me.isManager ? setShowCrew(true) : onGoTo('schedule'))}>
         <span className="tt-top"><span>{w.team}</span><Arrow /></span>
         <span className="tt-faces">
           {crew.slice(0, 3).map(({ p, live }) => <span key={p.id} className={`tt-face ${live ? 'live' : ''}`}><Avatar employee={p} size={32} /></span>)}
@@ -94,6 +97,7 @@ export default function TodayTiles({ data, me, lang, onGoTo }) {
         </span>
         <small className="tt-sub">{crew.length ? `${crew.length} ${w.working}${onNow ? ` · ${onNow} ${w.onNow}` : ''}` : w.nothing}</small>
       </button>
+      {showCrew && <WhoWorking data={data} lang={lang} onClose={() => setShowCrew(false)} />}
       {showWorked && <WorkedPeriod data={data} me={me} lang={lang} onClose={() => setShowWorked(false)} />}
       {showNext && <ComingUp data={data} me={me} lang={lang} onClose={() => setShowNext(false)} />}
       {showDay && <YourDay data={data} me={me} lang={lang} onClose={() => setShowDay(false)} />}
