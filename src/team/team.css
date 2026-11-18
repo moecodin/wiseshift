@@ -2857,3 +2857,8 @@ a:hover { color: var(--navy-hover); }
 @media (min-width: 900px) { .sc-mine.week { grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 0 28px; align-items: start; } }
 .sc-row.pick { cursor: pointer; }
 .sc-row.pick:focus-visible { outline: 3px solid var(--focus, var(--navy)); outline-offset: -3px; }
+
+/* Managers: clock someone out right now (Today → Working now, Hours review → In progress) */
+.mt-out { flex: none; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--paper); color: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.mt-out:hover { border-color: var(--navy); color: var(--navy); }
+.rc-foot .rc-out { flex: 1 1 auto; margin: 0; min-width: 0; white-space: nowrap; }

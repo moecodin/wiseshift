@@ -569,6 +569,23 @@ export function useTeamData({ signedIn, email, week, period }) {
       const row = { employee_id: punch.employeeId, clock_in: punch.clockIn, clock_out: punch.clockOut, note: punch.note ?? '', edited_by: edit.editedBy, edited_at: edit.editedAt }
       return run(punch.id ? supabase.from('punches').update(row).eq('id', punch.id) : supabase.from('punches').insert(row))
     },
+    // Managers: clock someone out right now (they forgot). The punch is marked as fixed by
+    // the manager, and its history shows "Out still in → 5:02 PM" (update 015's trigger).
+    clockOutFor: async (punch) => {
+      const at = new Date().toISOString()
+      const edit = { editedBy: myName, editedAt: at }
+      if (!usingSupabase) {
+        return change((s) => {
+          const p = s.punches.find((x) => x.id === punch.id)
+          if (!p || p.clockOut) return s
+          Object.assign(p, { clockOut: at, ...edit })
+          s.punchEvents ??= []
+          s.punchEvents.push({ id: newId('v'), punchId: p.id, kind: 'changed', detail: `Out ${clockLabel(null)} → ${clockLabel(at)}`, by: myName, at })
+          return s
+        })
+      }
+      return run(supabase.from('punches').update({ clock_out: at, edited_by: edit.editedBy, edited_at: at }).eq('id', punch.id).is('clock_out', null))
+    },
     // Managers: approve (or unapprove) finished punches.
     approvePunches: async (ids, approve = true) => {
       const fields = approve ? { approvedAt: new Date().toISOString(), approvedBy: myName } : { approvedAt: null, approvedBy: null }

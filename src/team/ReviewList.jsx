@@ -41,6 +41,14 @@ export default function ReviewList({ data }) {
     if (problem) setError(problem)
   }
 
+  const clockOut = async (p) => {
+    setBusy(true)
+    setError('')
+    const problem = await data.actions.clockOutFor(p)
+    setBusy(false)
+    if (problem) setError(problem)
+  }
+
   return (
     <div>
       <div className="tm-filters">
@@ -101,6 +109,9 @@ export default function ReviewList({ data }) {
                 <div className="rc-foot">
                   {status === 'pending' && (
                     <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>
+                  )}
+                  {status === 'progress' && (
+                    <button type="button" className="btn btn-outline-secondary rc-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)}>Clock out now</button>
                   )}
                   <button type="button" className="btn btn-outline-secondary rc-details" onClick={() => setOpen(p)}>Details</button>
                 </div>
