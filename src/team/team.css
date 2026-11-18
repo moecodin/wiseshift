@@ -1947,3 +1947,34 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
   .tm-sheet thead th { text-transform: none; letter-spacing: 0; color: inherit; font-size: inherit; }
   .tm-sheet { border-collapse: collapse; }
 }
+
+/* ---------- Redesign layer: People (a directory list) and Settings (grouped forms) ---------- */
+
+/* People: one outlined list with hairlines between rows, instead of separate floating cards */
+.pt-person.sc-row { margin: 0; padding: 10px 14px; min-height: 64px; border-width: 0 1px 1px; border-radius: 0; background: var(--paper); gap: 12px; }
+.pt-head + .pt-person.sc-row { border-top-width: 1px; border-radius: var(--r-table) var(--r-table) 0 0; }
+.pt-person.sc-row:last-of-type { border-radius: 0 0 var(--r-table) var(--r-table); }
+.pt-head + .pt-person.sc-row:last-of-type { border-radius: var(--r-table); }
+.pt-person.sc-row:hover { background: var(--hover); }
+.pt-person.sc-row.inactive { opacity: 0.65; border-style: solid; }
+.pt-person .sc-hrs { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); }
+.pt-person.sc-row::after { content: '›'; flex: none; margin-left: 4px; font-size: 22px; line-height: 1; color: var(--faint); }
+.pt-chip, .tm-chip { border-radius: var(--r-xs); }
+.pt-help { border-radius: var(--r-md); margin-top: 12px; }
+
+/* Settings: section labels, tidy fields, brand-colored switches and choices */
+.st-section .tm-h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.st-section { padding-bottom: 6px; }
+.st-section .form-control, .st-section .form-select, .st-pick input, .st-pick select { border-radius: var(--r-sm); min-height: 40px; }
+.st-section .form-label { font-weight: 600; font-size: 13px; color: var(--muted); }
+.form-check-input { border-width: 1.5px; border-color: var(--faint); }
+.form-check-input:checked { background-color: var(--navy); border-color: var(--navy); }
+.form-check-input:checked[type='checkbox'] { --bs-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e"); }
+[data-bs-theme='dark'] .form-check-input:checked[type='checkbox'] { --bs-form-check-bg-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23082f49' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e"); }
+.form-check-input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px color-mix(in srgb, var(--navy) 30%, transparent); }
+.ft-preset { border-radius: var(--r-md); border-width: 1.5px; }
+.ft-preset:hover { border-color: var(--navy); }
+.ft-preset[aria-pressed='true'] { background: var(--navy); border-color: var(--navy); color: var(--on-navy); }
+.ft-row { padding: 12px 0; }
+.st-found-opt, .st-notice { border-radius: var(--r-sm); }
+.st-notice-card { border-radius: var(--r-md); }
