@@ -547,6 +547,26 @@ export function useTeamData({ signedIn, email, week, period }) {
       const done = run(supabase.from('shifts').delete().eq('id', id))
       return gone?.published ? done.then(andTell('shift_removed', { employee_id: gone.employeeId, date: gone.date, start: gone.start, end: gone.end })) : done
     },
+    // Clear the week's unpublished (draft) shifts. Published shifts stay. Returns { error, removed }, where
+    // removed is what was cleared, so Undo can put it back with restoreShifts.
+    clearDrafts: async (days) => {
+      const inWeek = (x) => days.includes(x.date) && !x.published
+      if (!usingSupabase) {
+        const removed = (sample.shifts ?? []).filter(inWeek)
+        if (removed.length) change((s) => ({ ...s, shifts: s.shifts.filter((x) => !inWeek(x)) }))
+        return { error: '', removed }
+      }
+      const removed = view.shifts.filter(inWeek)
+      if (!removed.length) return { error: '', removed }
+      const problem = await run(supabase.from('shifts').delete().gte('date', days[0]).lte('date', days.at(-1)).eq('published', false))
+      return { error: problem, removed: problem ? [] : removed }
+    },
+    // Put back shifts that clearDrafts removed (Undo).
+    restoreShifts: async (list) => {
+      if (!list.length) return ''
+      if (!usingSupabase) return change((s) => ({ ...s, shifts: [...s.shifts, ...list.filter((x) => !s.shifts.some((y) => y.id === x.id))] }))
+      return run(supabase.from('shifts').insert(list.map(shiftToRow)))
+    },
     // Copy one week's shifts into another, skipping any that are already there.
     // Returns { error, copied }.
     copyWeek: async (fromDays, toDays) => {

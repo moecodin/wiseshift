@@ -5,6 +5,7 @@ import { clockTime, offOn, useNow } from './format.js'
 import Avatar from './Avatar.jsx'
 import { tagClass } from './tags.js'
 import { useFeatures } from './features.js'
+import { startShiftDrag, wasJustDragged } from './shiftDrag.js'
 
 // One day as a timeline: an hour axis, a row for each person and a bar for each of their
 // shifts. Positions are percentages of the visible hours, so it fits any width.
@@ -46,7 +47,7 @@ const shortName = (p, rows) => {
 }
 const axisLabel = (m) => `${hour12(m)}${Math.floor(m / 60) % 24 < 12 ? 'a' : 'p'}`
 
-export default function DayTimeline({ data, me, date, today, lang, mode, onEdit, onAdd, flash = new Set() }) {
+export default function DayTimeline({ data, me, date, today, lang, mode, onEdit, onAdd, onDrop, flash = new Set() }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const manager = mode === 'manager'
   const f = useFeatures()
@@ -81,6 +82,24 @@ export default function DayTimeline({ data, me, date, today, lang, mode, onEdit,
   const dayHours = shifts.reduce((sum, s) => sum + shiftMinutes(s), 0)
   const heading = date === today ? (lang === 'es' ? 'Hoy' : 'Today') : fromKey(date).toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', { weekday: 'long', month: 'short', day: 'numeric' })
 
+  // Dragging a bar (managers): where would it land? The lane under the pointer says who, the pointer's
+  // position along the lane says when (15-minute steps, same length, kept inside the visible hours).
+  const resolveDrag = (s) => ({ x, y, grab }) => {
+    const lane = document.elementFromPoint(x, y)?.closest?.('[data-drop-person]')
+    if (!lane) return null
+    const box = lane.getBoundingClientRect()
+    const length = s.end - s.start
+    const raw = H0 + ((x - grab.dx - box.left) / box.width) * span
+    const start = Math.max(H0, Math.min(H1 - length, Math.round(raw / 15) * 15))
+    const end = start + length
+    const who = person(lane.dataset.dropPerson)
+    return {
+      over: lane,
+      preview: { lane, left: ((start - H0) / span) * 100, width: (length / span) * 100 },
+      label: `${spoken(start)} – ${spoken(end)} · ${who ? shortName(who, rows) : ''}`,
+      target: { employeeId: lane.dataset.dropPerson, date, start, end },
+    }
+  }
   const drafts = manager ? shifts.filter((s) => !s.published) : []
   const copyYesterday = async () => {
     const y = new Date(fromKey(date).getTime() - 86400000)
@@ -123,7 +142,7 @@ export default function DayTimeline({ data, me, date, today, lang, mode, onEdit,
                     <Avatar employee={p} size={26} />
                     <span>{isMe && !manager ? w.you : shortName(p, rows)}</span>
                   </div>
-                  <div className="tl-lane">
+                  <div className="tl-lane" data-drop-person={manager ? p.id : undefined}>
                     {list.length === 0 && off && <span className="tl-off">{manager ? w.timeOff : w.off}</span>}
                     {list.map((s) => {
                       const tint = s.title ? tagClass(s.title, data.settings?.shiftPresets).match(/t\d/)?.[0] : 't-none'
@@ -137,7 +156,8 @@ export default function DayTimeline({ data, me, date, today, lang, mode, onEdit,
                           style={{ left: pct(s.start), width: `calc(${pct(s.end)} - ${pct(s.start)})` }}
                           title={label}
                           aria-label={label}
-                          onClick={manager ? () => onEdit(s) : undefined}
+                          onClick={manager ? () => !wasJustDragged() && onEdit(s) : undefined}
+                          onPointerDown={manager && onDrop ? (e) => startShiftDrag(e, { resolve: resolveDrag(s), onDrop: (target) => onDrop(s, target) }) : undefined}
                         >
                           {range(s)}{!s.published && <small> {w.draft}</small>}
                         </Tag>

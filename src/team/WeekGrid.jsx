@@ -7,10 +7,11 @@ import SeenTick from './SeenTick.jsx'
 import ShiftBox from './ShiftBox.jsx'
 import { useFeatures } from './features.js'
 import WeekCards from './WeekCards.jsx'
+import { startShiftDrag, wasJustDragged } from './shiftDrag.js'
 
 // The week: people down the side, days across. Managers (editable) tap a box to change
 // a shift and + to add one. Staff get a read-only copy. Tapping a day's heading calls onPickDay.
-export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, className = '' }) {
+export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, onDrop, className = '' }) {
   const f = useFeatures()
   // With staff groups set up, people sit under a heading row per group (the rest under "No group").
   const groups = data.settings?.groups ?? []
@@ -20,6 +21,13 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
         .filter((sec) => sec.members.length > 0)
         .flatMap((sec) => [{ head: true, name: sec.name, color: sec.color, count: sec.members.length }, ...sec.members.map((person) => ({ person }))])
     : people.map((person) => ({ person }))
+  // Dragging a shift box (managers, computer): the cell under the pointer says who and which day; the times stay.
+  const resolveDrag = (s) => ({ x, y }) => {
+    const cell = document.elementFromPoint(x, y)?.closest?.('td[data-drop-person]')
+    if (!cell) return null
+    const who = data.employees.find((e) => e.id === cell.dataset.dropPerson)
+    return { over: cell, label: `${who?.name ?? ''} · ${dayLabel(cell.dataset.dropDate)}`, target: { employeeId: cell.dataset.dropPerson, date: cell.dataset.dropDate, start: s.start, end: s.end } }
+  }
   return (
     <>
     {/* On a phone the week is a card per day (WeekCards); a computer keeps the grid. */}
@@ -76,10 +84,10 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
                   const dayShifts = theirs.filter((s) => s.date === d)
                   const off = offOn(data.teamOff, person.id, d)
                   return (
-                    <td key={d} className={d === today ? 'today' : ''}>
+                    <td key={d} className={d === today ? 'today' : ''} data-drop-person={editable && onDrop ? person.id : undefined} data-drop-date={editable && onDrop ? d : undefined}>
                       {off && <div className="tm-off">{editable ? 'Time off' : 'Off'}</div>}
                       {dayShifts.map((s) => (
-                        <ShiftBox key={s.id} cover={f.cover ? activeCover(data.cover, s.id) : undefined} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={editable ? () => onEdit(s) : undefined} />
+                        <ShiftBox key={s.id} cover={f.cover ? activeCover(data.cover, s.id) : undefined} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={editable ? () => !wasJustDragged() && onEdit(s) : undefined} onPointerDown={editable && onDrop ? (e) => startShiftDrag(e, { resolve: resolveDrag(s), onDrop: (target) => onDrop(s, target) }) : undefined} />
                       ))}
                       {editable && (
                         <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => onEdit({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>

@@ -10,6 +10,7 @@ import { useFeature } from './features.js'
 import DayTimeline from './DayTimeline.jsx'
 import { loadSpan, saveSpan } from './viewPref.js'
 import DayStrip from './DayStrip.jsx'
+import ShiftDropDialog from './ShiftDropDialog.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -51,6 +52,32 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
     const { error, copied } = await data.actions.copyWeek(moveDays(week, -1), week)
     setMessage(error || (copied ? `Copied ${copied} shift${copied === 1 ? '' : 's'} from last week as drafts.` : 'Nothing new to copy from last week.'))
   }
+  // Clear the week's drafts (published shifts stay), with a short Undo.
+  const [undoClear, setUndoClear] = useState(null)
+  useEffect(() => {
+    if (!undoClear) return undefined
+    const timer = setTimeout(() => setUndoClear(null), 8000)
+    return () => clearTimeout(timer)
+  }, [undoClear])
+  const clearDrafts = async () => {
+    if (!window.confirm(`Clear ${drafts.length} unpublished shift${drafts.length === 1 ? '' : 's'} for ${rangeLabel(week)}? Shifts you've published stay.`)) return
+    const { error, removed } = await data.actions.clearDrafts(week)
+    if (error) return setMessage(error)
+    setMessage(`Cleared ${removed.length} unpublished shift${removed.length === 1 ? '' : 's'}.`)
+    setUndoClear(removed)
+  }
+  const restore = async () => {
+    const list = undoClear
+    setUndoClear(null)
+    const problem = await data.actions.restoreShifts(list)
+    setMessage(problem || `Put back ${list.length} shift${list.length === 1 ? '' : 's'}.`)
+  }
+  // A shift was dragged somewhere new: ask Move or Copy (nothing if it landed where it started).
+  const [dropping, setDropping] = useState(null)
+  const dropShift = (shift, target) => {
+    const same = shift.employeeId === target.employeeId && shift.date === target.date && shift.start === target.start && shift.end === target.end
+    if (!same) setDropping({ shift, target })
+  }
   const publish = async () => {
     const problem = await data.actions.publishWeek(week)
     setMessage(problem || `Published ${drafts.length} shift${drafts.length === 1 ? '' : 's'}. The team can see them now.`)
@@ -74,24 +101,31 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
         {boss && (
           <div className="tm-tools">
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={copyLastWeek}>Copy last week</button>
+            <button type="button" className="btn btn-outline-danger btn-sm" disabled={!drafts.length} onClick={clearDrafts} title="Remove this week's unpublished shifts (published ones stay)">Clear ({drafts.length})</button>
             <button type="button" className="btn btn-success btn-sm" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
           </div>
         )}
       </div>
-      {message && <p className="tm-msg" role="status">{message}</p>}
+      {message && (
+        <p className="tm-msg" role="status">
+          {message}
+          {undoClear && undoClear.length > 0 && <> <button type="button" className="tm-link" onClick={restore}>Undo</button></>}
+        </p>
+      )}
       {boss && drafts.length > 0 && <p className="tm-muted small">Dashed shifts are drafts: only managers see them until you press Publish.</p>}
 
       {!boss ? (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       ) : view === 'everyone' ? (
         <>
-        <ManagerDay span={span} onSpan={changeSpan} picked={pickedDay} onPick={setPickedDay} flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} shifts={shifts} onEdit={setEditing} />
-        <WeekGrid className={`mg-grid ${span === 'week' ? 'show-phone' : ''}`} data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable showSeen flash={flash} onEdit={setEditing} onPickDay={(d) => { setPickedDay(d); changeSpan('day') }} />
+        <ManagerDay span={span} onSpan={changeSpan} picked={pickedDay} onPick={setPickedDay} flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} shifts={shifts} onEdit={setEditing} onDrop={dropShift} />
+        <WeekGrid className={`mg-grid ${span === 'week' ? 'show-phone' : ''}`} data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable showSeen flash={flash} onEdit={setEditing} onDrop={dropShift} onPickDay={(d) => { setPickedDay(d); changeSpan('day') }} />
         </>
       ) : (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       )}
 
+      {dropping && <ShiftDropDialog shift={dropping.shift} target={dropping.target} data={data} onClose={() => setDropping(null)} onDone={(text) => { setDropping(null); setMessage(text) }} />}
       {editing && <ShiftEditor shift={editing} data={data} week={week} onClose={() => setEditing(null)} />}
     </div>
   )
@@ -100,7 +134,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
 // Manager's phone view of the whole team: pick a day on the strip, then see that day as a
 // timeline (tap a bar to change a shift, + to add one). "Week" shows the week grid instead.
 // Wide screens always show the grid (see .mg-phone / .mg-grid in team.css).
-function ManagerDay({ span, onSpan, picked, onPick, view, onView, data, me, week, today, shifts, flash, onEdit }) {
+function ManagerDay({ span, onSpan, picked, onPick, view, onView, data, me, week, today, shifts, flash, onEdit, onDrop }) {
   const selected = week.includes(picked) ? picked : week.includes(today) ? today : week[0]
   const blank = () => ({ employeeId: me.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })
   return (
@@ -125,7 +159,7 @@ function ManagerDay({ span, onSpan, picked, onPick, view, onView, data, me, week
           )
         }} />
       <div key={selected} className="sc-fade">
-        <DayTimeline mode="manager" data={data} me={me} date={selected} today={today} lang="en" flash={flash} onEdit={onEdit} onAdd={() => onEdit(blank())} />
+        <DayTimeline mode="manager" data={data} me={me} date={selected} today={today} lang="en" flash={flash} onEdit={onEdit} onDrop={onDrop} onAdd={() => onEdit(blank())} />
       </div>
       </>}
     </div>
