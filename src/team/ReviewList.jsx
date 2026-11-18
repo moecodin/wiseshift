@@ -1,16 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
 import Avatar from './Avatar.jsx'
 import PunchDetails from './PunchDetails.jsx'
-import { payPeriodOf, punchMinutes } from './paycheck.js'
-import { isLateWarning, punchStatus, punchWarnings, STATUS_LABEL } from './review.js'
-import { dayLabel, hoursLabel, rangeLabel, scheduleOnly, useNow } from './format.js'
+import { formatHours, payPeriodOf, punchMinutes } from './paycheck.js'
+import { isLateWarning, punchStatus, punchWarnings } from './review.js'
+import { hoursLabel, rangeLabel, scheduleOnly, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
-const duration = (minutes) => (minutes >= 1440 ? `${Math.floor(minutes / 1440)}d ` : '') + `${Math.floor((minutes % 1440) / 60)}h ${Math.round(minutes % 60)}m`
+// "Maria L.", "8a", "Tue 17": short forms so a punch fits on one line.
+const shortName = (full = '') => {
+  const [first, ...rest] = full.trim().split(/\s+/)
+  return rest.length ? `${first} ${rest.at(-1)[0]}.` : first ?? '?'
+}
+const short = (iso) => {
+  const d = new Date(iso)
+  const h = d.getHours() % 12 || 12
+  const m = d.getMinutes()
+  return `${h}${m ? `:${String(m).padStart(2, '0')}` : ''}${d.getHours() < 12 ? 'a' : 'p'}`
+}
+const dayShort = (key) => `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)} ${fromKey(key).getDate()}`
 
-// Managers: every punch, newest first, to approve (like Humanity's Manage list).
-// ⚠️ marks late clock-ins and clock-outs; tap one for its details and map.
+// Managers: every punch to approve (like Humanity's Manage list), one short line each so a big team
+// fits on a screen. With groups set up (Settings → Business → Groups) the lines sit in one column per
+// group, each with its own Approve all. ⚠ marks a punch with a warning (hover for the reason, or open
+// Details); the round ✓ approves it, and an Undo shows for a few seconds after any approval.
 export default function ReviewList({ data }) {
   const now = useNow()
   const [range, setRange] = useState('week') // 'week' (past 7 days) or 'period' (this pay period)
@@ -19,6 +32,8 @@ export default function ReviewList({ data }) {
   const [open, setOpen] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [grouped, setGrouped] = useState(true) // one column per group, or one plain list
+  const [undo, setUndo] = useState(null) // { ids, text } for a few seconds after approving
 
   const today = dateKey(now)
   const from = range === 'week' ? dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - REVIEW_DAYS)) : payPeriodOf(now)[0]
@@ -33,13 +48,42 @@ export default function ReviewList({ data }) {
   const pending = list.filter((p) => punchStatus(p) === 'pending')
   const pendingMinutes = pending.reduce((sum, p) => sum + punchMinutes(p, now), 0)
 
+  // Groups (Settings → Business → Groups). With none set up, or with grouping switched off, it's one list.
+  const groups = data.settings.groups ?? []
+  const useGroups = grouped && groups.length > 0
+  const groupOf = (p) => {
+    const g = name(p.employeeId)?.group
+    return groups.some((x) => x.name === g) ? g : ''
+  }
+  const byPerson = (a, b) => (name(a.employeeId)?.name ?? '').localeCompare(name(b.employeeId)?.name ?? '') || new Date(b.clockIn) - new Date(a.clockIn)
+  const buckets = useGroups
+    ? [...groups.map((g) => ({ key: g.name, name: g.name, color: g.color ?? 7, rows: list.filter((p) => groupOf(p) === g.name).sort(byPerson) })), { key: '', name: 'No group', color: 7, rows: list.filter((p) => groupOf(p) === '').sort(byPerson) }]
+        .filter((b) => b.rows.length > 0)
+    : [{ key: 'all', name: '', color: 7, rows: list }]
+  for (const b of buckets) {
+    b.pending = b.rows.filter((p) => punchStatus(p) === 'pending')
+    b.open = true
+  }
+
   const approve = async (ids) => {
     setBusy(true)
     setError('')
     const problem = await data.actions.approvePunches(ids, true)
     setBusy(false)
     if (problem) setError(problem)
+    else setUndo({ ids, text: `Approved ${ids.length} ${ids.length === 1 ? 'punch' : 'punches'}` })
   }
+  const undoApprove = async () => {
+    const ids = undo.ids
+    setUndo(null)
+    const problem = await data.actions.approvePunches(ids, false)
+    if (problem) setError(problem)
+  }
+  useEffect(() => {
+    if (!undo) return undefined
+    const timer = setTimeout(() => setUndo(null), 6500)
+    return () => clearTimeout(timer)
+  }, [undo])
 
   const clockOut = async (p) => {
     setBusy(true)
@@ -60,6 +104,12 @@ export default function ReviewList({ data }) {
           <option value="">All employees</option>
           {people.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
         </select>
+        {groups.length > 0 && (
+          <div className="tm-seg rv-mode" role="group" aria-label="Layout">
+            <button type="button" aria-pressed={grouped} onClick={() => setGrouped(true)}>Groups</button>
+            <button type="button" aria-pressed={!grouped} onClick={() => setGrouped(false)}>One list</button>
+          </div>
+        )}
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
             Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
@@ -76,48 +126,46 @@ export default function ReviewList({ data }) {
       {range === 'period' && <p className="tm-muted small mb-2">{rangeLabel(payPeriodOf(now))}</p>}
 
       {list.length ? (
-        <div className="rc-grid">
-          {list.map((p) => {
-            const person = name(p.employeeId)
-            const status = punchStatus(p)
-            const warnings = punchWarnings(p, data.shifts, data.shop, now)
-            const dayKey = dateKey(new Date(p.clockIn))
-            return (
-              <article key={p.id} className={`rc st-${status}`}>
-                <button type="button" className="rc-main" onClick={() => setOpen(p)}>
-                  <span className="rc-top">
-                    <Avatar employee={person} size={38} />
-                    <span className="rc-who">
-                      <b>{person?.name ?? '?'}</b>
-                      <small>{person?.position}</small>
-                    </span>
-                    <span className={`rc-chip st-${status}`}>{STATUS_LABEL[status]}</span>
-                  </span>
-                  <span className="rc-day">{dayLabel(dayKey)}</span>
-                  <span className="rc-time">
-                    {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : '…'}
-                    {p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <small className="tm-bad"> (next day)</small>}
-                  </span>
-                  <span className="rc-dur">{duration(punchMinutes(p, now))}</span>
-                  {warnings.length > 0 && (
-                    <span className={`rc-why ${warnings.some(isLateWarning) ? 'late' : ''}`}>
-                      {warnings.some(isLateWarning) && <span aria-hidden="true">⚠️ </span>}
-                      {warnings[0]}{warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ''}
-                    </span>
+        <div className={`rv ${useGroups ? 'cols' : ''}`}>
+          {buckets.map((bucket) => (
+            <details key={bucket.key} className="rv-group" open={bucket.open}>
+              {useGroups && (
+                <summary className="rv-head">
+                  <i className={`rl-dot t${bucket.color}`} aria-hidden="true" />
+                  <b>{bucket.name}</b>
+                  <small>{bucket.rows.length} {bucket.rows.length === 1 ? 'punch' : 'punches'}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
+                  {bucket.pending.length > 0 && (
+                    <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>Approve {bucket.pending.length}</button>
                   )}
-                </button>
-                <div className="rc-foot">
-                  {status === 'pending' && (
-                    <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>
-                  )}
-                  {status === 'progress' && (
-                    <button type="button" className="btn btn-outline-secondary rc-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)}>Clock out now</button>
-                  )}
-                  <button type="button" className="btn btn-outline-secondary rc-details" onClick={() => setOpen(p)}>Details</button>
-                </div>
-              </article>
-            )
-          })}
+                </summary>
+              )}
+              <div className="rv-rows">
+                {bucket.rows.map((p, i) => {
+                  const person = name(p.employeeId)
+                  const st = punchStatus(p)
+                  const warnings = punchWarnings(p, data.shifts, data.shop, now)
+                  const dayKey = dateKey(new Date(p.clockIn))
+                  const again = useGroups && i > 0 && bucket.rows[i - 1].employeeId === p.employeeId
+                  const out = p.clockOut ? short(p.clockOut) : '…'
+                  return (
+                    <div key={p.id} className={`rv-row st-${st} ${again ? 'again' : ''}`}>
+                      <button type="button" className="rv-main" onClick={() => setOpen(p)} title={`${person?.name ?? '?'} · ${formatClock(p.clockIn)} – ${p.clockOut ? formatClock(p.clockOut) : 'still in'}`}>
+                        <span className="rv-av"><Avatar employee={person} size={22} /></span>
+                        <span className="rv-name">{again ? '' : shortName(person?.name)}</span>
+                        <span className="rv-when">{dayShort(dayKey)} · {short(p.clockIn)}–{out}{p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <em> +1</em>}</span>
+                        <span className="rv-dur">{formatHours(punchMinutes(p, now))}</span>
+                        {warnings.length > 0 && <span className={`rv-warn ${warnings.some(isLateWarning) ? 'late' : ''}`} title={warnings.join('\n')} aria-label={warnings[0]}>⚠</span>}
+                      </button>
+                      <button type="button" className="rv-more" onClick={() => setOpen(p)} aria-label={`Details for ${person?.name ?? 'this punch'}`} title="Details">⋯</button>
+                      {st === 'pending' && <button type="button" className="rv-ok" disabled={busy} onClick={() => approve([p.id])} aria-label={`Approve ${hoursLabel(punchMinutes(p, now))} for ${person?.name ?? 'this person'}`} title={`Approve ${hoursLabel(punchMinutes(p, now))}`}>✓</button>}
+                      {st === 'progress' && <button type="button" className="rv-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)} title="Clock out now">Out</button>}
+                      {st === 'approved' && <span className="rv-done" title="Approved" aria-label="Approved">✓</span>}
+                    </div>
+                  )
+                })}
+              </div>
+            </details>
+          ))}
         </div>
       ) : (
         <p className="tm-empty">{who ? `Nothing here for ${name(who)?.name ?? 'this person'} in these days.` : status === 'pending' ? 'Nothing is waiting for approval. 🎉' : status === 'progress' ? 'Nobody is clocked in right now.' : 'No punches in these days.'}</p>
@@ -138,6 +186,12 @@ export default function ReviewList({ data }) {
         <p className="tm-muted small text-center mt-2">People still clocked in can be approved after they clock out.</p>
       )}
 
+      {undo && (
+        <div className="rv-toast" role="status">
+          <span>{undo.text}</span>
+          <button type="button" onClick={undoApprove}>Undo</button>
+        </div>
+      )}
       {open && <PunchDetails punch={open} data={data} onClose={() => setOpen(null)} />}
     </div>
   )
