@@ -2852,3 +2852,10 @@ a:hover { color: var(--navy-hover); }
 .tm-clock .tm-locked small { font-size: 12px; line-height: 1.35; }
 .tm-clock .tm-warn { margin: 8px 0 0; padding: 6px 10px; border-radius: 10px; font-size: 12.5px; line-height: 1.35; }
 .tm-clock:has(.tm-locked) .td-countdown { display: none; } /* the panel already gives the next shift */
+
+/* My shifts: Day shows just the chosen day; Week shows the week's total and every day. A week row opens that day. */
+.sc-mine.day { display: block; max-width: 520px; }
+.sc-mine.week { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 900px) { .sc-mine.week { grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 0 28px; align-items: start; } }
+.sc-row.pick { cursor: pointer; }
+.sc-row.pick:focus-visible { outline: 3px solid var(--focus, var(--navy)); outline-offset: -3px; }

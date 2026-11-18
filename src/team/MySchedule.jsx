@@ -43,14 +43,14 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>{w.team}</button>
       </div>
 
-      {view === 'everyone' && (
+      {(
         <div className="sc-toggle sc-span" role="group" aria-label={w.dayOrWeek}>
           <button type="button" aria-pressed={span === 'day'} onClick={() => changeSpan('day')}>{w.day}</button>
           <button type="button" aria-pressed={span === 'week'} onClick={() => changeSpan('week')}>{w.weekLabel}</button>
         </div>
       )}
 
-      {!(view === 'everyone' && span === 'week') && <DayStrip days={week} selected={selected} renderDay={(d) => {
+      {span !== 'week' && <DayStrip days={week} selected={selected} renderDay={(d) => {
           const working = view === 'mine' ? shiftsOn(d, me.id).length > 0 : shiftsOn(d).length > 0
           // On "My shifts" a day with no shift says "off"; the team view only marks days someone works.
           const dayOff = view === 'mine' && !working
@@ -66,16 +66,21 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
       {view === 'mine' ? (
         <>
           <OpenShifts data={data} me={me} lang={lang} />
-          <div className="sc-mine">
-            <div className="sc-mine-l">
+          {span === 'week' ? (
+            <div className="sc-mine week">
+              <div className="sc-mine-l">
+                <WeekTotal data={data} me={me} week={week} lang={lang} />
+              </div>
+              <div className="sc-mine-r">
+                <h2 className="sc-h">{w.comingUp}</h2>
+                {week.map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} on={d === selected} onPick={() => { setPicked(d); changeSpan('day') }} />)}
+              </div>
+            </div>
+          ) : (
+            <div className="sc-mine day">
               <div key={selected} className="sc-fade"><Hero data={data} me={me} date={selected} today={today} w={w} lang={lang} /></div>
-              <WeekTotal data={data} me={me} week={week} lang={lang} />
             </div>
-            <div className="sc-mine-r">
-              <h2 className="sc-h">{w.comingUp}</h2>
-              {week.map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} on={d === selected} />)}
-            </div>
-          </div>
+          )}
         </>
       ) : span === 'week' ? (
         <WeekGrid
@@ -129,14 +134,14 @@ function Hero({ data, me, date, today, w, lang }) {
 }
 
 // One day of my week, as a row.
-function Row({ data, me, date, w, lang, on }) {
+function Row({ data, me, date, w, lang, on, onPick }) {
   const f = useFeatures()
   const mine = data.shifts.filter((s) => s.date === date && s.employeeId === me.id).sort((a, b) => a.start - b.start)
   const off = offOn(data.teamOff, me.id, date)
   const d = fromKey(date)
   const kind = off ? 'off' : mine.length ? '' : 'free'
   return (
-    <div className={`sc-row ${kind} ${on ? 'on' : ''}`}>
+    <div className={`sc-row ${kind} ${on ? 'on' : ''} ${onPick ? 'pick' : ''}`} onClick={onPick} role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined} onKeyDown={onPick ? (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onPick()) : undefined}>
       <div className="sc-date">
         <small>{d.toLocaleDateString(locale(lang), { weekday: 'short' }).replace('.', '').toUpperCase()}</small>
         <b>{d.getDate()}</b>
