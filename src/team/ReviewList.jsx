@@ -9,6 +9,14 @@ import { REVIEW_DAYS } from './useTeamData.js'
 
 const duration = (minutes) => (minutes >= 1440 ? `${Math.floor(minutes / 1440)}d ` : '') + `${Math.floor((minutes % 1440) / 60)}h ${Math.round(minutes % 60)}m`
 
+// "6 Hours", "1 Hour 15 Min", "40 Min": the time an Approve button is about to approve.
+const hoursLabel = (minutes) => {
+  const total = Math.round(minutes)
+  const h = Math.floor(total / 60)
+  const m = total % 60
+  return [h > 0 && `${h} ${h === 1 ? 'Hour' : 'Hours'}`, m > 0 && `${m} Min`].filter(Boolean).join(' ') || '0 Min'
+}
+
 // Managers: every punch, newest first, to approve (like Humanity's Manage list).
 // ⚠️ marks late clock-ins and clock-outs; tap one for its details and map.
 export default function ReviewList({ data }) {
@@ -30,6 +38,7 @@ export default function ReviewList({ data }) {
     .sort((a, b) => new Date(b.clockIn) - new Date(a.clockIn))
   const people = data.employees.filter((e) => !scheduleOnly(e)).sort((a, b) => a.name.localeCompare(b.name))
   const pending = list.filter((p) => punchStatus(p) === 'pending')
+  const pendingMinutes = pending.reduce((sum, p) => sum + punchMinutes(p, now), 0)
 
   const approve = async (ids) => {
     setBusy(true)
@@ -55,7 +64,7 @@ export default function ReviewList({ data }) {
         </label>
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
-            Approve all ({pending.length})
+            Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
           </button>
         )}
       </div>
@@ -93,7 +102,7 @@ export default function ReviewList({ data }) {
                   )}
                 </button>
                 {status === 'pending' && (
-                  <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve</button>
+                  <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>
                 )}
                 {status === 'approved' && <span className="rc-done" title={`Approved by ${p.approvedBy ?? ''}`}>✓ Approved</span>}
               </article>
@@ -108,7 +117,7 @@ export default function ReviewList({ data }) {
       {pending.length > 0 && (
         <div className="tm-approve-bar">
           <button type="button" className="btn btn-success w-100" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
-            Approve all ({pending.length})
+            Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
           </button>
           {pending.some((p) => punchWarnings(p, data.shifts, data.shop, now).some(isLateWarning)) && (
             <small>Includes late punches (⚠️). Tap one first to check it.</small>
