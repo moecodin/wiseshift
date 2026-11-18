@@ -2222,3 +2222,42 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
   .tm-tabs, .pu-root .modal-content { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .pu-root .modal-backdrop { background: rgba(8, 22, 34, 0.55); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
+
+/* ---------- Redesign layer: frosted header and sticky Approve bar ---------- */
+
+/* The header stays at the top and softly blurs whatever scrolls under it */
+.tm-head {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 15;
+  background: color-mix(in srgb, var(--desk) 84%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: 0 1px 0 var(--line-soft);
+}
+
+/* Phone: the floating "Approve all" bar is a frosted strip above the dock */
+@media (max-width: 899px) {
+  .tm-approve-bar {
+    margin: 0 -4px;
+    padding: 8px;
+    border: 1px solid var(--glass-line);
+    border-radius: var(--r-md);
+    background: color-mix(in srgb, var(--paper) 74%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  .tm-approve-bar .btn { box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16); }
+  .tm-approve-bar small { color: var(--muted); }
+}
+
+/* Fallbacks, same rules as the dock and pop-ups */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tm-head { background: var(--desk); }
+  .tm-approve-bar { background: var(--paper); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .tm-head { background: var(--desk); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .tm-approve-bar { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media print { .tm-head { position: static; box-shadow: none; background: none; } }
