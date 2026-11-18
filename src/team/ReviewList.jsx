@@ -4,7 +4,7 @@ import Avatar from './Avatar.jsx'
 import PunchDetails from './PunchDetails.jsx'
 import { payPeriodOf, punchMinutes } from './paycheck.js'
 import { isLateWarning, punchStatus, punchWarnings, STATUS_LABEL } from './review.js'
-import { dayLabel, rangeLabel, useNow } from './format.js'
+import { dayLabel, rangeLabel, scheduleOnly, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
 const duration = (minutes) => (minutes >= 1440 ? `${Math.floor(minutes / 1440)}d ` : '') + `${Math.floor((minutes % 1440) / 60)}h ${Math.round(minutes % 60)}m`
@@ -15,6 +15,7 @@ export default function ReviewList({ data }) {
   const now = useNow()
   const [range, setRange] = useState('week') // 'week' (past 7 days) or 'period' (this pay period)
   const [onlyPending, setOnlyPending] = useState(true)
+  const [who, setWho] = useState('') // '' = everyone, otherwise one employee's id
   const [open, setOpen] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -25,7 +26,9 @@ export default function ReviewList({ data }) {
   const list = data.punches
     .filter((p) => dateKey(new Date(p.clockIn)) >= from || !p.clockOut)
     .filter((p) => !onlyPending || punchStatus(p) !== 'approved')
+    .filter((p) => !who || p.employeeId === who)
     .sort((a, b) => new Date(b.clockIn) - new Date(a.clockIn))
+  const people = data.employees.filter((e) => !scheduleOnly(e)).sort((a, b) => a.name.localeCompare(b.name))
   const pending = list.filter((p) => punchStatus(p) === 'pending')
 
   const approve = async (ids) => {
@@ -43,6 +46,10 @@ export default function ReviewList({ data }) {
           <button type="button" aria-pressed={range === 'week'} onClick={() => setRange('week')}>Past {REVIEW_DAYS} days</button>
           <button type="button" aria-pressed={range === 'period'} onClick={() => setRange('period')}>This pay period</button>
         </div>
+        <select className="form-select form-select-sm rc-who-filter" aria-label="Employee" value={who} onChange={(e) => setWho(e.target.value)}>
+          <option value="">All employees</option>
+          {people.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
         <label className="form-check small mb-0">
           <input type="checkbox" className="form-check-input" checked={onlyPending} onChange={(e) => setOnlyPending(e.target.checked)} /> Not approved only
         </label>
@@ -94,7 +101,7 @@ export default function ReviewList({ data }) {
           })}
         </div>
       ) : (
-        <p className="tm-empty">{onlyPending ? 'Everything is approved. 🎉' : 'No punches in these days.'}</p>
+        <p className="tm-empty">{who ? `No ${onlyPending ? 'unapproved ' : ''}punches for ${name(who)?.name ?? 'this person'} in these days.` : onlyPending ? 'Everything is approved. 🎉' : 'No punches in these days.'}</p>
       )}
       {error && <p className="tm-error" role="alert">{error}</p>}
 
