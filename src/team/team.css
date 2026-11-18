@@ -1841,7 +1841,7 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
     padding: 6px;
     border: 1px solid var(--line);
     border-radius: 24px;
-    box-shadow: 0 10px 28px rgba(20, 22, 30, 0.2);
+    box-shadow: 0 10px 28px rgba(80, 60, 10, 0.2);
   }
   .tm-tabs button { min-height: 54px; border-radius: 18px; }
   .tm-pill { border-radius: 18px; }
@@ -2046,7 +2046,7 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 .rc.st-pending { border-top-color: var(--warn); }
 .rc.st-progress { border-top-color: var(--navy); }
 .rc.st-approved { border-top-color: var(--ok); }
-.rc:hover { border-color: var(--navy); box-shadow: 0 4px 14px rgba(20, 22, 30, 0.1); }
+.rc:hover { border-color: var(--navy); box-shadow: 0 4px 14px rgba(80, 60, 10, 0.1); }
 .rc:hover.st-pending { border-top-color: var(--warn); }
 .rc-main { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-content: start; flex: 1; width: 100%; padding: 14px 16px 12px; border: 0; background: none; color: inherit; text-align: left; font: inherit; cursor: pointer; }
 .rc-top { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -2458,7 +2458,7 @@ a:hover { color: var(--navy-hover); }
   .tm-clock .tm-date { grid-area: date; text-align: left; margin: 0; font-size: 14px; }
   .tm-clock .tm-status { grid-area: status; text-align: left; margin: 6px 0 0; font-size: 13px; line-height: 1.35; }
   .tm-clock .tm-holdwrap { grid-area: btn; justify-self: end; padding: 6px; }
-  .tm-clock .tm-punch { width: 100px; height: 100px; font-size: 16px; box-shadow: 0 4px 12px rgba(20, 22, 30, 0.25); }
+  .tm-clock .tm-punch { width: 100px; height: 100px; font-size: 16px; box-shadow: 0 4px 12px rgba(80, 60, 10, 0.25); }
   .tm-clock .tm-holdhint { grid-area: hint; justify-self: center; margin: 2px 0 0; font-size: 11.5px; text-align: center; }
 
   /* Everything else on the card (warnings, Add a note, countdown, location note) runs full width, tightly */
@@ -2540,12 +2540,12 @@ a:hover { color: var(--navy-hover); }
   --g-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 -1px 0 rgba(var(--accent-rgb), 0.06) inset, 0 10px 32px rgba(var(--accent-rgb), 0.12);
   --g-blur: blur(20px) saturate(180%);
   --glass-blur: blur(20px) saturate(180%);
-  --faint: #6c6e76;
-  --amb-a: 170, 175, 190;
-  --amb-b: 215, 218, 228;
-  --amb-c: 190, 170, 130;
-  --amb-base: #f3f3f5;
-  --accent-rgb: 43, 45, 51;
+  --faint: #6b6655;
+  --amb-a: 246, 213, 128;
+  --amb-b: 255, 236, 184;
+  --amb-c: 238, 190, 90;
+  --amb-base: #faf8f1;
+  --accent-rgb: 200, 150, 30;
 }
 
 /* Ambient background */
@@ -2583,10 +2583,10 @@ a:hover { color: var(--navy-hover); }
 }
 [data-bs-theme='light'] :is(.hr-week .mh-day, .sc-mine-r .sc-row, .pt-person.sc-row) { background: transparent; box-shadow: none; border-color: rgba(var(--accent-rgb), 0.10); }
 [data-bs-theme='light'] :is(.hr-week .mh-day, .sc-mine-r .sc-row):hover { background: rgba(255, 255, 255, 0.55); }
-[data-bs-theme='light'] :is(.hr-week .sc-h, .sc-mine-r .sc-h, .tm-grid thead th, .tm-sheet thead th) { background: rgba(236, 237, 242, 0.65); }
+[data-bs-theme='light'] :is(.hr-week .sc-h, .sc-mine-r .sc-h, .tm-grid thead th, .tm-sheet thead th) { background: rgba(246, 240, 222, 0.65); }
 [data-bs-theme='light'] .tm-grid th, [data-bs-theme='light'] .tm-grid td, [data-bs-theme='light'] .tm-sheet th, [data-bs-theme='light'] .tm-sheet td { border-color: rgba(var(--accent-rgb), 0.10); }
 [data-bs-theme='light'] .tm-grid tbody th, [data-bs-theme='light'] .tm-sheet tbody th { background: rgba(255, 255, 255, 0.55); }
-[data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) td, [data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) th { background: rgba(236, 237, 242, 0.35); }
+[data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) td, [data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) th { background: rgba(246, 240, 222, 0.35); }
 [data-bs-theme='light'] .tm-grid td.today { background: rgba(var(--amb-a), 0.16); }
 
 /* Header, sidebar, dock */
@@ -2612,7 +2612,7 @@ a:hover { color: var(--navy-hover); }
   }
   [data-bs-theme='light'] .tm-approve-bar { background: rgba(255, 255, 255, 0.62); border: 1px solid var(--g-edge); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 10px 26px rgba(var(--accent-rgb), 0.16); }
   [data-bs-theme='light'] .tm-clock, [data-bs-theme='light'] .tm-card.tm-clock {
-    background: linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(238, 240, 247, 0.45));
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(252, 245, 222, 0.45));
     border: 1px solid var(--g-edge);
     box-shadow: var(--g-shadow);
   }
@@ -2620,7 +2620,7 @@ a:hover { color: var(--navy-hover); }
 [data-bs-theme='light'] .tm-tabs button[aria-selected='true'], [data-bs-theme='light'] .tm-pill { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 4px 12px rgba(var(--accent-rgb), 0.35); }
 
 /* Pop-ups */
-[data-bs-theme='light'] .pu-root .modal-backdrop { background: rgba(20, 22, 30, 0.30); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+[data-bs-theme='light'] .pu-root .modal-backdrop { background: rgba(80, 60, 10, 0.30); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 [data-bs-theme='light'] .pu-root .modal-content {
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid var(--g-edge);
@@ -2636,7 +2636,7 @@ a:hover { color: var(--navy-hover); }
 [data-bs-theme='light'] :is(.btn-outline-secondary, .mh-edit, .to-btn:not(.yes)):hover { background-color: rgba(255, 255, 255, 0.8); }
 [data-bs-theme='light'] :is(.btn-brand, .btn-success, .to-btn.yes, .mh-approve, .rc-ok, .cv-take) { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 -2px 0 rgba(0, 0, 0, 0.14) inset, 0 6px 14px rgba(var(--accent-rgb), 0.22); }
 [data-bs-theme='light'] .tm-shift { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset; }
-[data-bs-theme='light'] .tt { background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(238, 240, 247, 0.42)); }
+[data-bs-theme='light'] .tt { background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(252, 245, 222, 0.42)); }
 [data-bs-theme='light'] .tt-top svg { background: rgba(255, 255, 255, 0.7); }
 [data-bs-theme='light'] .mt-alert { background: rgba(251, 235, 214, 0.72); }
 [data-bs-theme='light'] .tm-sample { background: rgba(251, 235, 196, 0.6); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); }
@@ -2804,3 +2804,29 @@ a:hover { color: var(--navy-hover); }
 [data-bs-theme='light'] .tm-tabs .tm-pill ~ button[aria-selected='true'] { color: var(--on-yellow); }
 [data-bs-theme='light'] .tm-tabs button[aria-selected='true'] .tm-badge { box-shadow: 0 0 0 2px var(--yellow); }
 .tm-locked .tm-locked-note { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+
+/* =====================================================================
+   Light mode: yellow accent. Fills are the logo yellow with dark text; text, icons and outlines that used to
+   be the accent colour are dark ink (yellow text would not be readable on white).
+   ===================================================================== */
+[data-bs-theme='light'] a:not([class]) { color: var(--ink); text-decoration: underline; text-decoration-color: var(--navy-edge); text-underline-offset: 2px; }
+[data-bs-theme='light'] a:not([class]):hover { color: var(--ink); text-decoration-color: var(--ink); }
+[data-bs-theme='light'] :is(.btn-outline-secondary, .btn-outline-primary, .to-btn:not(.yes), .mh-add, .mh-actions .mh-edit:hover, .tt.warn .tt-big, .tm-rv-status.st-progress, .tm-chip.st-progress, .rc-chip.st-progress, .hr-week .mh-add) { color: var(--ink); }
+[data-bs-theme='light'] :is(.btn-outline-secondary, .btn-outline-primary, .to-btn:not(.yes), .rc-details, .mh-edit, .td-more, .tm-icon, .tm-logo) { border-color: rgba(var(--accent-rgb), 0.55); }
+[data-bs-theme='light'] :is(.btn-outline-secondary, .btn-outline-primary, .to-btn:not(.yes)):hover { border-color: var(--navy-edge); color: var(--ink); }
+[data-bs-theme='light'] .sc-day.on i.dot { background: var(--on-navy); }
+[data-bs-theme='light'] :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--focus); }
+[data-bs-theme='light'] :is(.form-control, .form-select, .form-check-input, textarea):focus { border-color: var(--focus); box-shadow: 0 0 0 3px rgba(168, 122, 0, 0.28); }
+[data-bs-theme='light'] .tm-ring-track { stroke: rgba(var(--accent-rgb), 0.22); }
+[data-bs-theme='light'] .rl-pick[aria-pressed='true'] .rl-dot { outline-color: var(--on-navy); }
+[data-bs-theme='light'] .tm-grid thead th.today .gr-dow, [data-bs-theme='light'] .tm-grid thead th.today .gr-date { color: var(--on-navy); }
+[data-bs-theme='light'] .tm-grid tr.me th .gr-person b::after { background: rgba(var(--accent-rgb), 0.2); color: var(--ink); }
+
+/* Yellow accent: dark text on the yellow round button, and a clean white glass clock panel so the button stands out */
+[data-bs-theme='light'] .tm-punch { color: var(--on-navy); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35); }
+[data-bs-theme='light'] .tm-punch.out { background-color: var(--navy); }
+@media (max-width: 899px) {
+  [data-bs-theme='light'] .tm-clock, [data-bs-theme='light'] .tm-card.tm-clock {
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.55));
+  }
+}
