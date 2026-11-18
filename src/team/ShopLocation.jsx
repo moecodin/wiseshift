@@ -69,7 +69,7 @@ export default function ShopLocation({ data }) {
         <p className="tm-muted mb-2">Not set yet. Type the shop's address, or stand in the shop and use your phone's location.</p>
       )}
       <form className="d-flex gap-2 mb-2" onSubmit={find}>
-        <input className="form-control form-control-sm" aria-label="Shop address" placeholder="e.g. 100 Main St, Springfield" value={typed} onChange={(e) => setTyped(e.target.value)} />
+        <input className="form-control form-control-sm" aria-label="Shop address" placeholder="e.g. 100 Main St, Springfield…" value={typed} onChange={(e) => setTyped(e.target.value)} />
         <button type="submit" className="btn btn-brand btn-sm text-nowrap" disabled={Boolean(busy)}>{busy === 'find' ? 'Finding…' : 'Find'}</button>
       </form>
       {found && (
@@ -98,7 +98,7 @@ export default function ShopLocation({ data }) {
           />
         </label>
       </div>
-      <p className="tm-muted small mt-2 mb-0">A typed address puts the pin on the street, which can be off by a few houses. Check the pin, and if it's off, use “where I am now” from inside the shop.</p>
+      <p className="tm-muted small mt-2 mb-0">A typed address puts the pin on the street, which can be off by a few houses. Check the pin, and if it’s off, use “where I am now” from inside the shop.</p>
       {message && <p className="tm-msg small mt-2 mb-0" role="status">{message}</p>}
       {error && <p className="tm-error small mt-2 mb-0" role="alert">{error}</p>}
     </section>

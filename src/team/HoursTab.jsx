@@ -265,7 +265,7 @@ export function PunchEditor({ punch, data, onClose }) {
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="pu-note">Why (shows on the timesheet)</label>
-          <input id="pu-note" className="form-control" value={note} maxLength={200} placeholder="Forgot to clock out" onChange={(e) => setNote(e.target.value)} />
+          <input id="pu-note" className="form-control" value={note} maxLength={200} placeholder="e.g. Forgot to clock out…" onChange={(e) => setNote(e.target.value)} />
         </div>
       </div>
       <p className="tm-muted small mt-3 mb-0">Leave Clock out empty if they're still working. The punch is marked as fixed by you.</p>

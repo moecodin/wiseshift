@@ -128,7 +128,7 @@ function MyContact({ data, me }) {
         <div className="col-sm-6" />
         <div className="col-sm-6">
           <label className="form-label" htmlFor="st-ename">Emergency contact name</label>
-          <input id="st-ename" className="form-control" placeholder="Name (and who they are)" value={form.emergencyName} onChange={set('emergencyName')} />
+          <input id="st-ename" className="form-control" placeholder="Name (and who they are)…" value={form.emergencyName} onChange={set('emergencyName')} />
         </div>
         <div className="col-sm-6">
           <label className="form-label" htmlFor="st-ephone">Their phone</label>
@@ -341,7 +341,7 @@ function ShiftPicks({ data }) {
       <p className="tm-muted small mb-2">The buttons in the Add shift pop-up. The color shows on everyone's schedule.</p>
       {picks.map((p, i) => (
         <div key={i} className="st-pick">
-          <input className="form-control form-control-sm" aria-label="Name" placeholder="Name" value={p.title} onChange={(e) => setPick(i, 'title', e.target.value)} />
+          <input className="form-control form-control-sm" aria-label="Name" placeholder="Name…" value={p.title} onChange={(e) => setPick(i, 'title', e.target.value)} />
           <input type="time" step="900" className="form-control form-control-sm" aria-label="Start" value={p.start === null ? '' : toTimeInput(p.start)} onChange={(e) => setPick(i, 'start', fromTimeInput(e.target.value))} />
           <input type="time" step="900" className="form-control form-control-sm" aria-label="End" value={p.end === null ? '' : toTimeInput(p.end)} onChange={(e) => setPick(i, 'end', fromTimeInput(e.target.value))} />
           <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove ${p.title || 'quick pick'}`} onClick={() => setPicks(picks.filter((_, j) => j !== i))}>✕</button>
@@ -377,7 +377,7 @@ function Roles({ data }) {
       <p className="tm-muted small mb-2">What someone does on a shift (for example Front desk). You pick one when you add a shift, and your team sees it on their schedule.</p>
       {list.map((r, i) => (
         <div key={i} className="st-pick st-role">
-          <input className="form-control form-control-sm" aria-label="Role name" placeholder="Role name" value={r.name} onChange={(e) => setRole(i, 'name', e.target.value)} />
+          <input className="form-control form-control-sm" aria-label="Role name" placeholder="e.g. Front desk…" value={r.name} onChange={(e) => setRole(i, 'name', e.target.value)} />
           <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove ${r.name || 'role'}`} onClick={() => setList(list.filter((_, j) => j !== i))}>✕</button>
           <span className="st-colors" role="group" aria-label="Color">
             {[0, 1, 2, 3, 4, 5, 6, 7].map((c) => (
