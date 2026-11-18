@@ -2181,3 +2181,44 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 .rc-foot .rc-ok { white-space: nowrap; padding-left: 8px; padding-right: 8px; font-size: 14px; }
 .rc-foot .rc-details { padding-left: 14px; padding-right: 14px; }
 @media (min-width: 900px) { .rc-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
+
+/* ---------- Redesign layer: frosted glass on the phone tab dock and on pop-ups ----------
+   Only for chrome that floats over content. Cards and tables stay solid so data stays readable.
+   Panels keep a high opacity so text contrast holds; blur does the rest. */
+:root { --glass-blur: blur(18px) saturate(170%); }
+
+/* Phone dock */
+@media (max-width: 899px) {
+  .tm-tabs {
+    background: color-mix(in srgb, var(--paper) 74%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border-color: var(--glass-line);
+  }
+}
+
+/* Pop-ups: the page behind is dimmed and softly blurred, the panel is lightly frosted */
+.pu-root .modal-backdrop {
+  --bs-backdrop-opacity: 1;
+  background: rgba(8, 22, 34, 0.38);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.pu-root .modal-content {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-line);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+.pu-root .modal-header, .pu-root .modal-footer { border-color: var(--glass-line); background: transparent; }
+
+/* Fallbacks: no blur support, or the person asked for less transparency */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tm-tabs, .pu-root .modal-content { background: var(--paper); }
+  .pu-root .modal-backdrop { background: rgba(8, 22, 34, 0.55); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .tm-tabs, .pu-root .modal-content { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .pu-root .modal-backdrop { background: rgba(8, 22, 34, 0.55); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
