@@ -2468,3 +2468,35 @@ a:hover { color: var(--navy-hover); }
   .tm-clock .td-countdown { margin: 8px 0 0; font-size: 13px; }
   .tm-clock .tm-muted.small { margin-top: 6px !important; font-size: 11.5px; line-height: 1.35; }
 }
+
+/* Phone clock: no box. Time and date on the left, a big round button on the right (about a tile wide). */
+@media (max-width: 899px) {
+  .tm-clock, .tm-card.tm-clock {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 6px 2px 8px;
+    overflow: visible;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .tm-clock::before, .tm-clock::after { display: none; }
+  .tm-clock .tm-now { font-size: 28px; }
+  .tm-clock .tm-punch { width: 150px; height: 150px; font-size: 20px; }
+  .tm-clock .tm-holdwrap { padding: 6px; }
+  .tm-clock .tm-holdhint { font-size: 12px; }
+  .tm-clock .tm-status { font-size: 14px; margin-top: 8px; }
+}
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::before, [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::after { content: none; }
+@media (min-width: 900px) {
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::before, [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::after { content: ''; }
+}
+@media (max-width: 899px) {
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock, [data-bs-theme='dark'][data-dark-style='gold'] .tm-card.tm-clock { background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* "Add a note" sits under the status on the left, beside the big button, instead of on its own row */
+  .tm-clock { grid-template-areas: 'now btn' 'date btn' 'status btn' 'note btn' 'note hint'; align-items: start; }
+  .tm-clock .pn-mine { grid-area: note; grid-column: auto; margin-top: 8px; align-self: start; }
+  .tm-clock .tm-holdwrap { align-self: start; }
+  .tm-clock .tm-now, .tm-clock .tm-date, .tm-clock .tm-status { align-self: start; }
+}
