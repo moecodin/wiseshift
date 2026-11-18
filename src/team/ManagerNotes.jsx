@@ -94,6 +94,7 @@ function NoteEditor({ note, data, onClose }) {
     else onClose()
   }
   const remove = async () => {
+    if (!window.confirm(`Delete this ${n.kind === 'task' ? 'task' : 'note'}? This can’t be undone.`)) return
     await data.actions.deleteNote(note.id)
     onClose()
   }

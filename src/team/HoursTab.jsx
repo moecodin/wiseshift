@@ -230,6 +230,7 @@ export function PunchEditor({ punch, data, onClose }) {
     else onClose()
   }
   const remove = async () => {
+    if (!window.confirm('Delete this punch? This can’t be undone.')) return
     setBusy(true)
     const problem = await data.actions.deletePunch(punch.id)
     setBusy(false)

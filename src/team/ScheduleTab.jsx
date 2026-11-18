@@ -175,6 +175,7 @@ function ShiftEditor({ shift, data, week, onClose }) {
     else onClose()
   }
   const remove = async () => {
+    if (!window.confirm('Delete this shift? This can’t be undone.')) return
     setBusy(true)
     const problem = await data.actions.deleteShift(s.id)
     setBusy(false)
