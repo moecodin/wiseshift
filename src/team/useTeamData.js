@@ -244,7 +244,7 @@ function sampleView(state, viewAs) {
     // Sticky notes and tasks are for managers only; staff never get them at all.
     // Staff see only the notes and tasks a manager tagged them on.
     notes: boss ? state.notes ?? [] : (state.notes ?? []).filter((n) => (n.assignees ?? []).includes(viewAs)),
-    teamOff: state.timeOff.filter((t) => t.status === 'approved').map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
+    teamOff: state.timeOff.filter((t) => t.status === 'approved' && own(t)).map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
     shop: state.shop ?? null,
     settings: { ...DEFAULT_SETTINGS, ...state.settings },
     privateById: Object.fromEntries(Object.entries(state.private ?? {}).filter(([id]) => boss || id === viewAs)),

@@ -16,7 +16,7 @@ const WORDS = {
 }
 
 // Ask for time off and see your requests. Managers approve or decline, and see
-// everyone's upcoming time off.
+// everyone's upcoming time off. Staff see only their own (update 028).
 export default function TimeOffTab({ data, me, boss, lang }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const today = dateKey(useNow())
@@ -52,6 +52,7 @@ export default function TimeOffTab({ data, me, boss, lang }) {
 
       {mine.length === 0 && <p className="tm-muted">{w.empty}</p>}
 
+      {boss && (
       <section className="to-card to-off">
         <b className="to-eyebrow">{w.whoOff.toUpperCase()}</b>
         {upcoming.length ? (
@@ -68,6 +69,7 @@ export default function TimeOffTab({ data, me, boss, lang }) {
           <p className="tm-muted mb-0">{w.nobodyOff}</p>
         )}
       </section>
+      )}
     </div>
   )
 }
