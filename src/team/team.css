@@ -3183,3 +3183,46 @@ a:hover { color: var(--navy-hover); }
   .rv-main, .rv-main { grid-template-columns: 58px minmax(0, 1fr) auto auto; gap: 6px; }
   .rv-row { padding-left: 12px; }
 }
+
+/* ---------- Hours review filters: people picker, period select, group toggle, Add punch ---------- */
+.rv-filters { align-items: center; gap: 8px; margin-bottom: 8px; }
+.rv-period { width: auto; min-height: 36px; border-radius: var(--r-sm); font-weight: 600; }
+.rv-toggle { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--paper); color: var(--muted); }
+.rv-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+.rv-toggle[aria-pressed='true'] { background: var(--navy); border-color: var(--navy); color: var(--on-navy, #fff); }
+.rv-add { min-height: 36px; font-weight: 700; white-space: nowrap; }
+.pp { position: relative; }
+.pp-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; max-width: 240px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--paper); color: inherit; font-size: 14px; font-weight: 600; }
+.pp-btn svg { flex: none; width: 16px; height: 16px; fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-linecap: round; }
+.pp-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-btn.on { border-color: var(--navy); }
+.pp-btn.on svg { stroke: var(--navy); }
+.pp-chev { width: 14px !important; height: 14px !important; }
+.pp-panel {
+  position: absolute; z-index: 25; top: calc(100% + 6px); left: 0; width: min(340px, calc(100vw - 24px)); padding: 10px;
+  border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+}
+[data-bs-theme='dark'] .pp-panel { background: color-mix(in srgb, var(--paper) 96%, #fff); }
+.pp-acts { display: flex; align-items: center; gap: 12px; padding: 8px 2px 4px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.pp-acts span { margin-right: auto; }
+.pp-list { max-height: min(40vh, 340px); overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+.pp-sec + .pp-sec { margin-top: 4px; border-top: 1px solid var(--line-soft); padding-top: 4px; }
+.pp-row { position: relative; display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 6px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+.pp-row:hover { background: var(--head); }
+.pp-row small { margin-left: auto; color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pp-name { font-weight: 600; }
+.pp-group b { font-weight: 800; }
+.pp-group small { margin-left: auto; }
+.pp-in { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pp-box { flex: none; width: 20px; height: 20px; border: 2px solid var(--faint); border-radius: 6px; background: var(--paper); display: inline-flex; align-items: center; justify-content: center; }
+.pp-in:checked + .pp-box { background: var(--navy); border-color: var(--navy); }
+.pp-in:checked + .pp-box::after { content: ''; width: 9px; height: 5px; border: solid var(--on-navy, #fff); border-width: 0 0 2.5px 2.5px; transform: translateY(-1px) rotate(-45deg); }
+.pp-in:indeterminate + .pp-box { background: var(--navy); border-color: var(--navy); }
+.pp-in:indeterminate + .pp-box::after { content: ''; width: 9px; height: 2.5px; background: var(--on-navy, #fff); }
+.pp-in:focus-visible + .pp-box { outline: 3px solid var(--accent, var(--navy)); outline-offset: 2px; }
+.pp-none { margin: 10px 4px; color: var(--muted); font-size: 13.5px; }
+.ts-name { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.ts-name:hover { text-decoration-color: var(--navy); }
+.ts-pay { padding: 0 14px 12px; }
+.ts-pay .tm-card { margin: 8px 0 0; }
+@media print { .ts-name { text-decoration: none; } .ts-pay { display: none; } }

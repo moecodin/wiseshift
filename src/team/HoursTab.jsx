@@ -1,17 +1,13 @@
 import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
-import { dateKey, formatClock, fromKey } from '../lib/dates.js'
-import CountUp from './CountUp.jsx'
-import { decimalHours, estimatePaycheck, formatHours, grossPay, moveDays, payPeriodOf, periodHours, punchMinutes } from './paycheck.js'
-import { dayLabel, hoursLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
-import { TAX_YEAR } from './taxRates.js'
+import { dateKey, formatClock } from '../lib/dates.js'
+import { formatHours, grossPay, moveDays, payPeriodOf, periodHours } from './paycheck.js'
+import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { describeSpot } from './location.js'
-import SpotTag from './SpotTag.jsx'
 import MyHours from './MyHours.jsx'
 import { useFeatures } from './features.js'
 import ExportHours from './ExportHours.jsx'
-import PunchDetails from './PunchDetails.jsx'
-import TimesheetCards from './TimesheetCards.jsx'
+import TimesheetCards, { PersonHours } from './TimesheetCards.jsx'
 import ReviewList from './ReviewList.jsx'
 import { punchStatus } from './review.js'
 
@@ -22,9 +18,8 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
   const now = useNow()
   const f = useFeatures()
   // Managers start on Review (punches to approve); staff only have their own hours.
-  const [view, setView] = useState(boss ? 'review' : 'person')
+  const [view, setView] = useState('review')
   const [exporting, setExporting] = useState(false)
-  const [who, setWho] = useState(me.id)
   const current = payPeriodOf(now)[0] === period[0]
   // Managers can also review (approve) everyone's punches here, like the Review list on Today.
   const reviewing = boss && view === 'review'
@@ -44,169 +39,23 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
         {boss && (
           <div className="tm-seg hr-seg" role="group" aria-label="Show">
             <button type="button" aria-pressed={view === 'review'} onClick={() => setView('review')}>Review{toReview > 0 && <span className="hr-count">{toReview}</span>}</button>
-            <button type="button" aria-pressed={view === 'person'} onClick={() => setView('person')}>Employee</button>
             {f.timesheets && <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet</button>}
           </div>
         )}
         {boss && f.timesheets && !reviewing && (
           <button type="button" className="btn btn-brand btn-sm ex-btn" onClick={() => setExporting(true)}>Export hours…</button>
         )}
-        {boss && view === 'person' && (
-          <select className="form-select form-select-sm tm-who" value={who} onChange={(e) => setWho(e.target.value)} aria-label="Whose hours">
-            {data.employees.filter((e) => !scheduleOnly(e)).map((e) => <option key={e.id} value={e.id}>{e.name}{e.active ? '' : ' (not active)'}</option>)}
-          </select>
-        )}
       </div>
       {reviewing ? (
         <div className="tm-narrow desk"><ReviewList data={data} /></div>
       ) : boss && f.timesheets && view === 'all' ? (
         <Timesheet data={data} period={period} now={now} />
-      ) : !boss ? (
-        <MyHours data={data} me={me} period={period} now={now} lang={lang} />
       ) : (
-        <Person data={data} boss={boss} employee={data.employees.find((e) => e.id === who) ?? me} period={period} now={now} />
+        <MyHours data={data} me={me} period={period} now={now} lang={lang} />
       )}
       {boss && f.timesheets && <p className="ex-note">Exports are available on a computer.</p>}
       {exporting && <ExportHours data={data} now={now} onClose={() => setExporting(false)} />}
     </div>
-  )
-}
-
-function Person({ data, boss, employee, period, now }) {
-  const f = useFeatures()
-  const [editing, setEditing] = useState(null)
-  const [details, setDetails] = useState(null)
-  const [approving, setApproving] = useState(false)
-  const hours = periodHours(data.punches, employee.id, period, now)
-  const pay = data.payById[employee.id]
-  const isMe = employee.id === data.me?.id
-  const weeks = [hours.byDay.slice(0, 7), hours.byDay.slice(7)]
-  // Finished punches nobody has approved yet: managers approve them here, one at a time or all at once.
-  const pending = hours.byDay.flatMap((d) => d.punches).filter((p) => p.clockOut && !p.approvedAt)
-  const approve = async (ids) => {
-    setApproving(true)
-    await data.actions.approvePunches(ids, true)
-    setApproving(false)
-  }
-
-  return (
-    <div className="tm-narrow desk hr-grid">
-      <div className="hr-side">
-      <section className="hr-hero">
-        <small>{isMe ? 'Hours this pay period' : `${employee.name} · this pay period`}</small>
-        <div><b><CountUp value={decimalHours(hours.total)} /></b> <span>hrs</span></div>
-        <small>
-          Regular {formatHours(hours.regular)}
-          {hours.overtime > 0 && <> · <span className="hr-ot">Overtime {formatHours(hours.overtime)}</span></>}
-        </small>
-      </section>
-      {boss && pending.length > 0 && (
-        <div className="mh-pending">
-          <span><b>{pending.length}</b> {pending.length === 1 ? 'punch' : 'punches'} to approve</span>
-          <button type="button" disabled={approving} onClick={() => approve(pending.map((p) => p.id))}>Approve all · {hoursLabel(pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))}</button>
-        </div>
-      )}
-      {hours.open && <p className="tm-warn">{isMe ? "You're" : `${employee.name} is`} still clocked in, so these hours keep counting.</p>}
-      </div>
-
-      <div className="hr-weeks">
-
-      {weeks.map((days, i) => {
-        const worked = days.filter((d) => d.punches.length > 0).reverse()
-        return (
-          <div key={i} className="hr-week">
-            <h2 className="sc-h">
-              Week {i + 1} <small className="mg-sum">{rangeLabel(days.map((d) => d.date))} · {formatHours(days.reduce((sum, d) => sum + d.minutes, 0))} hrs</small>
-            </h2>
-            {worked.length === 0 && <p className="tm-muted">No punches this week.</p>}
-            {worked.map((d) => {
-              const date = fromKey(d.date)
-              return (
-                <div key={d.date} className="sc-row hr-day mh-day">
-                  <div className="sc-date">
-                    <small>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</small>
-                    <b>{date.getDate()}</b>
-                  </div>
-                  <div className="sc-body">
-                    {(data.punchNotes ?? []).filter((n) => n.employeeId === employee.id && n.date === d.date).map((n) => (
-                      <small key={n.id} className="mh-staffnote">Note from staff: {n.text}</small>
-                    ))}
-                    {d.punches.map((p) => (
-                      <div key={p.id} className="mh-punch">
-                        <span className="hr-times">
-                          {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : <i>still in</i>}
-                          {p.approvedAt && <span className="hr-approved" title={`Approved${p.approvedBy ? ` by ${p.approvedBy}` : ''}`}>Approved</span>}
-                          {p.editedBy && <span className="tm-edited" title={`Fixed by ${p.editedBy}`}>fixed</span>}
-                        </span>
-                        <div className="tm-spots">
-                          {/* A time a manager typed in has no location; don't call it missing. */}
-                          {(p.inSpot || !p.editedBy) && <SpotTag quiet spot={p.inSpot} shop={data.shop} prefix="In: " />}
-                          {p.clockOut && (p.outSpot || !p.editedBy) && <SpotTag quiet spot={p.outSpot} shop={data.shop} prefix="Out: " />}
-                        </div>
-                        {p.note && <small>{p.note}</small>}
-                        {boss && (
-                          <span className="mh-actions">
-                            {p.clockOut && !p.approvedAt && <button type="button" className="mh-approve" disabled={approving} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>}
-                            <button type="button" className="mh-edit" onClick={() => setDetails(p)}>Details</button>
-                            <button type="button" className="mh-edit" onClick={() => setEditing(p)}>Edit</button>
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="sc-hrs hr-total">{d.minutes ? formatHours(d.minutes) : ''}</span>
-                </div>
-              )
-            })}
-            {boss && (
-              <button type="button" className="mh-add" onClick={() => setEditing({ employeeId: employee.id, clockIn: timeInputToIso(days[0].date, '08:00'), clockOut: timeInputToIso(days[0].date, '14:00'), note: '', isNew: true })}>
-                + Add a missing punch
-              </button>
-            )}
-          </div>
-        )
-      })}
-
-      </div>
-
-      <div className="hr-pay">
-      {f.payRates && <Paycheck employee={employee} pay={pay} hours={hours} isMe={isMe} />}
-      </div>
-      {editing && <PunchEditor punch={editing} data={data} onClose={() => setEditing(null)} />}
-      {details && <PunchDetails punch={details} data={data} onClose={() => setDetails(null)} />}
-    </div>
-  )
-}
-
-// The paycheck estimate for one pay period.
-function Paycheck({ employee, pay, hours, isMe }) {
-  if (employee.payType === 'commission') {
-    return <section className="tm-card"><h2>Paycheck estimate</h2><p className="tm-muted mb-0">Paid by commission: commission pay isn't calculated here yet.</p></section>
-  }
-  if (!pay || !pay.hourlyRate) {
-    return (
-      <section className="tm-card">
-        <h2>Paycheck estimate</h2>
-        <p className="tm-muted mb-0">{isMe ? "Your manager hasn't added your pay rate yet." : 'Add a pay rate on the Team tab to see an estimate.'}</p>
-      </section>
-    )
-  }
-  const { regularPay, overtimePay, gross } = grossPay(hours, pay.hourlyRate)
-  const estimate = estimatePaycheck(gross, pay)
-  return (
-    <section className="tm-card tm-paycheck">
-      <h2>Paycheck estimate</h2>
-      <div className="tm-row"><span>Regular {formatHours(hours.regular)} hrs × {money(pay.hourlyRate)}</span><span>{money(regularPay)}</span></div>
-      {hours.overtime > 0 && <div className="tm-row"><span>Overtime {formatHours(hours.overtime)} hrs × {money(pay.hourlyRate * 1.5)}</span><span>{money(overtimePay)}</span></div>}
-      <div className="tm-row tm-strong"><span>Gross pay</span><span>{money(gross)}</span></div>
-      {estimate.lines.map((l) => (
-        <div key={l.key} className="tm-row tm-minus"><span>{l.label}</span><span>−{money(l.amount)}</span></div>
-      ))}
-      <div className="tm-row tm-net"><span>Estimated take-home</span><span>{money(estimate.net)}</span></div>
-      <p className="tm-muted small mb-0">
-        An estimate using {TAX_YEAR} tax tables and the W-4 and IT-2104 on file. Your real pay stub from payroll may differ by a few dollars.
-      </p>
-    </section>
   )
 }
 
@@ -218,22 +67,25 @@ export function PunchEditor({ punch, data, onClose }) {
   const [note, setNote] = useState(punch.note ?? '')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const person = data.employees.find((e) => e.id === punch.employeeId)
+  // Adding from Review: pick who the punch is for (`chooseWho`). Other callers already know the person.
+  const [who, setWho] = useState(punch.employeeId ?? '')
+  const person = data.employees.find((e) => e.id === who)
 
   const save = async () => {
     const clockIn = timeInputToIso(date, timeIn)
     const clockOut = timeOut ? timeInputToIso(date, timeOut) : null
+    if (!who) return setError('Pick who this punch is for.')
     if (!clockIn) return setError('Type the clock-in time.')
     if (clockOut && clockOut <= clockIn) return setError('Clock-out has to be after clock-in.')
-    if (!clockOut && data.punches.some((p) => p.employeeId === punch.employeeId && !p.clockOut && p.id !== punch.id)) {
+    if (!clockOut && data.punches.some((p) => p.employeeId === who && !p.clockOut && p.id !== punch.id)) {
       return setError(`${person?.name} is already clocked in. Add a clock-out time.`)
     }
     // Same rule the database enforces (update 027): one person can't have two punches at the same time.
     const end = clockOut ?? '9999'
-    const clash = data.punches.find((p) => p.employeeId === punch.employeeId && p.id !== punch.id && p.clockIn < end && clockIn < (p.clockOut ?? '9999'))
+    const clash = data.punches.find((p) => p.employeeId === who && p.id !== punch.id && p.clockIn < end && clockIn < (p.clockOut ?? '9999'))
     if (clash) return setError(`This overlaps another punch for ${person?.name} (${formatClock(clash.clockIn)} – ${clash.clockOut ? formatClock(clash.clockOut) : 'still in'}).`)
     setBusy(true)
-    const problem = await data.actions.savePunch({ id: punch.id, employeeId: punch.employeeId, clockIn, clockOut, actualIn: punch.actualIn, actualOut: punch.actualOut, note: note.trim() })
+    const problem = await data.actions.savePunch({ id: punch.id, employeeId: who, clockIn, clockOut, actualIn: punch.actualIn, actualOut: punch.actualOut, note: note.trim() })
     setBusy(false)
     if (problem) setError(problem)
     else onClose()
@@ -249,7 +101,7 @@ export function PunchEditor({ punch, data, onClose }) {
 
   return (
     <Modal
-      title={`${punch.isNew ? 'Add' : 'Fix'} punch: ${person?.name ?? ''}`}
+      title={`${punch.isNew ? 'Add' : 'Fix'} punch${person ? `: ${person.name}` : ''}`}
       onClose={onClose}
       footer={
         <>
@@ -260,6 +112,15 @@ export function PunchEditor({ punch, data, onClose }) {
       }
     >
       <div className="row g-2">
+        {punch.chooseWho && (
+          <div className="col-12">
+            <label className="form-label" htmlFor="pu-who">Who</label>
+            <select id="pu-who" className="form-select" value={who} onChange={(e) => { setWho(e.target.value); setError('') }}>
+              <option value="">Choose a person…</option>
+              {data.employees.filter((e) => !scheduleOnly(e) && e.active).sort((a, b) => a.name.localeCompare(b.name)).map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+            </select>
+          </div>
+        )}
         <div className="col-12">
           <label className="form-label" htmlFor="pu-date">Day</label>
           <input id="pu-date" type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -286,6 +147,7 @@ export function PunchEditor({ punch, data, onClose }) {
 // Managers: everyone's hours for the pay period, like the Humanity timesheet summary.
 function Timesheet({ data, period, now }) {
   const f = useFeatures()
+  const [openRow, setOpenRow] = useState(null) // a person's days and paycheck estimate, from their name
   const pay = f.payRates // rate and gross columns only when the business uses pay rates
   const rows = data.employees
     .filter((e) => !scheduleOnly(e))
@@ -314,6 +176,11 @@ function Timesheet({ data, period, now }) {
         <p className="tm-warn no-print">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.</p>
       )}
       <TimesheetCards rows={rows} data={data} pay={pay} total={total} />
+      {openRow && rows.find((r) => r.e.id === openRow) && (
+        <Modal title={`${rows.find((r) => r.e.id === openRow).e.name} · ${rangeLabel(period)}`} onClose={() => setOpenRow(null)}>
+          <PersonHours row={rows.find((r) => r.e.id === openRow)} data={data} pay={pay} />
+        </Modal>
+      )}
       <div className="tm-gridwrap ts-table">
         <table className="tm-sheet">
           <thead>
@@ -330,7 +197,7 @@ function Timesheet({ data, period, now }) {
           <tbody>
             {rows.map(({ e, hours, rate, gross }) => (
               <tr key={e.id}>
-                <th scope="row">{e.name}</th>
+                <th scope="row"><button type="button" className="ts-name" onClick={() => setOpenRow(e.id)}>{e.name}</button></th>
                 <td><b>{formatHours(hours.total)}</b></td>
                 <td>{formatHours(hours.regular)}</td>
                 <td className={hours.overtime ? 'tm-ot' : ''}>{formatHours(hours.overtime)}</td>

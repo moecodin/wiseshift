@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
 import Avatar from './Avatar.jsx'
 import PunchDetails from './PunchDetails.jsx'
-import { formatHours, payPeriodOf, punchMinutes } from './paycheck.js'
+import PeoplePicker from './PeoplePicker.jsx'
+import { PunchEditor } from './HoursTab.jsx'
+import { formatHours, moveDays, payPeriodOf, punchMinutes } from './paycheck.js'
 import { isLateWarning, punchStatus, punchWarnings } from './review.js'
-import { hoursLabel, rangeLabel, scheduleOnly, useNow } from './format.js'
+import { hoursLabel, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
 // "Maria L.", "8a", "Tue 17": short forms so a punch fits on one line.
@@ -26,9 +28,10 @@ const dayShort = (key) => `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)} ${fro
 // Details); the round ✓ approves it, and an Undo shows for a few seconds after any approval.
 export default function ReviewList({ data }) {
   const now = useNow()
-  const [range, setRange] = useState('week') // 'week' (past 7 days) or 'period' (this pay period)
+  const [range, setRange] = useState('week') // 'week' (past 7 days), 'period' (this pay period) or 'last' (the one before)
   const [status, setStatus] = useState('pending') // 'pending' (awaiting approval), 'progress' (still clocked in), 'approved' or 'all'
-  const [who, setWho] = useState('') // '' = everyone, otherwise one employee's id
+  const [picked, setPicked] = useState(() => new Set()) // the employees ticked in the picker; none = everyone
+  const [adding, setAdding] = useState(null) // a blank punch being added from the toolbar
   const [open, setOpen] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -36,11 +39,14 @@ export default function ReviewList({ data }) {
   const [undo, setUndo] = useState(null) // { ids, text } for a few seconds after approving
 
   const today = dateKey(now)
-  const from = range === 'week' ? dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - REVIEW_DAYS)) : payPeriodOf(now)[0]
+  const thisPeriod = payPeriodOf(now)
+  const lastPeriod = moveDays(thisPeriod, -1)
+  const from = range === 'week' ? dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - REVIEW_DAYS)) : range === 'last' ? lastPeriod[0] : thisPeriod[0]
+  const to = range === 'last' ? lastPeriod.at(-1) : null
   const name = (id) => data.employees.find((e) => e.id === id)
   const inRange = data.punches
-    .filter((p) => dateKey(new Date(p.clockIn)) >= from || !p.clockOut)
-    .filter((p) => !who || p.employeeId === who)
+    .filter((p) => (dateKey(new Date(p.clockIn)) >= from && (!to || dateKey(new Date(p.clockIn)) <= to)) || (!to && !p.clockOut))
+    .filter((p) => !picked.size || picked.has(p.employeeId))
     .sort((a, b) => new Date(b.clockIn) - new Date(a.clockIn))
   const countOf = (st) => inRange.filter((p) => punchStatus(p) === st).length
   const list = status === 'all' ? inRange : inRange.filter((p) => punchStatus(p) === status)
@@ -95,21 +101,19 @@ export default function ReviewList({ data }) {
 
   return (
     <div>
-      <div className="tm-filters">
-        <div className="tm-seg" role="group" aria-label="Which days">
-          <button type="button" aria-pressed={range === 'week'} onClick={() => setRange('week')}>Past {REVIEW_DAYS} days</button>
-          <button type="button" aria-pressed={range === 'period'} onClick={() => setRange('period')}>This pay period</button>
-        </div>
-        <select className="form-select form-select-sm rc-who-filter" aria-label="Employee" value={who} onChange={(e) => setWho(e.target.value)}>
-          <option value="">All employees</option>
-          {people.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+      <div className="tm-filters rv-filters">
+        <PeoplePicker people={people} groups={groups} picked={picked} onChange={setPicked} />
+        <select className="form-select form-select-sm rv-period" aria-label="Which days" value={range} onChange={(e) => setRange(e.target.value)}>
+          <option value="week">Past {REVIEW_DAYS} days</option>
+          <option value="period">This pay period</option>
+          <option value="last">Last pay period</option>
         </select>
         {groups.length > 0 && (
-          <div className="tm-seg rv-mode" role="group" aria-label="Layout">
-            <button type="button" aria-pressed={grouped} onClick={() => setGrouped(true)}>Groups</button>
-            <button type="button" aria-pressed={!grouped} onClick={() => setGrouped(false)}>One list</button>
-          </div>
+          <button type="button" className="rv-toggle" aria-pressed={grouped} onClick={() => setGrouped(!grouped)} title={grouped ? 'Showing groups: tap for one list' : 'Showing one list: tap for groups'} aria-label="Group by staff group">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2" /><rect x="13" y="4" width="7" height="7" rx="2" /><rect x="4" y="13" width="7" height="7" rx="2" /><rect x="13" y="13" width="7" height="7" rx="2" /></svg>
+          </button>
         )}
+        <button type="button" className="btn btn-outline-secondary btn-sm rv-add" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
             Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
@@ -168,7 +172,7 @@ export default function ReviewList({ data }) {
           ))}
         </div>
       ) : (
-        <p className="tm-empty">{who ? `Nothing here for ${name(who)?.name ?? 'this person'} in these days.` : status === 'pending' ? 'Nothing is waiting for approval. 🎉' : status === 'progress' ? 'Nobody is clocked in right now.' : 'No punches in these days.'}</p>
+        <p className="tm-empty">{picked.size ? `Nothing here for ${picked.size === 1 ? name([...picked][0])?.name ?? 'this person' : 'the people picked'} in these days.` : status === 'pending' ? 'Nothing is waiting for approval. 🎉' : status === 'progress' ? 'Nobody is clocked in right now.' : 'No punches in these days.'}</p>
       )}
       {error && <p className="tm-error" role="alert">{error}</p>}
 
@@ -192,6 +196,7 @@ export default function ReviewList({ data }) {
           <button type="button" onClick={undoApprove}>Undo</button>
         </div>
       )}
+      {adding && <PunchEditor punch={adding} data={data} onClose={() => setAdding(null)} />}
       {open && <PunchDetails punch={open} data={data} onClose={() => setOpen(null)} />}
     </div>
   )
