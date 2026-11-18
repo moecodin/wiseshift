@@ -6,13 +6,17 @@ import Avatar from './Avatar.jsx'
 import SeenTick from './SeenTick.jsx'
 import ShiftBox from './ShiftBox.jsx'
 import { useFeatures } from './features.js'
+import WeekCards from './WeekCards.jsx'
 
 // The week: people down the side, days across. Managers (editable) tap a box to change
 // a shift and + to add one. Staff get a read-only copy. Tapping a day's heading calls onPickDay.
 export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, className = '' }) {
   const f = useFeatures()
   return (
-    <div className={`tm-gridwrap sc-up ${className}`}>
+    <>
+    {/* On a phone the week is a card per day (WeekCards); a computer keeps the grid. */}
+    <WeekCards data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable={editable} showSeen={showSeen} flash={flash} onEdit={onEdit} onPickDay={onPickDay} phone={className.includes('show-phone')} />
+    <div className={`tm-gridwrap wk-table sc-up ${className}`}>
       <table className="tm-grid">
         <thead>
           <tr>
@@ -83,5 +87,6 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
         </tfoot>
       </table>
     </div>
+    </>
   )
 }
