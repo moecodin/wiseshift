@@ -2830,3 +2830,12 @@ a:hover { color: var(--navy-hover); }
     background: linear-gradient(165deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.55));
   }
 }
+
+/* Manager Today on a phone: the clock first, then what needs a decision, then the summary tiles, then who is working */
+@media (max-width: 899px) {
+  .tm-narrow.mt { display: flex; flex-direction: column; }
+  .mt > .mt-clockcard { order: 0; }
+  .mt > .mt-left { order: 1; }
+  .mt > .tt-grid { order: 2; margin-top: 6px; }
+  .mt > .mt-right { order: 3; }
+}
