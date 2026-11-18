@@ -2524,3 +2524,184 @@ a:hover { color: var(--navy-hover); }
   }
   [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::before, [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::after { content: ''; }
 }
+
+/* =====================================================================
+   Light mode: liquid glass
+   A warm ambient wash sits fixed behind everything; every surface is frosted white glass with a bright
+   top edge, a thin light border and a soft warm shadow. Hero cards are smoked (dark) glass.
+   Dense text panels stay fairly opaque so contrast holds. Solid fallbacks are at the end.
+   ===================================================================== */
+[data-bs-theme='light'] {
+  --g-fill: rgba(255, 255, 255, 0.62);
+  --g-fill-strong: rgba(255, 255, 255, 0.80);
+  --g-fill-soft: rgba(255, 255, 255, 0.42);
+  --g-edge: rgba(255, 255, 255, 0.78);
+  --g-edge-dark: rgba(138, 90, 18, 0.16);
+  --g-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 -1px 0 rgba(138, 90, 18, 0.06) inset, 0 10px 32px rgba(120, 80, 20, 0.12);
+  --g-blur: blur(20px) saturate(180%);
+  --glass-blur: blur(20px) saturate(180%);
+  --faint: #6c6152;
+}
+
+/* Ambient background */
+[data-bs-theme='light'] .tm {
+  background:
+    radial-gradient(780px 540px at 92% -6%, rgba(224, 164, 79, 0.42), transparent 62%),
+    radial-gradient(700px 560px at -8% 36%, rgba(240, 196, 140, 0.40), transparent 64%),
+    radial-gradient(840px 620px at 72% 108%, rgba(205, 140, 70, 0.30), transparent 62%),
+    radial-gradient(520px 420px at 28% -10%, rgba(255, 255, 255, 0.95), transparent 60%),
+    #f7f0e3;
+  background-attachment: fixed;
+}
+[data-bs-theme='light'] body { background: #f7f0e3; }
+
+/* Frosted surfaces (blurred) */
+[data-bs-theme='light'] :is(.tm-card, .mt-card, .mt-stat, .rc, .hr-week, .sc-mine-r, .tl-card, .tm-gridwrap, .nt-card, .tm-summary, .mt-alert, .sc-hero:not(.today), .tt, .tm-paycheck, .st-notice-card) {
+  background: var(--g-fill);
+  border: 1px solid var(--g-edge);
+  box-shadow: var(--g-shadow);
+  -webkit-backdrop-filter: var(--g-blur);
+  backdrop-filter: var(--g-blur);
+}
+[data-bs-theme='light'] :is(.hr-week, .sc-mine-r, .tm-gridwrap, .tl-card, .tm-card, .mt-card, .rc) { background: var(--g-fill-strong); }
+[data-bs-theme='light'] .rc { border-top: 3px solid var(--g-edge-dark); }
+[data-bs-theme='light'] .rc.st-pending { border-top-color: var(--navy); }
+[data-bs-theme='light'] .rc.st-progress { border-top-color: var(--faint); }
+[data-bs-theme='light'] .rc.st-approved { border-top-color: var(--ok); }
+[data-bs-theme='light'] .rc:hover { border-color: var(--navy); }
+
+/* Lighter fills for list rows (no blur, there are many of them) */
+[data-bs-theme='light'] :is(.sc-row, .pt-person.sc-row, .tm-req, .tm-person, .ft-preset, .st-found-opt, .cv-row, .to-card, .mo-card) {
+  background: var(--g-fill-soft);
+  border-color: var(--g-edge);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+[data-bs-theme='light'] :is(.hr-week .mh-day, .sc-mine-r .sc-row, .pt-person.sc-row) { background: transparent; box-shadow: none; border-color: rgba(138, 90, 18, 0.10); }
+[data-bs-theme='light'] :is(.hr-week .mh-day, .sc-mine-r .sc-row):hover { background: rgba(255, 255, 255, 0.55); }
+[data-bs-theme='light'] :is(.hr-week .sc-h, .sc-mine-r .sc-h, .tm-grid thead th, .tm-sheet thead th) { background: rgba(247, 236, 214, 0.65); }
+[data-bs-theme='light'] .tm-grid th, [data-bs-theme='light'] .tm-grid td, [data-bs-theme='light'] .tm-sheet th, [data-bs-theme='light'] .tm-sheet td { border-color: rgba(138, 90, 18, 0.10); }
+[data-bs-theme='light'] .tm-grid tbody th, [data-bs-theme='light'] .tm-sheet tbody th { background: rgba(255, 255, 255, 0.55); }
+[data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) td, [data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) th { background: rgba(247, 236, 214, 0.35); }
+[data-bs-theme='light'] .tm-grid td.today { background: rgba(224, 164, 79, 0.16); }
+
+/* Header, sidebar, dock */
+[data-bs-theme='light'] .tm-head {
+  background: rgba(255, 252, 245, 0.55);
+  -webkit-backdrop-filter: var(--g-blur);
+  backdrop-filter: var(--g-blur);
+  box-shadow: 0 1px 0 var(--g-edge), 0 8px 24px rgba(120, 80, 20, 0.08);
+}
+[data-bs-theme='light'] .tm-side {
+  background: rgba(255, 252, 245, 0.55);
+  -webkit-backdrop-filter: var(--g-blur);
+  backdrop-filter: var(--g-blur);
+  box-shadow: 1px 0 0 var(--g-edge), 10px 0 30px rgba(120, 80, 20, 0.08);
+}
+@media (max-width: 899px) {
+  [data-bs-theme='light'] .tm-tabs {
+    background: rgba(255, 252, 245, 0.58);
+    border: 1px solid var(--g-edge);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 12px 32px rgba(120, 80, 20, 0.20);
+    -webkit-backdrop-filter: var(--g-blur);
+    backdrop-filter: var(--g-blur);
+  }
+  [data-bs-theme='light'] .tm-approve-bar { background: rgba(255, 252, 245, 0.62); border: 1px solid var(--g-edge); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 10px 26px rgba(120, 80, 20, 0.16); }
+  [data-bs-theme='light'] .tm-clock, [data-bs-theme='light'] .tm-card.tm-clock {
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(255, 244, 222, 0.45));
+    border: 1px solid var(--g-edge);
+    box-shadow: var(--g-shadow);
+  }
+}
+[data-bs-theme='light'] .tm-tabs button[aria-selected='true'], [data-bs-theme='light'] .tm-pill { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 4px 12px rgba(138, 90, 18, 0.35); }
+
+/* Pop-ups */
+[data-bs-theme='light'] .pu-root .modal-backdrop { background: rgba(60, 40, 12, 0.28); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+[data-bs-theme='light'] .pu-root .modal-content {
+  background: rgba(255, 252, 245, 0.78);
+  border: 1px solid var(--g-edge);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 30px 70px rgba(60, 40, 12, 0.30);
+  -webkit-backdrop-filter: var(--g-blur);
+  backdrop-filter: var(--g-blur);
+}
+
+/* Controls */
+[data-bs-theme='light'] :is(.form-control, .form-select) { background-color: rgba(255, 255, 255, 0.72); border-color: rgba(138, 90, 18, 0.22); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset; }
+[data-bs-theme='light'] :is(.tm-seg, .sc-toggle, .mo-seg) { background: rgba(255, 255, 255, 0.45); border: 1px solid var(--g-edge); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset; }
+[data-bs-theme='light'] :is(.btn-outline-secondary, .mh-edit, .to-btn:not(.yes), .ft-preset, .rl-pick, .cv-choice) { background-color: rgba(255, 255, 255, 0.5); }
+[data-bs-theme='light'] :is(.btn-outline-secondary, .mh-edit, .to-btn:not(.yes)):hover { background-color: rgba(255, 255, 255, 0.8); }
+[data-bs-theme='light'] :is(.btn-brand, .btn-success, .to-btn.yes, .mh-approve, .rc-ok, .cv-take) { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 -2px 0 rgba(0, 0, 0, 0.14) inset, 0 6px 14px rgba(138, 90, 18, 0.22); }
+[data-bs-theme='light'] .tm-shift { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset; }
+[data-bs-theme='light'] .tt { background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(255, 244, 222, 0.42)); }
+[data-bs-theme='light'] .tt-top svg { background: rgba(255, 255, 255, 0.7); }
+[data-bs-theme='light'] .mt-alert { background: rgba(251, 235, 214, 0.72); }
+[data-bs-theme='light'] .tm-sample { background: rgba(251, 235, 196, 0.6); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); }
+
+/* Smoked glass hero cards: dark, translucent, frosted, with a bright top edge */
+[data-bs-theme='light'] :is(.hr-hero, .sc-hero.today, .mt-in:not(.out)) {
+  background: linear-gradient(135deg, rgba(52, 38, 20, 0.88), rgba(22, 16, 8, 0.82) 80%);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 14px 36px rgba(60, 40, 12, 0.35);
+  -webkit-backdrop-filter: var(--g-blur);
+  backdrop-filter: var(--g-blur);
+  color: #f4ede1;
+}
+[data-bs-theme='light'] .mt-in.out { background: var(--g-fill-strong); border: 1px solid var(--g-edge); border-left: 4px solid var(--warn); box-shadow: var(--g-shadow); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); }
+
+/* Fallbacks: browsers without blur, or "reduce transparency" -> solid surfaces */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  [data-bs-theme='light'] :is(.tm-card, .mt-card, .mt-stat, .rc, .hr-week, .sc-mine-r, .tl-card, .tm-gridwrap, .nt-card, .tm-summary, .mt-alert, .sc-hero:not(.today), .tt, .tm-paycheck, .st-notice-card, .tm-head, .tm-side, .tm-tabs, .pu-root .modal-content, .tm-approve-bar, .tm-sample, .mt-in.out) { background: #fffdf8; }
+  [data-bs-theme='light'] :is(.hr-hero, .sc-hero.today, .mt-in:not(.out)) { background: linear-gradient(135deg, #2e2314, #14100a 75%); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  [data-bs-theme='light'] :is(.tm-card, .mt-card, .mt-stat, .rc, .hr-week, .sc-mine-r, .tl-card, .tm-gridwrap, .nt-card, .tm-summary, .mt-alert, .sc-hero:not(.today), .tt, .tm-paycheck, .st-notice-card, .tm-head, .tm-side, .tm-tabs, .pu-root .modal-content, .tm-approve-bar, .tm-sample, .mt-in.out) { background: #fffdf8; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  [data-bs-theme='light'] :is(.hr-hero, .sc-hero.today, .mt-in:not(.out)) { background: linear-gradient(135deg, #2e2314, #14100a 75%); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* Printing: plain paper */
+@media print {
+  [data-bs-theme='light'] .tm { background: #fff !important; }
+  [data-bs-theme='light'] * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
+}
+
+/* ---------- Light glass: the buttons ---------- */
+/* Bronze buttons and selected pills: glossy bronze glass with a bright top sheen and a light edge */
+[data-bs-theme='light'] :is(.btn-brand, .tm-tabs button[aria-selected='true'], .tm-pill, .sc-day.on, .tm-seg button[aria-pressed='true'], .sc-toggle button[aria-pressed='true'], .mo-seg button[aria-pressed='true'], .rl-pick[aria-pressed='true'], .cv-choice[aria-pressed='true'], .ft-preset[aria-pressed='true'], .mt-count, .tl-plus, .tm-tag.next, .mt-draft button, .app-banner.new, .pn-got) {
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.10) 46%, rgba(255,255,255,0) 52%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 -2px 0 rgba(60, 36, 4, 0.18) inset, 0 6px 16px rgba(138, 90, 18, 0.32);
+}
+[data-bs-theme='light'] :is(.btn-brand, .mt-draft button, .app-banner.new):hover { filter: brightness(1.06); }
+
+/* Yellow action buttons: glossy yellow glass */
+[data-bs-theme='light'] :is(.btn-success, .to-btn.yes, .cv-row .cv-take, .mh-pending button, .mh-approve, .mt-in button, .tm-punch.in, .rc-ok) {
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.10) 46%, rgba(255,255,255,0) 52%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 -2px 0 rgba(120, 80, 10, 0.16) inset, 0 6px 16px rgba(200, 140, 30, 0.30);
+}
+[data-bs-theme='light'] :is(.btn-success, .to-btn.yes, .cv-row .cv-take, .mh-pending button, .mh-approve, .mt-in button, .tm-punch.in, .rc-ok):hover { filter: brightness(1.04) saturate(1.05); }
+[data-bs-theme='light'] :is(.btn-brand, .tm-tabs button[aria-selected='true'], .tm-pill, .sc-day.on, .tm-seg button[aria-pressed='true'], .sc-toggle button[aria-pressed='true'], .mo-seg button[aria-pressed='true'], .rl-pick[aria-pressed='true'], .cv-choice[aria-pressed='true'], .ft-preset[aria-pressed='true'], .mt-count, .tl-plus, .tm-tag.next, .mt-draft button, .app-banner.new, .pn-got, .btn-success, .to-btn.yes, .cv-row .cv-take, .mh-pending button, .mh-approve, .mt-in button, .tm-punch.in, .rc-ok):active { filter: brightness(0.97); box-shadow: 0 2px 6px rgba(60, 36, 4, 0.30) inset; }
+
+/* Outlined buttons and small round icon buttons: frosted clear glass with a bronze edge */
+[data-bs-theme='light'] :is(.btn-outline-secondary, .btn-outline-primary, .mh-edit, .to-btn:not(.yes), .rc-details, .td-more, .tm-icon, .tm-logo, .btn-outline-danger, .nt-add button, .pd-mapbtn, .mt-call) {
+  background-color: rgba(255, 255, 255, 0.5);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 60%);
+  border: 1px solid rgba(138, 90, 18, 0.38);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 4px 12px rgba(120, 80, 20, 0.10);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+}
+[data-bs-theme='light'] :is(.btn-outline-secondary, .btn-outline-primary, .mh-edit, .to-btn:not(.yes), .rc-details, .td-more, .tm-icon, .tm-logo, .btn-outline-danger, .nt-add button, .pd-mapbtn, .mt-call):hover { background-color: rgba(255, 255, 255, 0.78); border-color: var(--navy); }
+[data-bs-theme='light'] :is(.btn-outline-secondary, .btn-outline-primary, .mh-edit, .to-btn:not(.yes), .rc-details, .td-more, .tm-icon, .tm-logo, .btn-outline-danger, .nt-add button, .pd-mapbtn, .mt-call):active { box-shadow: 0 2px 6px rgba(120, 80, 20, 0.18) inset; }
+[data-bs-theme='light'] .btn-outline-danger { border-color: rgba(179, 38, 30, 0.45); }
+
+/* The big round clock button: a glass sphere */
+[data-bs-theme='light'] .tm-punch {
+  background-image: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0) 52%), radial-gradient(circle at 70% 90%, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0) 55%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.5) inset, 0 -10px 22px rgba(90, 55, 6, 0.16) inset, 0 14px 30px rgba(138, 90, 18, 0.34);
+}
+[data-bs-theme='light'] .tm-ring-track { stroke: rgba(138, 90, 18, 0.18); }
+
+/* Today's header cell in the schedule grid stays bronze glass (the generic header rule above would wash it out) */
+[data-bs-theme='light'] .tm-grid thead th.today { background-color: var(--navy); background-image: linear-gradient(180deg, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.10) 46%, rgba(255,255,255,0) 52%); }
+
