@@ -104,7 +104,7 @@ function HoldButton({ open, busy, onPunch, w }) {
     <div className={`tm-holdwrap ${holding ? 'holding' : ''} ${pulse ? 'pulse' : ''}`}>
       <svg className="tm-ring" viewBox="0 0 120 120" aria-hidden="true">
         <circle cx="60" cy="60" r={R} className="tm-ring-track" />
-        <circle cx="60" cy="60" r={R} className="tm-ring-fill" strokeDasharray={C} strokeDashoffset={C * (1 - progress)} />
+        <circle cx="60" cy="60" r={R} className={`tm-ring-fill ${open ? 'out' : 'in'}`} strokeDasharray={C} strokeDashoffset={C * (1 - progress)} />
       </svg>
       <button
         type="button"

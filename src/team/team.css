@@ -2839,3 +2839,8 @@ a:hover { color: var(--navy-hover); }
   .mt > .tt-grid { order: 2; margin-top: 6px; }
   .mt > .mt-right { order: 3; }
 }
+
+/* The ring that fills while you hold the clock button (dark mode): the site accent when clocking in, the site yellow when clocking out */
+[data-bs-theme='dark'] .tm-ring-fill.in { stroke: var(--navy); }
+[data-bs-theme='dark'] .tm-ring-fill.out { stroke: var(--yellow); }
+[data-bs-theme='dark'] .tm-ring-track { stroke: rgba(255, 255, 255, 0.16); opacity: 1; }
