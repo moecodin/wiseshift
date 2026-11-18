@@ -1,12 +1,12 @@
-// Which dark look to use when dark mode is on: 'charcoal' (the default) or 'gold' (black and gold).
+// Which dark look to use when dark mode is on: 'gold' (black and gold, the default) or 'charcoal'.
 // It is saved on this device and put on the page as data-dark-style so the CSS can switch palettes.
 const KEY = 'wiseshift-dark-style'
 
 export function getDarkStyle() {
   try {
-    return localStorage.getItem(KEY) === 'gold' ? 'gold' : 'charcoal'
+    return localStorage.getItem(KEY) === 'charcoal' ? 'charcoal' : 'gold'
   } catch {
-    return 'charcoal'
+    return 'gold'
   }
 }
 

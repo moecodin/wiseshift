@@ -2377,3 +2377,22 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-off { border-color: rgba(224, 164, 79, 0.25); color: var(--muted); }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-add { border-color: rgba(224, 164, 79, 0.35); color: var(--navy); }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-grid tfoot th, [data-bs-theme='dark'][data-dark-style='gold'] .tm-grid tfoot td { color: var(--muted); background: color-mix(in srgb, #1c1305 50%, transparent); }
+
+/* ---------- Site-wide: links and focus use the brand color in every theme ---------- */
+a { color: var(--navy); }
+a:hover { color: var(--navy-hover); }
+.form-control:focus, .form-select:focus, .form-check-input:focus, textarea:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--navy) 28%, transparent);
+}
+::selection { background: color-mix(in srgb, var(--navy) 35%, transparent); }
+
+/* Every selected choice is brand colored (language, role picks, cover choices) */
+.mo-seg button[aria-pressed='true'], .rl-pick[aria-pressed='true'], .cv-choice[aria-pressed='true'] { background: var(--navy); color: var(--on-navy); border-color: var(--navy); }
+.rl-pick[aria-pressed='true'] .rl-dot { outline: 2px solid var(--on-navy); }
+
+/* Black & Gold: the clock card's corner decorations become soft gold glows */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::before, [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::after { background-image: none; border-radius: 50%; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::before { width: 190px; height: 190px; top: -80px; left: -70px; background-color: rgba(224, 164, 79, 0.16); }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::after { width: 150px; height: 150px; right: -50px; bottom: -60px; left: auto; top: auto; background-color: rgba(224, 164, 79, 0.10); }
+[data-bs-theme='dark'][data-dark-style='gold'] .to-eyebrow, [data-bs-theme='dark'][data-dark-style='gold'] .mt-eyebrow.ok { color: var(--navy); }
