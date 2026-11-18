@@ -1803,3 +1803,9 @@ summary:focus-visible,
   outline-offset: 2px;
 }
 .pu-root .modal-content:focus-visible { outline: none; } /* the box itself only holds focus for the keyboard, no ring */
+
+/* Taps respond at once (no double-tap-to-zoom wait) on every control. */
+button, a, input, select, textarea, label, summary, [role='button'] { touch-action: manipulation; }
+
+/* Digits line up in columns and don't jiggle as a running clock or hours total changes. */
+.tm-now, .tm-datebox, .sc-date, .mg-sum, .hr-day, .tm-punches, table, time { font-variant-numeric: tabular-nums; }
