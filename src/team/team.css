@@ -2500,3 +2500,27 @@ a:hover { color: var(--navy-hover); }
   .tm-clock .tm-holdwrap { align-self: start; }
   .tm-clock .tm-now, .tm-clock .tm-date, .tm-clock .tm-status { align-self: start; }
 }
+
+/* Phone clock: the rounded translucent panel and its soft round glows are back, with no hard border line */
+@media (max-width: 899px) {
+  .tm-clock, .tm-card.tm-clock {
+    position: relative;
+    overflow: hidden;
+    border: 0;
+    border-radius: 26px;
+    padding: 16px 16px 14px;
+    background: linear-gradient(165deg, color-mix(in srgb, var(--navy) 16%, var(--paper)), color-mix(in srgb, var(--paper) 80%, transparent) 70%);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+  .tm-clock::before, .tm-clock::after { display: block; content: ''; position: absolute; z-index: 0; border-radius: 50%; background-image: none; pointer-events: none; }
+  .tm-clock::before { width: 190px; height: 190px; top: -80px; left: -70px; right: auto; bottom: auto; background-color: color-mix(in srgb, var(--navy) 18%, transparent); }
+  .tm-clock::after { width: 150px; height: 150px; right: -50px; bottom: -60px; left: auto; top: auto; background-color: color-mix(in srgb, var(--navy) 11%, transparent); }
+  .tm-clock > * { position: relative; z-index: 1; }
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock, [data-bs-theme='dark'][data-dark-style='gold'] .tm-card.tm-clock {
+    background: linear-gradient(165deg, color-mix(in srgb, var(--navy) 16%, var(--paper)), color-mix(in srgb, var(--paper) 80%, transparent) 70%);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::before, [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::after { content: ''; }
+}
