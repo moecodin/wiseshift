@@ -2868,3 +2868,17 @@ a:hover { color: var(--navy-hover); }
 .sc-up .sc-row, .sc-up .mg-person { animation: none; }
 @keyframes sc-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .sc-up { animation: none; } }
+
+/* "Your day" pop-up (the Your day tile on the phone Today screen) */
+.yd-date { margin: 0 0 12px; color: var(--muted); font-size: 14px; font-weight: 600; }
+.yd-block { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--head); }
+.yd-block.live { border-color: var(--ok); }
+.yd-label { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.yd-big { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.yd-sub { color: var(--muted); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.yd-bullets { margin: -6px 0 12px; padding-left: 20px; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.yd-left { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line-soft); color: var(--muted); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.yd-left.alone { margin: 0 0 10px; padding: 0 2px; border: 0; }
+.yd-tasks { border-style: dashed; background: transparent; margin-bottom: 0; }
+.yd-empty { color: var(--muted); font-size: 14px; line-height: 1.4; }
+.yd-empty b { color: var(--ink); font-weight: 700; }
