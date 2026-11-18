@@ -3300,3 +3300,24 @@ a:hover { color: var(--navy-hover); }
 .rv-toast button { color: #f6d580; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 /* On a phone the Undo sits above the Approve-all bar and the tab bar */
 @media (max-width: 899px) { .rv-toast { bottom: calc(142px + env(safe-area-inset-bottom, 0px)); } }
+
+/* Week view grouped by staff group: a heading per group inside each day card (phone) and a heading row in the grid (computer) */
+.wk-sec { display: flex; flex-direction: column; gap: 6px; }
+.wk-group { display: flex; align-items: center; gap: 8px; padding: 6px 4px 0; }
+.wk-group b { font-size: 12.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.wk-group small { color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; margin-left: auto; }
+.tm-grid .gr-group th { padding: 6px 12px; text-align: left; background: var(--head); border-top: 1px solid var(--line); font-size: 12.5px; }
+.tm-grid .gr-group th i { margin-right: 8px; vertical-align: 0; }
+.tm-grid .gr-group th b { font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.tm-grid .gr-group th small { margin-left: 10px; color: var(--muted); font-weight: 600; }
+/* Grouped days: one short line per shift (the group says what they do), so 20+ people don't make a day a mile long */
+.wk-day.grouped { gap: 4px; }
+.wk-day.grouped .wk-row { grid-template-columns: minmax(0, 1fr) auto; padding: 3px 10px; min-height: 34px; border-radius: 10px; }
+.wk-day.grouped .wk-row > .tm-avatar { display: none; }
+.wk-day.grouped .wk-who { flex-direction: row; align-items: baseline; gap: 8px; overflow: hidden; }
+.wk-day.grouped .wk-who b { font-size: 13.5px; white-space: nowrap; flex: none; }
+.wk-day.grouped .wk-who small { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-wrap: nowrap; }
+.wk-day.grouped .wk-who .rl-badge, .wk-day.grouped .wk-who [class*='rl-badge'] { display: none; }
+.wk-day.grouped .wk-time { font-size: 12.5px; }
+.wk-day.grouped .wk-group { padding-top: 8px; }
+.wk-day.grouped .wk-who small { display: none; }

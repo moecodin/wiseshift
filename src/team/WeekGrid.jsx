@@ -12,6 +12,14 @@ import WeekCards from './WeekCards.jsx'
 // a shift and + to add one. Staff get a read-only copy. Tapping a day's heading calls onPickDay.
 export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, className = '' }) {
   const f = useFeatures()
+  // With staff groups set up, people sit under a heading row per group (the rest under "No group").
+  const groups = data.settings?.groups ?? []
+  const known = new Set(groups.map((g) => g.name))
+  const ordered = groups.length
+    ? [...groups.map((g) => ({ name: g.name, color: g.color ?? 7, members: people.filter((p) => p.group === g.name) })), { name: 'No group', color: 7, members: people.filter((p) => !known.has(p.group)) }]
+        .filter((sec) => sec.members.length > 0)
+        .flatMap((sec) => [{ head: true, name: sec.name, color: sec.color, count: sec.members.length }, ...sec.members.map((person) => ({ person }))])
+    : people.map((person) => ({ person }))
   return (
     <>
     {/* On a phone the week is a card per day (WeekCards); a computer keeps the grid. */}
@@ -39,7 +47,15 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
           </tr>
         </thead>
         <tbody>
-          {people.map((person) => {
+          {ordered.map((item) => {
+            if (item.head) {
+              return (
+                <tr key={`g-${item.name}`} className="gr-group">
+                  <th scope="colgroup" colSpan={8}><i className={`rl-dot t${item.color}`} aria-hidden="true" /><b>{item.name}</b><small>{item.count} {item.count === 1 ? 'person' : 'people'}</small></th>
+                </tr>
+              )
+            }
+            const person = item.person
             const theirs = shifts.filter((s) => s.employeeId === person.id)
             return (
               <tr key={person.id} className={person.id === me.id ? 'me' : ''}>

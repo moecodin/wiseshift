@@ -15,6 +15,11 @@ import { tagClass } from './tags.js'
 export default function WeekCards({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, phone = false }) {
   const f = useFeatures()
   const person = (id) => people.find((p) => p.id === id) ?? data.employees.find((e) => e.id === id)
+  const groups = data.settings?.groups ?? []
+  const groupOf = (id) => {
+    const g = person(id)?.group
+    return groups.some((x) => x.name === g) ? g : ''
+  }
   return (
     <div className={`wk-cards sc-up ${phone ? 'show-phone' : ''}`}>
       {week.map((d) => {
@@ -24,22 +29,11 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
         const off = people.filter((p) => offOn(data.teamOff, p.id, d))
         const date = fromKey(d)
         const Head = onPickDay ? 'button' : 'div'
-        return (
-          <section key={d} className={`wk-day ${d === today ? 'today' : ''}`}>
-            <div className="wk-head">
-              <Head type={onPickDay ? 'button' : undefined} className="wk-date" onClick={onPickDay ? () => onPickDay(d) : undefined} aria-label={date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}>
-                <small>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</small>
-                <b>{date.getDate()}</b>
-              </Head>
-              <div className="wk-sum">
-                <b>{d === today ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'long' })}</b>
-                <small>{working ? `${working} working · ${formatHours(minutes)} hrs` : 'Nobody scheduled'}</small>
-              </div>
-              {editable && (
-                <button type="button" className="wk-add" aria-label={`Add a shift on ${date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`} onClick={() => onEdit({ employeeId: me.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>+</button>
-              )}
-            </div>
-            {day.map((s) => {
+        // With staff groups set up (Settings → Business → Groups) the day's shifts are listed under each group.
+        const sections = groups.length
+          ? [...groups.map((g) => ({ name: g.name, color: g.color ?? 7, rows: day.filter((s) => groupOf(s.employeeId) === g.name) })), { name: 'No group', color: 7, rows: day.filter((s) => groupOf(s.employeeId) === '') }].filter((sec) => sec.rows.length > 0)
+          : null
+            const renderRow = (s) => {
               const p = person(s.employeeId)
               const Row = editable ? 'button' : 'div'
               const tint = s.title ? tagClass(s.title, data.settings?.shiftPresets).match(/t\d/)?.[0] : ''
@@ -62,7 +56,32 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
                   <span className="wk-time">{shiftTimes(s)}</span>
                 </Row>
               )
-            })}
+            }
+        return (
+          <section key={d} className={`wk-day ${d === today ? 'today' : ''} ${sections ? 'grouped' : ''}`}>
+            <div className="wk-head">
+              <Head type={onPickDay ? 'button' : undefined} className="wk-date" onClick={onPickDay ? () => onPickDay(d) : undefined} aria-label={date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}>
+                <small>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</small>
+                <b>{date.getDate()}</b>
+              </Head>
+              <div className="wk-sum">
+                <b>{d === today ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'long' })}</b>
+                <small>{working ? `${working} working · ${formatHours(minutes)} hrs` : 'Nobody scheduled'}</small>
+              </div>
+              {editable && (
+                <button type="button" className="wk-add" aria-label={`Add a shift on ${date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`} onClick={() => onEdit({ employeeId: me.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>+</button>
+              )}
+            </div>
+            {sections ? sections.map((sec) => (
+              <div key={sec.name} className="wk-sec">
+                <div className="wk-group">
+                  <i className={`rl-dot t${sec.color}`} aria-hidden="true" />
+                  <b>{sec.name}</b>
+                  <small>{sec.rows.length} {sec.rows.length === 1 ? 'shift' : 'shifts'} · {formatHours(sec.rows.reduce((sum, s) => sum + shiftMinutes(s), 0))} hrs</small>
+                </div>
+                {sec.rows.map(renderRow)}
+              </div>
+            )) : day.map(renderRow)}
             {off.map((p) => (
               <div key={p.id} className="wk-off"><Avatar employee={p} size={22} /><span>{p.name}</span><em>{editable ? 'Time off' : 'Off'}</em></div>
             ))}
