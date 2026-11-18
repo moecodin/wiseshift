@@ -1790,3 +1790,16 @@ button.tl-bar:active { transform: scale(0.96); }
 
 /* My clock: a centered button with room above and below */
 .td-more.mt-more { display: flex; width: fit-content; margin: 14px auto 6px; }
+
+/* Keyboard focus: every control gets a clear ring (mouse and touch taps don't show it). */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 2px;
+}
+.pu-root .modal-content:focus-visible { outline: none; } /* the box itself only holds focus for the keyboard, no ring */
