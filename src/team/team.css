@@ -3226,3 +3226,72 @@ a:hover { color: var(--navy-hover); }
 .ts-pay { padding: 0 14px 12px; }
 .ts-pay .tm-card { margin: 8px 0 0; }
 @media print { .ts-name { text-decoration: none; } .ts-pay { display: none; } }
+
+/* More compact review rows: no avatar, a name column only as wide as the longest name in the group,
+   shorter rows and smaller buttons, so the shift times show in full and more punches fit on screen. */
+.rv-av { display: none; }
+.rv-head { min-height: 38px; padding: 6px 10px; }
+.rv-row { min-height: 32px; padding: 0 4px 0 10px; gap: 2px; }
+.rv-main, .rv-main { grid-template-columns: var(--nw, 7ch) minmax(0, 1fr) auto auto; gap: 8px; min-height: 32px; }
+.rv-name { font-size: 13px; }
+.rv-when { font-size: 12.5px; }
+.rv-dur { font-size: 12.5px; min-width: 32px; }
+.rv-more, .rv-ok, .rv-out, .rv-done { height: 26px; min-width: 26px; font-size: 13px; }
+.rv-more { font-size: 16px; }
+.rv-warn { width: 14px; font-size: 12px; }
+@media (max-width: 560px) { .rv-row { padding-left: 10px; } }
+.rv-main, .rv-main { gap: 6px; }
+.rv-when { font-size: 12px; letter-spacing: -0.01em; }
+.rv-dur { min-width: 28px; font-size: 12px; }
+@media (min-width: 900px) { .rv.cols { grid-template-columns: repeat(auto-fill, minmax(318px, 1fr)); } }
+/* Grouped by date: a role beside each name (the shift's role, else the position) */
+.rv-main.with-role { grid-template-columns: var(--nw, 7ch) minmax(0, 1fr) auto auto auto; }
+.rv-role { display: inline-flex; align-items: center; gap: 5px; min-width: 0; color: var(--muted); font-size: 12px; font-weight: 600; }
+.rv-role span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv-role .rl-dot { width: 8px; height: 8px; }
+.rv-main.with-role .rv-when { text-align: right; }
+.rv-main.with-role { grid-template-columns: var(--nw, 7ch) 10ch minmax(0, 1fr) auto auto; }
+.rv-main.with-role .rv-role { width: 10ch; }
+/* The ch units for the name and role columns follow this size, matching the text inside them */
+.rv-rows { font-size: 12.5px; }
+.rv-main.with-role { grid-template-columns: var(--nw, 7ch) 9ch minmax(0, 1fr) auto auto; }
+.rv-main.with-role .rv-role { width: 9ch; }
+.rv-main.with-role { grid-template-columns: var(--nw, 7ch) 7.4ch minmax(0, 1fr) auto auto; }
+.rv-main.with-role .rv-role { width: 7.4ch; gap: 4px; }
+.rv-role .rl-dot { width: 7px; height: 7px; }
+
+/* Visible dividers between the name, the date, the shift times and the hours */
+.rv-main, .rv-main.with-role { gap: 0; }
+.rv-main { grid-template-columns: var(--nw, 7ch) 6.2ch minmax(0, 1fr) auto auto; }
+.rv-main.with-role { grid-template-columns: var(--nw, 7ch) 7.4ch minmax(0, 1fr) auto auto; }
+.rv-name { padding-right: 6px; }
+.rv-main.with-role .rv-role { padding-right: 6px; }
+.rv-day, .rv-when, .rv-dur { align-self: stretch; display: block; line-height: 32px; padding: 0 6px; border-left: 1px solid var(--line); }
+.rv-day { color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.rv-when { text-align: left; }
+.rv-main.with-role .rv-when { text-align: left; }
+.rv-dur { text-align: right; min-width: 36px; }
+.rv-warn { padding-left: 4px; }
+@media (max-width: 420px) {
+  .rv-day, .rv-when, .rv-dur { padding: 0 4px; }
+  .rv-when { font-size: 11.5px; letter-spacing: -0.02em; }
+  .rv-day { font-size: 11.5px; }
+  .rv-main { grid-template-columns: var(--nw, 7ch) 5.8ch minmax(0, 1fr) auto auto; }
+  .rv-main.with-role { grid-template-columns: var(--nw, 7ch) 7ch minmax(0, 1fr) auto auto; }
+  .rv-main.with-role .rv-role { width: 7ch; }
+}
+.rv-warn { display: inline-block; width: 18px; padding: 0; text-align: center; }
+@media (max-width: 420px) {
+  .rv-warn { width: 14px; font-size: 11px; }
+  .rv-day, .rv-when, .rv-dur { padding: 0 3px 0 4px; }
+}
+@media (max-width: 420px) {
+  .rv-role .rl-dot { display: none; }
+  .rv-main.with-role { grid-template-columns: var(--nw, 7ch) 7.2ch minmax(0, 1fr) auto auto; }
+  .rv-main.with-role .rv-role { width: 7.2ch; padding-right: 2px; }
+}
+
+/* Balanced columns for the review groups (the column count and the dealing are in ReviewList) */
+.rv.cols { display: grid; gap: 12px; align-items: start; }
+.rv-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.rv:not(.cols) > .rv-col { gap: 10px; }

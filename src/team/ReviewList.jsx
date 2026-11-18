@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
-import Avatar from './Avatar.jsx'
 import PunchDetails from './PunchDetails.jsx'
 import PeoplePicker from './PeoplePicker.jsx'
 import { PunchEditor } from './HoursTab.jsx'
 import { formatHours, moveDays, payPeriodOf, punchMinutes } from './paycheck.js'
-import { isLateWarning, punchStatus, punchWarnings } from './review.js'
+import { isLateWarning, punchStatus, punchWarnings, shiftFor } from './review.js'
 import { hoursLabel, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
@@ -35,7 +34,7 @@ export default function ReviewList({ data }) {
   const [open, setOpen] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [grouped, setGrouped] = useState(true) // one column per group, or one plain list
+  const [groupBy, setGroupBy] = useState(null) // 'group' (staff group), 'role', 'date' or 'none'; null = the best default
   const [undo, setUndo] = useState(null) // { ids, text } for a few seconds after approving
 
   const today = dateKey(now)
@@ -54,22 +53,37 @@ export default function ReviewList({ data }) {
   const pending = list.filter((p) => punchStatus(p) === 'pending')
   const pendingMinutes = pending.reduce((sum, p) => sum + punchMinutes(p, now), 0)
 
-  // Groups (Settings → Business → Groups). With none set up, or with grouping switched off, it's one list.
+  // How the punches are sorted into columns: by staff group (Settings → Business → Groups), by the role
+  // on the shift they belong to, by day, or one plain list. Defaults to staff group when groups exist.
   const groups = data.settings.groups ?? []
-  const useGroups = grouped && groups.length > 0
+  const roles = data.settings.roles ?? []
+  const mode = groupBy ?? (groups.length > 0 ? 'group' : 'none')
+  const grouped = mode !== 'none'
+  const byPerson = (a, b) => (name(a.employeeId)?.name ?? '').localeCompare(name(b.employeeId)?.name ?? '') || new Date(b.clockIn) - new Date(a.clockIn)
   const groupOf = (p) => {
     const g = name(p.employeeId)?.group
     return groups.some((x) => x.name === g) ? g : ''
   }
-  const byPerson = (a, b) => (name(a.employeeId)?.name ?? '').localeCompare(name(b.employeeId)?.name ?? '') || new Date(b.clockIn) - new Date(a.clockIn)
-  const buckets = useGroups
-    ? [...groups.map((g) => ({ key: g.name, name: g.name, color: g.color ?? 7, rows: list.filter((p) => groupOf(p) === g.name).sort(byPerson) })), { key: '', name: 'No group', color: 7, rows: list.filter((p) => groupOf(p) === '').sort(byPerson) }]
-        .filter((b) => b.rows.length > 0)
-    : [{ key: 'all', name: '', color: 7, rows: list }]
+  const roleOf = (p) => shiftFor(p, data.shifts)?.role ?? ''
+  let buckets
+  if (mode === 'group') {
+    buckets = [...groups.map((g) => ({ key: g.name, name: g.name, color: g.color ?? 7, rows: list.filter((p) => groupOf(p) === g.name) })), { key: '', name: 'No group', color: 7, rows: list.filter((p) => groupOf(p) === '') }]
+  } else if (mode === 'role') {
+    const extra = [...new Set(list.map(roleOf).filter((r) => r && !roles.some((x) => x.name === r)))]
+    buckets = [...roles.map((r) => ({ key: r.name, name: r.name, color: r.color ?? 7, rows: list.filter((p) => roleOf(p) === r.name) })), ...extra.map((r) => ({ key: r, name: r, color: 7, rows: list.filter((p) => roleOf(p) === r) })), { key: '', name: 'No role', color: 7, rows: list.filter((p) => !roleOf(p)) }]
+  } else if (mode === 'date') {
+    const days = [...new Set(list.map((p) => dateKey(new Date(p.clockIn))))].sort().reverse()
+    buckets = days.map((d) => ({ key: d, name: d === today ? 'Today' : `${dayShort(d)}`, color: d === today ? 0 : 7, rows: list.filter((p) => dateKey(new Date(p.clockIn)) === d) }))
+  } else {
+    buckets = [{ key: 'all', name: '', color: 7, rows: list }]
+  }
+  buckets = buckets.filter((b) => b.rows.length > 0)
   for (const b of buckets) {
+    if (grouped) b.rows = [...b.rows].sort(byPerson)
     b.pending = b.rows.filter((p) => punchStatus(p) === 'pending')
     b.open = true
   }
+  const useGroups = grouped
 
   const approve = async (ids) => {
     setBusy(true)
@@ -99,6 +113,77 @@ export default function ReviewList({ data }) {
     if (problem) setError(problem)
   }
 
+  // Balanced columns: as many as fit across (about 318px each), each group added to the shortest column
+  // so far (height estimated from its lines), so uneven groups stack straight down with no gaps.
+  const [box, setBox] = useState(null)
+  const [boxWidth, setBoxWidth] = useState(0)
+  useEffect(() => {
+    if (!box) return undefined
+    const measure = () => setBoxWidth(box.clientWidth)
+    measure()
+    const watch = new ResizeObserver(measure)
+    watch.observe(box)
+    return () => watch.disconnect()
+  }, [box])
+  const columnCount = useGroups ? Math.max(1, Math.min(buckets.length, Math.floor((boxWidth + 12) / (318 + 12)))) : 1
+  const columns = Array.from({ length: columnCount }, () => ({ cost: 0, items: [] }))
+  // Biggest groups first, so the columns come out about equally tall; within a column the groups keep their usual order.
+  const order = new Map(buckets.map((b, i) => [b, i]))
+  for (const b of [...buckets].sort((x, y) => y.rows.length - x.rows.length)) {
+    const shortest = columns.reduce((best, c) => (c.cost < best.cost ? c : best), columns[0])
+    shortest.items.push(b)
+    shortest.cost += b.rows.length + 2
+  }
+  for (const c of columns) c.items.sort((x, y) => order.get(x) - order.get(y))
+  // The column holding the first group goes leftmost, so Management (or the newest day) still leads.
+  columns.sort((x, y) => (x.items.length ? order.get(x.items[0]) : Infinity) - (y.items.length ? order.get(y.items[0]) : Infinity))
+  const columnLists = columns.map((c) => c.items)
+
+  const renderBucket = (bucket) => (
+            <Group key={bucket.key} header={useGroups} open={bucket.open}>
+              {useGroups && (
+                <summary className="rv-head">
+                  <i className={`rl-dot t${bucket.color}`} aria-hidden="true" />
+                  <b>{bucket.name}</b>
+                  <small>{bucket.rows.length} {bucket.rows.length === 1 ? 'punch' : 'punches'}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
+                  {bucket.pending.length > 0 && (
+                    <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>Approve {bucket.pending.length}</button>
+                  )}
+                </summary>
+              )}
+              <div className="rv-rows" style={{ '--nw': `${Math.min(8.5, Math.max(5, ...bucket.rows.map((r) => shortName(name(r.employeeId)?.name).length)))}ch` }}>
+                {bucket.rows.map((p, i) => {
+                  const person = name(p.employeeId)
+                  const st = punchStatus(p)
+                  const warnings = punchWarnings(p, data.shifts, data.shop, now)
+                  const dayKey = dateKey(new Date(p.clockIn))
+                  const again = useGroups && i > 0 && bucket.rows[i - 1].employeeId === p.employeeId
+                  const out = p.clockOut ? short(p.clockOut) : '…'
+                  // Grouped by date there is no staff group to say what someone does, so each line shows their role
+                  // (the shift's role, else their position).
+                  const role = mode === 'date' ? roleOf(p) || person?.position || '' : ''
+                  const roleColor = roles.find((r) => r.name === role)?.color
+                  return (
+                    <div key={p.id} className={`rv-row st-${st} ${again ? 'again' : ''}`}>
+                      <button type="button" className={`rv-main ${mode === 'date' ? 'with-role' : ''}`} onClick={() => setOpen(p)} title={`${person?.name ?? '?'} · ${formatClock(p.clockIn)} – ${p.clockOut ? formatClock(p.clockOut) : 'still in'}`}>
+                        <span className="rv-name">{again ? '' : shortName(person?.name)}</span>
+                        {mode === 'date' && <span className="rv-role">{roleColor !== undefined && <i className={`rl-dot t${roleColor}`} aria-hidden="true" />}<span>{role}</span></span>}
+                        {mode !== 'date' && <span className="rv-day">{dayShort(dayKey)}</span>}
+                        <span className="rv-when">{short(p.clockIn)}–{out}{p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <em> +1</em>}</span>
+                        <span className="rv-dur">{formatHours(punchMinutes(p, now))}</span>
+                        {warnings.length > 0 ? <span className={`rv-warn ${warnings.some(isLateWarning) ? 'late' : ''}`} title={warnings.join('\n')} aria-label={warnings[0]}>⚠</span> : <span className="rv-warn" aria-hidden="true" />}
+                      </button>
+                      <button type="button" className="rv-more" onClick={() => setOpen(p)} aria-label={`Details for ${person?.name ?? 'this punch'}`} title="Details">⋯</button>
+                      {st === 'pending' && <button type="button" className="rv-ok" disabled={busy} onClick={() => approve([p.id])} aria-label={`Approve ${hoursLabel(punchMinutes(p, now))} for ${person?.name ?? 'this person'}`} title={`Approve ${hoursLabel(punchMinutes(p, now))}`}>✓</button>}
+                      {st === 'progress' && <button type="button" className="rv-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)} title="Clock out now">Out</button>}
+                      {st === 'approved' && <span className="rv-done" title="Approved" aria-label="Approved">✓</span>}
+                    </div>
+                  )
+                })}
+              </div>
+            </Group>
+  )
+
   return (
     <div>
       <div className="tm-filters rv-filters">
@@ -108,11 +193,12 @@ export default function ReviewList({ data }) {
           <option value="period">This pay period</option>
           <option value="last">Last pay period</option>
         </select>
-        {groups.length > 0 && (
-          <button type="button" className="rv-toggle" aria-pressed={grouped} onClick={() => setGrouped(!grouped)} title={grouped ? 'Showing groups: tap for one list' : 'Showing one list: tap for groups'} aria-label="Group by staff group">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2" /><rect x="13" y="4" width="7" height="7" rx="2" /><rect x="4" y="13" width="7" height="7" rx="2" /><rect x="13" y="13" width="7" height="7" rx="2" /></svg>
-          </button>
-        )}
+        <select className="form-select form-select-sm rv-period rv-groupby" aria-label="Group by" value={mode} onChange={(e) => setGroupBy(e.target.value)}>
+          {groups.length > 0 && <option value="group">By staff group</option>}
+          {roles.length > 0 && <option value="role">By role</option>}
+          <option value="date">By date</option>
+          <option value="none">One list</option>
+        </select>
         <button type="button" className="btn btn-outline-secondary btn-sm rv-add" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
@@ -130,45 +216,9 @@ export default function ReviewList({ data }) {
       {range === 'period' && <p className="tm-muted small mb-2">{rangeLabel(payPeriodOf(now))}</p>}
 
       {list.length ? (
-        <div className={`rv ${useGroups ? 'cols' : ''}`}>
-          {buckets.map((bucket) => (
-            <details key={bucket.key} className="rv-group" open={bucket.open}>
-              {useGroups && (
-                <summary className="rv-head">
-                  <i className={`rl-dot t${bucket.color}`} aria-hidden="true" />
-                  <b>{bucket.name}</b>
-                  <small>{bucket.rows.length} {bucket.rows.length === 1 ? 'punch' : 'punches'}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
-                  {bucket.pending.length > 0 && (
-                    <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>Approve {bucket.pending.length}</button>
-                  )}
-                </summary>
-              )}
-              <div className="rv-rows">
-                {bucket.rows.map((p, i) => {
-                  const person = name(p.employeeId)
-                  const st = punchStatus(p)
-                  const warnings = punchWarnings(p, data.shifts, data.shop, now)
-                  const dayKey = dateKey(new Date(p.clockIn))
-                  const again = useGroups && i > 0 && bucket.rows[i - 1].employeeId === p.employeeId
-                  const out = p.clockOut ? short(p.clockOut) : '…'
-                  return (
-                    <div key={p.id} className={`rv-row st-${st} ${again ? 'again' : ''}`}>
-                      <button type="button" className="rv-main" onClick={() => setOpen(p)} title={`${person?.name ?? '?'} · ${formatClock(p.clockIn)} – ${p.clockOut ? formatClock(p.clockOut) : 'still in'}`}>
-                        <span className="rv-av"><Avatar employee={person} size={22} /></span>
-                        <span className="rv-name">{again ? '' : shortName(person?.name)}</span>
-                        <span className="rv-when">{dayShort(dayKey)} · {short(p.clockIn)}–{out}{p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <em> +1</em>}</span>
-                        <span className="rv-dur">{formatHours(punchMinutes(p, now))}</span>
-                        {warnings.length > 0 && <span className={`rv-warn ${warnings.some(isLateWarning) ? 'late' : ''}`} title={warnings.join('\n')} aria-label={warnings[0]}>⚠</span>}
-                      </button>
-                      <button type="button" className="rv-more" onClick={() => setOpen(p)} aria-label={`Details for ${person?.name ?? 'this punch'}`} title="Details">⋯</button>
-                      {st === 'pending' && <button type="button" className="rv-ok" disabled={busy} onClick={() => approve([p.id])} aria-label={`Approve ${hoursLabel(punchMinutes(p, now))} for ${person?.name ?? 'this person'}`} title={`Approve ${hoursLabel(punchMinutes(p, now))}`}>✓</button>}
-                      {st === 'progress' && <button type="button" className="rv-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)} title="Clock out now">Out</button>}
-                      {st === 'approved' && <span className="rv-done" title="Approved" aria-label="Approved">✓</span>}
-                    </div>
-                  )
-                })}
-              </div>
-            </details>
+        <div ref={setBox} className={`rv ${useGroups ? 'cols' : ''}`} style={useGroups ? { gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` } : undefined}>
+          {columnLists.map((col, ci) => (
+            <div key={ci} className="rv-col">{col.map(renderBucket)}</div>
           ))}
         </div>
       ) : (
@@ -200,4 +250,9 @@ export default function ReviewList({ data }) {
       {open && <PunchDetails punch={open} data={data} onClose={() => setOpen(null)} />}
     </div>
   )
+}
+
+// A group's lines: collapsible (with its header as the summary) when grouped, a plain box otherwise.
+function Group({ header, open, children }) {
+  return header ? <details className="rv-group" open={open}>{children}</details> : <div className="rv-group">{children}</div>
 }
