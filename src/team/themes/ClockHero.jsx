@@ -39,21 +39,22 @@ function ClockLocked({ f, lang, doneToday, canAnyway }) {
   const w = say(lang)
   const next = f.nextShift
   const opens = next && clock(Math.max(0, next.start - f.early))
+  const opensText = next ? (next.date === f.today ? w.opensAt(opens) : w.opensOn(dayName(next.date, lang), opens)) : ''
+  // Two short lines: where things stand, then when clock-in opens (and that clocking in early is flagged).
   return (
     <div className="tm-locked" role="status">
-      {doneToday && <b className="tm-locked-done">{w.allDone}</b>}
-      {next ? (
-        <>
-          <div>
+      <div className="tm-locked-line">
+        {doneToday && <b className="tm-locked-done">{w.allDone}</b>}
+        {next ? (
+          <span>
             {w.nextShift}: <b>{next.date === f.today ? w.today : dayName(next.date, lang)}</b> · {next.title ? `${next.title} · ` : ''}
             {clockTime(next.start)} – {clockTime(next.end)}
-          </div>
-          <small>{next.date === f.today ? w.opensAt(opens) : w.opensOn(dayName(next.date, lang), opens)}</small>
-        </>
-      ) : (
-        <div>{w.noUpcoming}</div>
-      )}
-      {canAnyway && <p className="tm-locked-note">{w.flagNote}</p>}
+          </span>
+        ) : (
+          <span>{w.noUpcoming}</span>
+        )}
+      </div>
+      {(opensText || canAnyway) && <small>{[opensText, canAnyway && w.flagShort].filter(Boolean).join(' · ')}</small>}
     </div>
   )
 }
