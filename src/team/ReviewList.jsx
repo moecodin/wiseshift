@@ -22,7 +22,7 @@ const hoursLabel = (minutes) => {
 export default function ReviewList({ data }) {
   const now = useNow()
   const [range, setRange] = useState('week') // 'week' (past 7 days) or 'period' (this pay period)
-  const [onlyPending, setOnlyPending] = useState(true)
+  const [status, setStatus] = useState('pending') // 'pending' (awaiting approval), 'progress' (still clocked in), 'approved' or 'all'
   const [who, setWho] = useState('') // '' = everyone, otherwise one employee's id
   const [open, setOpen] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -31,11 +31,12 @@ export default function ReviewList({ data }) {
   const today = dateKey(now)
   const from = range === 'week' ? dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - REVIEW_DAYS)) : payPeriodOf(now)[0]
   const name = (id) => data.employees.find((e) => e.id === id)
-  const list = data.punches
+  const inRange = data.punches
     .filter((p) => dateKey(new Date(p.clockIn)) >= from || !p.clockOut)
-    .filter((p) => !onlyPending || punchStatus(p) !== 'approved')
     .filter((p) => !who || p.employeeId === who)
     .sort((a, b) => new Date(b.clockIn) - new Date(a.clockIn))
+  const countOf = (st) => inRange.filter((p) => punchStatus(p) === st).length
+  const list = status === 'all' ? inRange : inRange.filter((p) => punchStatus(p) === status)
   const people = data.employees.filter((e) => !scheduleOnly(e)).sort((a, b) => a.name.localeCompare(b.name))
   const pending = list.filter((p) => punchStatus(p) === 'pending')
   const pendingMinutes = pending.reduce((sum, p) => sum + punchMinutes(p, now), 0)
@@ -59,14 +60,18 @@ export default function ReviewList({ data }) {
           <option value="">All employees</option>
           {people.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
         </select>
-        <label className="form-check small mb-0">
-          <input type="checkbox" className="form-check-input" checked={onlyPending} onChange={(e) => setOnlyPending(e.target.checked)} /> Not approved only
-        </label>
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
             Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
           </button>
         )}
+      </div>
+      <div className="tm-seg rc-status" role="group" aria-label="Status">
+        {[['pending', 'Awaiting approval'], ['progress', 'In progress'], ['approved', 'Approved'], ['all', 'All']].map(([id, label]) => (
+          <button key={id} type="button" aria-pressed={status === id} onClick={() => setStatus(id)}>
+            {label}{id !== 'all' && <span className="rc-n">{countOf(id)}</span>}
+          </button>
+        ))}
       </div>
       {range === 'period' && <p className="tm-muted small mb-2">{rangeLabel(payPeriodOf(now))}</p>}
 
@@ -110,7 +115,7 @@ export default function ReviewList({ data }) {
           })}
         </div>
       ) : (
-        <p className="tm-empty">{who ? `No ${onlyPending ? 'unapproved ' : ''}punches for ${name(who)?.name ?? 'this person'} in these days.` : onlyPending ? 'Everything is approved. 🎉' : 'No punches in these days.'}</p>
+        <p className="tm-empty">{who ? `Nothing here for ${name(who)?.name ?? 'this person'} in these days.` : status === 'pending' ? 'Nothing is waiting for approval. 🎉' : status === 'progress' ? 'Nobody is clocked in right now.' : 'No punches in these days.'}</p>
       )}
       {error && <p className="tm-error" role="alert">{error}</p>}
 
