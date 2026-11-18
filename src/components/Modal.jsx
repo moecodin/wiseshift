@@ -31,6 +31,8 @@ function unlockPage() {
 
 export default function Modal({ title, children, footer, onClose, size }) {
   const root = useRef(null)
+  const openerRef = useRef(null)
+  if (openerRef.current === null) openerRef.current = document.activeElement // read while rendering, before autoFocus moves focus into the box
   const content = useRef(null)
   const drag = useRef(null)
   const lastPrimary = useRef(-1e9) // when the main (brand-colored) button was last pressed
@@ -51,7 +53,7 @@ export default function Modal({ title, children, footer, onClose, size }) {
   // Keyboard focus stays inside the pop-up: it starts there, Tab wraps around at the ends,
   // and when the pop-up closes focus goes back to whatever opened it.
   useEffect(() => {
-    const opener = document.activeElement
+    const opener = openerRef.current
     const box = content.current
     if (box && !box.contains(document.activeElement)) box.focus({ preventScroll: true })
     const trap = (e) => {
