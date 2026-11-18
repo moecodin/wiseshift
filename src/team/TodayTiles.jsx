@@ -6,6 +6,7 @@ import { formatHours, payPeriodOf, periodHours, shiftMinutes } from './paycheck.
 import { useFeatures } from './features.js'
 import { rangeName } from './words.js'
 import YourDay from './YourDay.jsx'
+import ComingUp from './ComingUp.jsx'
 
 // Four summary tiles for the phone Today screens (staff and managers): my day, what is coming
 // up, hours worked this pay period, and where my requests stand. Each tile opens the full screen.
@@ -43,6 +44,7 @@ export default function TodayTiles({ data, me, lang, onGoTo }) {
   const f = useFeatures()
   const now = useNow(30000)
   const [showDay, setShowDay] = useState(false)
+  const [showNext, setShowNext] = useState(false)
   const today = dateKey(now)
   const minutes = now.getHours() * 60 + now.getMinutes()
   const mine = data.shifts.filter((s) => s.employeeId === me.id).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start)
@@ -77,7 +79,7 @@ export default function TodayTiles({ data, me, lang, onGoTo }) {
   return (
     <div className="tt-grid">
       <Tile title={w.day} big={dayBig} sub={open ? `${w.inSince} ${new Date(open.clockIn).toLocaleTimeString(locale(lang), { hour: 'numeric', minute: '2-digit' })}` : daySub} tone={open ? 'live' : off ? 'off' : ''} onClick={() => setShowDay(true)} />
-      <Tile title={w.coming} big={nextDay} sub={next ? `${shiftTimes(next)}${next.title ? ` · ${next.title}` : ''}` : w.nothing} onClick={() => onGoTo('schedule')} />
+      <Tile title={w.coming} big={nextDay} sub={next ? `${shiftTimes(next)}${next.title ? ` · ${next.title}` : ''}` : w.nothing} onClick={() => setShowNext(true)} />
       {f.timeClock && (
         <Tile title={w.worked} big={<>{formatHours(hours.total)} <span>{w.hrs}</span></>} sub={hours.overtime > 0 ? `${w.overtime} ${formatHours(hours.overtime)}` : rangeName(period, lang)} onClick={() => onGoTo('hours')} />
       )}
@@ -90,6 +92,7 @@ export default function TodayTiles({ data, me, lang, onGoTo }) {
         </span>
         <small className="tt-sub">{crew.length ? `${crew.length} ${w.working}${onNow ? ` · ${onNow} ${w.onNow}` : ''}` : w.nothing}</small>
       </button>
+      {showNext && <ComingUp data={data} me={me} lang={lang} onClose={() => setShowNext(false)} />}
       {showDay && <YourDay data={data} me={me} lang={lang} onClose={() => setShowDay(false)} />}
     </div>
   )

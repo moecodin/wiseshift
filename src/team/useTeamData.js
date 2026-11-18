@@ -117,7 +117,7 @@ const dayStartIso = (key) => fromKey(key).toISOString()
 
 // First and last days to load: the days on screen, plus today's week or pay
 // period (for the clock tab) when that's a different one, plus `extra` (the
-// last 7 days for Review, the next 2 weeks for upcoming shifts).
+// last 7 days for Review, the next 60 days for the Coming up list).
 function ranges(days, current, extra) {
   const list = [[days[0], days.at(-1)]]
   if (current[0] !== days[0]) list.push([current[0], current.at(-1)])
@@ -130,7 +130,7 @@ function ranges(days, current, extra) {
 async function loadLive(email, week, period, today) {
   const todayKey = dateKey(today)
   const recent = [addDays(todayKey, -REVIEW_DAYS), todayKey]
-  const shiftRanges = ranges(week, scheduleWeekOf(today), [recent[0], addDays(todayKey, 14)])
+  const shiftRanges = ranges(week, scheduleWeekOf(today), [recent[0], addDays(todayKey, 60)])
   const punchRanges = ranges(period, payPeriodOf(today), recent)
   // The pay period before this one too, for the Pocket Trainer's level-up message.
   const before = payPeriodOf(fromKey(addDays(payPeriodOf(today)[0], -1)))

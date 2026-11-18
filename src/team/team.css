@@ -2882,3 +2882,15 @@ a:hover { color: var(--navy-hover); }
 .yd-tasks { border-style: dashed; background: transparent; margin-bottom: 0; }
 .yd-empty { color: var(--muted); font-size: 14px; line-height: 1.4; }
 .yd-empty b { color: var(--ink); font-weight: 700; }
+
+/* "Coming up" pop-up: every shift and time off still ahead, by date */
+.cu-list { list-style: none; margin: 0; padding: 0; }
+.cu-row { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.cu-row:first-child { border-top: 0; }
+.cu-day { padding-top: 2px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.cu-row.today .cu-day { color: var(--ok); }
+.cu-what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cu-what b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cu-what b em { margin-left: 8px; padding: 1px 7px; border-radius: var(--r-xs); background: var(--done-row); color: var(--ok); font-size: 11.5px; font-style: normal; font-weight: 700; }
+.cu-what small { color: var(--muted); font-size: 13px; font-weight: 600; }
+.cu-row.off .cu-what b { color: var(--muted); }
