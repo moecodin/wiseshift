@@ -2082,3 +2082,47 @@ button, a, input, select, textarea, label, summary, [role='button'] { touch-acti
 .rc-status button { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .rc-n { min-width: 20px; padding: 0 6px; border-radius: var(--r-xs); background: var(--head); color: var(--muted); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 20px; text-align: center; }
 .rc-status button[aria-pressed='true'] .rc-n { background: rgba(255, 255, 255, 0.22); color: inherit; }
+
+/* ---------- Redesign layer: Hours > Employee (summary on the left, each week as one panel) ---------- */
+
+/* Summary card: brand color, big number, yellow for overtime */
+.hr-hero { background: var(--navy); color: var(--on-navy); border-radius: var(--r-md); padding: 18px 20px; margin-bottom: 10px; }
+.hr-hero small { color: inherit; opacity: 0.85; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.hr-hero b { font-size: 48px; font-variant-numeric: tabular-nums; }
+.hr-hero span { font-size: 17px; font-weight: 700; }
+.hr-hero .hr-ot { color: inherit; font-weight: 800; background: var(--yellow); color: var(--on-yellow); padding: 1px 7px; border-radius: var(--r-xs); }
+.hr-bar { background: rgba(255, 255, 255, 0.28); }
+[data-bs-theme='dark'] .hr-bar { background: rgba(8, 47, 73, 0.3); }
+
+/* "N punches to approve": a calm tinted panel with the yellow button */
+.mh-pending { border-radius: var(--r-md); background: var(--warn-bg); color: var(--warn); border-left: 4px solid var(--warn); padding: 12px 14px; flex-wrap: wrap; }
+[data-bs-theme='dark'] .mh-pending { background: var(--warn-bg); color: var(--warn); }
+.mh-pending button { min-height: 40px; }
+
+/* Each week is one outlined panel with a header strip and hairline rows */
+.hr-week { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-table); overflow: hidden; margin-bottom: 16px; }
+.hr-week .sc-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0; padding: 10px 16px; background: var(--head); border-bottom: 1px solid var(--line); font-size: 15px; }
+.hr-week .mg-sum { margin-left: auto; font-variant-numeric: tabular-nums; }
+.hr-week .tm-muted { margin: 0; padding: 14px 16px; }
+.hr-week .mh-day { margin: 0; padding: 10px 16px; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; background: transparent; align-items: center; gap: 14px; animation: none; }
+.hr-week .mh-day:hover { background: var(--hover); }
+.hr-week .mh-day.warn { border-left: 4px solid var(--warn); background: var(--warn-bg); }
+.hr-week .sc-date { flex: 0 0 44px; }
+.hr-week .sc-date b { font-size: 22px; }
+.hr-week .hr-total { flex: none; min-width: 56px; text-align: right; font-size: 18px; font-variant-numeric: tabular-nums; }
+.hr-week .mh-add { margin: 0; width: 100%; border: 0; border-radius: 0; min-height: 44px; background: transparent; color: var(--navy); }
+.hr-week .mh-add:hover { background: var(--hover); }
+
+/* A punch on one line: times and chips on the left, actions on the right */
+.mh-punch { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 14px; }
+.mh-punch > .hr-times { grid-column: 1; }
+.mh-punch > .tm-spots, .mh-punch > small { grid-column: 1; }
+.mh-actions { grid-column: 2; grid-row: 1 / span 3; display: flex; align-items: center; gap: 8px; }
+.mh-actions .mh-edit, .mh-actions .mh-approve { margin: 0; min-height: 36px; padding: 0 14px; border-radius: var(--r-sm); font-size: 13px; white-space: nowrap; }
+.mh-actions .mh-edit { border: 1px solid var(--line); background: var(--paper); }
+.mh-actions .mh-edit:hover { border-color: var(--navy); color: var(--navy); }
+.hr-approved { border-radius: var(--r-xs); margin-left: 8px; }
+@media (max-width: 560px) {
+  .mh-punch { grid-template-columns: 1fr; }
+  .mh-actions { grid-column: 1; grid-row: auto; flex-wrap: wrap; margin-top: 6px; }
+}

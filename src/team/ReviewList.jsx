@@ -4,18 +4,10 @@ import Avatar from './Avatar.jsx'
 import PunchDetails from './PunchDetails.jsx'
 import { payPeriodOf, punchMinutes } from './paycheck.js'
 import { isLateWarning, punchStatus, punchWarnings, STATUS_LABEL } from './review.js'
-import { dayLabel, rangeLabel, scheduleOnly, useNow } from './format.js'
+import { dayLabel, hoursLabel, rangeLabel, scheduleOnly, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
 const duration = (minutes) => (minutes >= 1440 ? `${Math.floor(minutes / 1440)}d ` : '') + `${Math.floor((minutes % 1440) / 60)}h ${Math.round(minutes % 60)}m`
-
-// "6 Hours", "1 Hour 15 Min", "40 Min": the time an Approve button is about to approve.
-const hoursLabel = (minutes) => {
-  const total = Math.round(minutes)
-  const h = Math.floor(total / 60)
-  const m = total % 60
-  return [h > 0 && `${h} ${h === 1 ? 'Hour' : 'Hours'}`, m > 0 && `${m} Min`].filter(Boolean).join(' ') || '0 Min'
-}
 
 // Managers: every punch, newest first, to approve (like Humanity's Manage list).
 // ⚠️ marks late clock-ins and clock-outs; tap one for its details and map.

@@ -43,6 +43,14 @@ export const todayKey = () => dateKey(new Date())
 
 export const money = (n) => `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+// "6 Hours", "1 Hour 15 Min", "40 Min": the time an Approve button is about to approve.
+export const hoursLabel = (minutes) => {
+  const total = Math.round(minutes)
+  const h = Math.floor(total / 60)
+  const m = total % 60
+  return [h > 0 && `${h} ${h === 1 ? 'Hour' : 'Hours'}`, m > 0 && `${m} Min`].filter(Boolean).join(' ') || '0 Min'
+}
+
 export const firstName = (name) => (name || '').split(' ')[0]
 
 // The time now, updated every so often (for running clocks).

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, formatClock, fromKey } from '../lib/dates.js'
 import CountUp from './CountUp.jsx'
-import { decimalHours, estimatePaycheck, formatHours, grossPay, moveDays, payPeriodOf, periodHours } from './paycheck.js'
-import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
+import { decimalHours, estimatePaycheck, formatHours, grossPay, moveDays, payPeriodOf, periodHours, punchMinutes } from './paycheck.js'
+import { dayLabel, hoursLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { TAX_YEAR } from './taxRates.js'
 import { describeSpot } from './location.js'
 import SpotTag from './SpotTag.jsx'
@@ -102,7 +102,7 @@ function Person({ data, boss, employee, period, now }) {
       {boss && pending.length > 0 && (
         <div className="mh-pending">
           <span><b>{pending.length}</b> {pending.length === 1 ? 'punch' : 'punches'} to approve</span>
-          <button type="button" disabled={approving} onClick={() => approve(pending.map((p) => p.id))}>Approve all</button>
+          <button type="button" disabled={approving} onClick={() => approve(pending.map((p) => p.id))}>Approve all · {hoursLabel(pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))}</button>
         </div>
       )}
       {hours.open && <p className="tm-warn">{isMe ? "You're" : `${employee.name} is`} still clocked in, so these hours keep counting.</p>}
@@ -113,7 +113,7 @@ function Person({ data, boss, employee, period, now }) {
       {weeks.map((days, i) => {
         const worked = days.filter((d) => d.punches.length > 0).reverse()
         return (
-          <div key={i}>
+          <div key={i} className="hr-week">
             <h2 className="sc-h">
               Week {i + 1} <small className="mg-sum">{rangeLabel(days.map((d) => d.date))} · {formatHours(days.reduce((sum, d) => sum + d.minutes, 0))} hrs</small>
             </h2>
@@ -143,9 +143,13 @@ function Person({ data, boss, employee, period, now }) {
                           {p.clockOut && (p.outSpot || !p.editedBy) && <SpotTag quiet spot={p.outSpot} shop={data.shop} prefix="Out: " />}
                         </div>
                         {p.note && <small>{p.note}</small>}
-                        {boss && p.clockOut && !p.approvedAt && <button type="button" className="mh-approve" disabled={approving} onClick={() => approve([p.id])}>Approve</button>}
-                        {boss && <button type="button" className="mh-edit" onClick={() => setDetails(p)}>Details</button>}
-                        {boss && <button type="button" className="mh-edit" onClick={() => setEditing(p)}>Edit</button>}
+                        {boss && (
+                          <span className="mh-actions">
+                            {p.clockOut && !p.approvedAt && <button type="button" className="mh-approve" disabled={approving} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>}
+                            <button type="button" className="mh-edit" onClick={() => setDetails(p)}>Details</button>
+                            <button type="button" className="mh-edit" onClick={() => setEditing(p)}>Edit</button>
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
