@@ -18,10 +18,19 @@ export default function ClockHero(props) {
   const locked = !props.open && !f.windowShift && !anyway
   return (
     <>
-      <ClassicHero {...props} locked={locked} />
+      <ClassicHero {...props} locked={locked} lockedHint={lockedHint(f, props.lang)} onAnyway={props.data.settings?.allowAnyway === false ? null : () => setAnyway(true)} />
       {locked && <ClockLocked f={f} lang={props.lang} doneToday={props.todayMinutes > 0} onAnyway={props.data.settings?.allowAnyway === false ? null : () => setAnyway(true)} />}
     </>
   )
+}
+
+// "Opens at 1:30 PM" / "Opens Thu at 1:30 PM", for the dimmed button's caption.
+function lockedHint(f, lang) {
+  const w = say(lang)
+  const next = f.nextShift
+  if (!next) return w.noUpcoming
+  const opens = clockTime(Math.max(0, next.start - f.early))
+  return next.date === f.today ? w.opensAt(opens) : w.opensOn(dayName(next.date, lang), opens)
 }
 
 function ClockLocked({ f, lang, doneToday, onAnyway }) {
@@ -112,7 +121,7 @@ function HoldButton({ open, busy, onPunch, w }) {
   )
 }
 
-function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, locked, lang }) {
+function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, locked, lockedHint, onAnyway, lang }) {
   const w = say(lang)
   return (
     <>
@@ -122,6 +131,15 @@ function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, 
         <>
           <HoldButton open={open} busy={busy} onPunch={onPunch} w={w} />
           <div className="tm-holdhint">{open ? w.holdOut : w.holdIn}</div>
+        </>
+      )}
+      {locked && (
+        <>
+          {/* Not your shift yet: the button stays, dimmed, and says when it opens. Tapping it offers "clock in anyway". */}
+          <div className="tm-holdwrap locked">
+            <button type="button" className="tm-punch in locked" aria-disabled={!onAnyway} aria-label={`${w.clockIn}. ${lockedHint}`} onClick={onAnyway ?? undefined}>{w.clockIn}</button>
+          </div>
+          <div className="tm-holdhint">{lockedHint}</div>
         </>
       )}
       <div className="tm-status" role="status">

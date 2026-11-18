@@ -2775,3 +2775,20 @@ a:hover { color: var(--navy-hover); }
 .tt-face.live { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ok); }
 .tt-more { margin-left: 6px; font-size: 13px; font-weight: 800; color: var(--muted); }
 @media (max-width: 899px) { .td-grid .td-team { display: none; } }
+
+/* Not within a shift window yet: the round button stays, dimmed, with the time it opens */
+.tm-holdwrap.locked .tm-punch.locked,
+[data-bs-theme] .tm-punch.in.locked {
+  background-color: color-mix(in srgb, var(--muted) 16%, transparent);
+  background-image: none;
+  color: var(--muted);
+  border: 2px dashed color-mix(in srgb, var(--muted) 55%, transparent);
+  box-shadow: none;
+  filter: none;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+.tm-punch.locked[aria-disabled='true'] { cursor: default; }
+.tm-punch.locked:hover { background-color: color-mix(in srgb, var(--muted) 24%, transparent); }
+.tm-clock .tm-locked small { display: none; } /* the dimmed button's caption already says when it opens */
