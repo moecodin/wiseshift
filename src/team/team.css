@@ -3295,3 +3295,8 @@ a:hover { color: var(--navy-hover); }
 .rv.cols { display: grid; gap: 12px; align-items: start; }
 .rv-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .rv:not(.cols) > .rv-col { gap: 10px; }
+/* The Undo toast: always dark with light text (readable in light and dark themes), pinned to the screen */
+.rv-toast { position: fixed; z-index: 60; background: #1d1a16; color: #f6efe2; border: 1px solid rgba(255, 255, 255, 0.12); }
+.rv-toast button { color: #f6d580; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* On a phone the Undo sits above the Approve-all bar and the tab bar */
+@media (max-width: 899px) { .rv-toast { bottom: calc(142px + env(safe-area-inset-bottom, 0px)); } }

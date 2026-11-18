@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
 import PunchDetails from './PunchDetails.jsx'
 import PeoplePicker from './PeoplePicker.jsx'
@@ -72,7 +73,7 @@ export default function ReviewList({ data }) {
     const extra = [...new Set(list.map(roleOf).filter((r) => r && !roles.some((x) => x.name === r)))]
     buckets = [...roles.map((r) => ({ key: r.name, name: r.name, color: r.color ?? 7, rows: list.filter((p) => roleOf(p) === r.name) })), ...extra.map((r) => ({ key: r, name: r, color: 7, rows: list.filter((p) => roleOf(p) === r) })), { key: '', name: 'No role', color: 7, rows: list.filter((p) => !roleOf(p)) }]
   } else if (mode === 'date') {
-    const days = [...new Set(list.map((p) => dateKey(new Date(p.clockIn))))].sort().reverse()
+    const days = [...new Set(list.map((p) => dateKey(new Date(p.clockIn))))].sort() // earliest day first
     buckets = days.map((d) => ({ key: d, name: d === today ? 'Today' : `${dayShort(d)}`, color: d === today ? 0 : 7, rows: list.filter((p) => dateKey(new Date(p.clockIn)) === d) }))
   } else {
     buckets = [{ key: 'all', name: '', color: 7, rows: list }]
@@ -240,11 +241,13 @@ export default function ReviewList({ data }) {
         <p className="tm-muted small text-center mt-2">People still clocked in can be approved after they clock out.</p>
       )}
 
-      {undo && (
+      {/* In the page body, not here: the page slides in with a transform, which would pin this to the wrong box. */}
+      {undo && createPortal(
         <div className="rv-toast" role="status">
           <span>{undo.text}</span>
           <button type="button" onClick={undoApprove}>Undo</button>
-        </div>
+        </div>,
+        document.body,
       )}
       {adding && <PunchEditor punch={adding} data={data} onClose={() => setAdding(null)} />}
       {open && <PunchDetails punch={open} data={data} onClose={() => setOpen(null)} />}
