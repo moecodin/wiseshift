@@ -16,7 +16,7 @@ const people = [
   { id: 'e5', name: 'Sueann Sookdar', email: 'sueann@example.com', position: 'Assistant Manager', isManager: false, payType: 'hourly', active: true, staffNo: 9, startedOn: '2023-06-01', priorMinutes: 70000 },
 ]
 
-const W4 = { filingStatus: 'single', step2: false, dependents: 0, otherIncome: 0, deductions: 0, extraWithholding: 0, pretax: 0, nyStatus: 'single', nyAllowances: 0, nyExtra: 0, nycResident: false }
+export const W4 = { filingStatus: 'single', step2: false, dependents: 0, otherIncome: 0, deductions: 0, extraWithholding: 0, pretax: 0, nyStatus: 'single', nyAllowances: 0, nyExtra: 0, nycResident: false }
 
 const pay = {
   e1: { ...W4, employeeId: 'e1', hourlyRate: 26, filingStatus: 'married', nyStatus: 'married', dependents: 2200, nyAllowances: 1 },
@@ -44,9 +44,9 @@ const pattern = {
 }
 
 // Made-up spot standing in for the shop (the real one is set on the Team tab).
-const SHOP = { lat: 40.6787, lng: -73.589, radius: 152.4 }
+export const SHOP = { lat: 40.6787, lng: -73.589, radius: 152.4 }
 // Somewhere near the shop: a few meters off, or `miles` away for a job site.
-const near = (n, miles = 0) => ({
+export const near = (n, miles = 0) => ({
   lat: SHOP.lat + (((n * 37) % 21) - 10) / 111000 + miles / 69,
   lng: SHOP.lng + (((n * 53) % 21) - 10) / 84000,
   accuracy: 8 + ((n * 13) % 25),

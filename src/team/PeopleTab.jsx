@@ -138,6 +138,16 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
           <input id="pe-pos" className="form-control" list="pe-positions" value={e.position} onChange={setField('position')} />
           <datalist id="pe-positions">{data.settings.positions.map((p) => <option key={p} value={p} />)}</datalist>
         </div>
+        {(data.settings.groups ?? []).length > 0 && (
+          <div className="col-sm-6">
+            <label className="form-label" htmlFor="pe-group">Group</label>
+            <select id="pe-group" className="form-select" value={e.group ?? ''} onChange={(ev) => setE({ ...e, group: ev.target.value || null })}>
+              <option value="">No group</option>
+              {data.settings.groups.map((g) => <option key={g.name} value={g.name}>{g.name}</option>)}
+              {e.group && !data.settings.groups.some((g) => g.name === e.group) && <option value={e.group}>{e.group}</option>}
+            </select>
+          </div>
+        )}
         <div className="col-sm-6">
           <label className="form-label" htmlFor="pe-start">Start date</label>
           <input id="pe-start" type="date" className="form-control" value={e.startedOn ?? ''} onChange={setField('startedOn')} />

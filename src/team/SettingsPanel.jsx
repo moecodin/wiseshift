@@ -247,6 +247,7 @@ function BusinessSettings({ data }) {
       {f.timeClock && <ClockInRules data={data} />}
       <ShiftPicks data={data} />
       {f.roles && <Roles data={data} />}
+      <Groups data={data} />
       <Positions data={data} />
       <Reminders data={data} />
       {f.location && <NoticeEditor data={data} />}
@@ -400,6 +401,61 @@ function Roles({ data }) {
       ))}
       <div className="d-flex gap-2 mt-2">
         <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setList([...list, { name: '', color: list.length % 8 }])}>+ Add</button>
+        <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={submit}>Save</button>
+      </div>
+      <Result result={result} />
+    </section>
+  )
+}
+
+function Groups({ data }) {
+  // `was` remembers a group's name from when this list opened, so renaming one moves its people.
+  const [list, setList] = useState(() => (data.settings.groups ?? []).map((g) => ({ ...g, was: g.name })))
+  const { busy, result, setResult } = useSave(data)
+  const set = (i, field, value) => setList(list.map((g, j) => (j === i ? { ...g, [field]: value } : g)))
+  const move = (i, by) => {
+    const j = i + by
+    if (j < 0 || j >= list.length) return
+    const next = [...list]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    setList(next)
+  }
+  const submit = async () => {
+    const clean = list.map((g) => ({ ...g, name: g.name.trim() })).filter((g) => g.name)
+    const names = clean.map((g) => g.name.toLowerCase())
+    if (new Set(names).size !== names.length) return setResult({ error: 'Each group needs its own name.' })
+    const renames = clean.filter((g) => g.was && g.was !== g.name).map((g) => ({ from: g.was, to: g.name }))
+    const kept = new Set(clean.map((g) => g.was).filter(Boolean))
+    const removed = (data.settings.groups ?? []).map((g) => g.name).filter((n) => !kept.has(n))
+    setResult(null)
+    const problem = await data.actions.saveGroups({ groups: clean.map(({ name, color }) => ({ name, color })), renames, removed })
+    setResult(problem ? { error: problem } : { ok: 'Saved.' })
+    if (!problem) setList(clean.map((g) => ({ ...g, was: g.name })))
+  }
+  return (
+    <section className="st-section">
+      <h3 className="tm-h3">Groups</h3>
+      <p className="tm-muted small mb-2">For a bigger team: Cashiers, Waiters, Kitchen. Hours → Review shows one column per group. Put each person in a group on the Team tab. Removing a group leaves its people without one.</p>
+      {!data.settings.groupsReady && data.settingsReady && (
+        <p className="tm-warn">This uses update 030. Run <code>supabase/updates/030-staff-groups.sql</code> in Supabase, then reload, before saving here.</p>
+      )}
+      {list.map((g, i) => (
+        <div key={i} className="st-pick st-role">
+          <input className="form-control form-control-sm" aria-label="Group name" placeholder="e.g. Waiters…" maxLength={40} value={g.name} onChange={(e) => set(i, 'name', e.target.value)} />
+          <span className="st-order">
+            <button type="button" className="btn btn-outline-secondary btn-sm" aria-label={`Move ${g.name || 'group'} up`} disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm" aria-label={`Move ${g.name || 'group'} down`} disabled={i === list.length - 1} onClick={() => move(i, 1)}>↓</button>
+            <button type="button" className="btn btn-outline-danger btn-sm" aria-label={`Remove ${g.name || 'group'}`} onClick={() => setList(list.filter((_, j) => j !== i))}>✕</button>
+          </span>
+          <span className="st-colors" role="group" aria-label="Color">
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((c) => (
+              <button key={c} type="button" className={`rl-dot t${c} st-swatch ${g.color === c ? 'on' : ''}`} aria-label={`Color ${c + 1}`} aria-pressed={g.color === c} onClick={() => set(i, 'color', c)} />
+            ))}
+          </span>
+        </div>
+      ))}
+      <div className="d-flex gap-2 mt-2">
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setList([...list, { name: '', color: list.length % 8, was: '' }])}>+ Add</button>
         <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={submit}>Save</button>
       </div>
       <Result result={result} />

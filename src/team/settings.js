@@ -28,6 +28,7 @@ export const DEFAULT_SETTINGS = {
     { name: 'Delivery', color: 6 },
   ], // what a person does on a shift; the manager picks one per shift
   positions: ['Manager', 'Assistant Manager', 'Team Member'],
+  groups: [], // staff groups for big teams, in order: { name, color } (update 030); empty = no grouping
   remindBefore: 30, // shift reminder
   remindAfter: 30, // "still clocked in?"
   lateAfter: 15, // late alert to managers
@@ -50,6 +51,8 @@ export function settingsFromRow(r) {
     roles: Array.isArray(r.roles) ? r.roles : d.roles,
     features: { ...DEFAULT_FEATURES, ...(r.features ?? {}) },
     positions: Array.isArray(r.positions) && r.positions.length ? r.positions : d.positions,
+    groups: Array.isArray(r.staff_groups) ? r.staff_groups : d.groups,
+    groupsReady: r.staff_groups !== undefined, // update 030 has been run
     remindBefore: pick(r.remind_before, d.remindBefore),
     remindAfter: pick(r.remind_after, d.remindAfter),
     lateAfter: pick(r.late_after, d.lateAfter),
@@ -68,6 +71,8 @@ export const settingsToRow = (s) => ({
   roles: s.roles,
   features: s.features,
   positions: s.positions,
+  // Only sent once update 030 exists (or groups are being set), so saving other settings keeps working before it.
+  ...(s.groupsReady || s.groups?.length ? { staff_groups: s.groups } : {}),
   remind_before: s.remindBefore,
   remind_after: s.remindAfter,
   late_after: s.lateAfter,

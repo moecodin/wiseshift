@@ -270,7 +270,12 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
 
       {data.sample && (
         <div className="tm-sample">
-          <span>Sample data, not saved online. View as</span>
+          <span>Sample data, not saved online.</span>
+          <select className="form-select form-select-sm" value={data.sample.kind} onChange={(e) => data.sample.setKind(e.target.value)} aria-label="Sample team">
+            <option value="shop">Shop (6)</option>
+            <option value="restaurant">Restaurant (23)</option>
+          </select>
+          <span>View as</span>
           <select className="form-select form-select-sm" value={data.sample.viewAs} onChange={(e) => data.sample.setViewAs(e.target.value)} aria-label="View as">
             {data.employees.filter((e) => e.payType !== 'none').map((e) => (
               <option key={e.id} value={e.id}>{e.name}{e.isManager ? ' (manager)' : ''}</option>

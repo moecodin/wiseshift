@@ -10,11 +10,23 @@ import { dateKey, fromKey, startOfToday } from '../lib/dates.js'
 import { supabase, usingSupabase } from '../lib/supabase.js'
 import { minutesBetween, payPeriodOf, scheduleWeekOf } from './paycheck.js'
 import { createSampleTeam } from './sampleTeam.js'
+import { createRestaurantSample } from './sampleRestaurant.js'
 import { tellPush } from './app.js'
 import { DEFAULT_SETTINGS, roundPunch, settingsFromRow, settingsToRow, unroundPunch } from './settings.js'
 
 const REFRESH_MS = 30000
 const SAMPLE_KEY = 'wiseshift-team-v1'
+// Sample data comes in two sizes: the 6-person shop, and a 23-person restaurant (switch in the sample bar).
+const SAMPLE_KIND_KEY = 'wiseshift-sample-kind'
+const sampleKeyFor = (kind) => (kind === 'restaurant' ? 'wiseshift-team-restaurant-v1' : SAMPLE_KEY)
+const createSampleFor = (kind) => (kind === 'restaurant' ? createRestaurantSample(startOfToday()) : createSampleTeam(startOfToday()))
+function savedSampleKind() {
+  try {
+    return localStorage.getItem(SAMPLE_KIND_KEY) === 'restaurant' ? 'restaurant' : 'shop'
+  } catch {
+    return 'shop'
+  }
+}
 const VIEW_AS_KEY = 'wiseshift-team-view-as'
 const RECENT_DAYS = 60 // time-off requests stay listed this long after they end
 export const REVIEW_DAYS = 7 // Review's "Past 7 days"
@@ -23,6 +35,7 @@ export const REVIEW_DAYS = 7 // Review's "Past 7 days"
 
 const employeeFromRow = (r) => ({
   id: r.id, name: r.name, email: r.email ?? '', position: r.position ?? '', isManager: r.is_manager, payType: r.pay_type, active: r.active,
+  group: r.group_name, // update 030: undefined before it is run, null or a group name after
   startedOn: r.started_on ?? '', staffNo: r.staff_no ?? null, // update 016
 })
 const payFromRow = (r) => ({
@@ -217,9 +230,9 @@ async function loadLive(email, week, period, today) {
 
 // ---------- Sample ----------
 
-function loadSample() {
+function loadSample(kind = savedSampleKind()) {
   try {
-    const saved = localStorage.getItem(SAMPLE_KEY)
+    const saved = localStorage.getItem(sampleKeyFor(kind))
     if (saved) {
       const state = JSON.parse(saved)
       // Sample data saved before tasks existed starts with none.
@@ -228,7 +241,7 @@ function loadSample() {
   } catch {
     // Start over with fresh sample data.
   }
-  return createSampleTeam(startOfToday())
+  return createSampleFor(kind)
 }
 function savedViewAs() {
   try {
@@ -317,6 +330,7 @@ export function useTeamData({ signedIn, email, week, period }) {
   const [error, setError] = useState('')
   const [setupMissing, setSetupMissing] = useState(false)
 
+  const [sampleKind, setSampleKindState] = useState(savedSampleKind)
   const [sample, setSample] = useState(() => (usingSupabase ? null : loadSample()))
   // Before update 016 the theme is kept on this phone only.
   const [localTheme, setLocalTheme] = useState(() => loadLocalTheme(email))
@@ -324,11 +338,11 @@ export function useTeamData({ signedIn, email, week, period }) {
   useEffect(() => {
     if (!sample) return
     try {
-      localStorage.setItem(SAMPLE_KEY, JSON.stringify(sample))
+      localStorage.setItem(sampleKeyFor(sampleKind), JSON.stringify(sample))
     } catch {
       // Not important if this can't be saved.
     }
-  }, [sample])
+  }, [sample, sampleKind])
   const setViewAs = (id) => {
     setViewAsState(id)
     try {
@@ -455,6 +469,27 @@ export function useTeamData({ signedIn, email, week, period }) {
       const next = { ...view.settings, ...changes }
       if (!usingSupabase) return change((s) => ({ ...s, settings: next }))
       return run(supabase.from('team_settings').update({ ...settingsToRow(next), updated_at: new Date().toISOString() }).eq('id', 1))
+    },
+    // Settings → Business → Groups (update 030): save the list, move people when a group is renamed,
+    // and take people out of a group that was removed.
+    saveGroups: async ({ groups, renames = [], removed = [] }) => {
+      if (!usingSupabase) {
+        return change((s) => {
+          for (const { from, to } of renames) for (const e of s.employees) if (e.group === from) e.group = to
+          for (const name of removed) for (const e of s.employees) if (e.group === name) e.group = null
+          s.settings = { ...view.settings, groups }
+          return s
+        })
+      }
+      for (const { from, to } of renames) {
+        const { error: problem } = await supabase.from('employees').update({ group_name: to }).eq('group_name', from)
+        if (problem) return problem.message || 'Something went wrong'
+      }
+      for (const name of removed) {
+        const { error: problem } = await supabase.from('employees').update({ group_name: null }).eq('group_name', name)
+        if (problem) return problem.message || 'Something went wrong'
+      }
+      return run(supabase.from('team_settings').update({ ...settingsToRow({ ...view.settings, groups, groupsReady: true }), updated_at: new Date().toISOString() }).eq('id', 1))
     },
     // Your own phone and emergency contact.
     setMyContact: async ({ phone, emergencyName, emergencyPhone }) => {
@@ -888,7 +923,7 @@ export function useTeamData({ signedIn, email, week, period }) {
       }
       // Schedule-only people (update 020) have no email, manager access or pay.
       const none = employee.payType === 'none'
-      const row = { name: employee.name.trim(), email: none ? null : employee.email.trim().toLowerCase(), position: employee.position.trim(), is_manager: none ? false : employee.isManager, ...(employee.startedOn !== undefined ? { started_on: employee.startedOn || null } : {}), pay_type: employee.payType, active: employee.active }
+      const row = { name: employee.name.trim(), email: none ? null : employee.email.trim().toLowerCase(), position: employee.position.trim(), is_manager: none ? false : employee.isManager, ...(employee.startedOn !== undefined ? { started_on: employee.startedOn || null } : {}), ...(employee.group !== undefined ? { group_name: employee.group || null } : {}), pay_type: employee.payType, active: employee.active }
       const saved = employee.id
         ? await supabase.from('employees').update(row).eq('id', employee.id).select().single()
         : await supabase.from('employees').insert(row).select().single()
@@ -910,6 +945,24 @@ export function useTeamData({ signedIn, email, week, period }) {
     reload: load,
     actions,
     today,
-    sample: usingSupabase ? null : { viewAs, setViewAs, reset: () => setSample(createSampleTeam(startOfToday())) },
+    sample: usingSupabase
+      ? null
+      : {
+          viewAs,
+          setViewAs,
+          kind: sampleKind,
+          // Switch between the 6-person shop and the 23-person restaurant; each keeps its own saved changes.
+          setKind: (kind) => {
+            try {
+              localStorage.setItem(SAMPLE_KIND_KEY, kind)
+            } catch {
+              // Not important if this can't be saved.
+            }
+            setSample(loadSample(kind))
+            setSampleKindState(kind)
+            setViewAs('e1')
+          },
+          reset: () => setSample(createSampleFor(sampleKind)),
+        },
   }
 }
