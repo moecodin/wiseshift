@@ -90,7 +90,6 @@ function MyClock({ data, me, boss, look, lang, onGoTo }) {
         {error && <p className="tm-error" role="alert">{error}</p>}
         {!boss && <MyPunchNotes data={data} me={me} lang={lang} />}
         {!boss && <Countdown data={data} me={me} now={now} open={open} lang={lang} />}
-        {f.location && <p className="tm-muted small mt-3 mb-0">{w.locationNote}</p>}
       </section>
       )}
 
