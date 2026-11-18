@@ -116,7 +116,7 @@ function ClassicHero({ open, busy, onPunch, now, staleOpen, data, todayMinutes, 
   const w = say(lang)
   return (
     <>
-      <div className="tm-now">{now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+      <div className="tm-now">{now.toLocaleTimeString(lang === 'es' ? 'es-US' : 'en-US', { hour: 'numeric', minute: '2-digit' })}</div>
       <div className="tm-date">{dayName(dateKey(now), lang)}</div>
       {!locked && (
         <>
