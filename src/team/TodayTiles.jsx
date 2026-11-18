@@ -91,7 +91,7 @@ export default function TodayTiles({ data, me, lang, onGoTo }) {
       <button type="button" className="tt tt-team" onClick={() => (me.isManager ? setShowCrew(true) : onGoTo('schedule'))}>
         <span className="tt-top"><span>{w.team}</span><Arrow /></span>
         <span className="tt-faces">
-          {crew.slice(0, 3).map(({ p, live }) => <span key={p.id} className={`tt-face ${live ? 'live' : ''}`}><Avatar employee={p} size={32} /></span>)}
+          {crew.slice(0, 3).map(({ p, live }) => <span key={p.id} className={`tt-face ${live ? 'live' : ''}`}><Avatar employee={p} size={24} /></span>)}
           {crew.length > 3 && <span className="tt-more">+{crew.length - 3}</span>}
           {crew.length === 0 && <b className="tt-big">{w.justYou}</b>}
         </span>
