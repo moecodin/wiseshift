@@ -8,6 +8,17 @@ import { noticeAcked } from './settings.js'
 import Avatar from './Avatar.jsx'
 import { useFeatures } from './features.js'
 
+// A yes / no choice as a rounded button (the same look as the role and day pickers) instead of a
+// small browser tick box. Used for Active, Manager and the pay questions.
+function PillToggle({ checked, disabled, onChange, children }) {
+  return (
+    <button type="button" className="rl-pick pe-toggle" aria-pressed={checked} disabled={disabled} onClick={() => onChange(!checked)}>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3.2L15 6.8" /></svg>
+      {children}
+    </button>
+  )
+}
+
 const NEW_PAY = {
   hourlyRate: 0, filingStatus: 'single', step2: false, dependents: 0, otherIncome: 0, deductions: 0, extraWithholding: 0,
   pretax: 0, nyStatus: 'single', nyAllowances: 0, nyExtra: 0, nycResident: false,
@@ -104,10 +115,10 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
       footer={
         <>
           {employee.id && !self && (
-            <button type="button" className="btn btn-outline-danger me-auto" onClick={() => setRemoving(true)}>Remove from team…</button>
+            <button type="button" className="btn btn-outline-danger me-auto pe-remove" onClick={() => setRemoving(true)}>Remove from team…</button>
           )}
-          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-brand" disabled={busy} onClick={save}>Save</button>
+          <button type="button" className="btn btn-outline-secondary pe-foot" onClick={onClose}>Cancel</button>
+          <button type="button" className="btn btn-brand pe-foot" disabled={busy} onClick={save}>Save</button>
         </>
       }
     >
@@ -132,13 +143,9 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
           <input id="pe-start" type="date" className="form-control" value={e.startedOn ?? ''} onChange={setField('startedOn')} />
         </div>
         <div className="col-sm-6 d-flex align-items-end gap-3 flex-wrap">
-          <label className="form-check">
-            <input type="checkbox" className="form-check-input" checked={e.active} disabled={self} onChange={setField('active')} /> Active
-          </label>
+          <PillToggle checked={e.active} disabled={self} onChange={(on) => setE({ ...e, active: on })}>Active</PillToggle>
           {!none && (
-            <label className="form-check">
-              <input type="checkbox" className="form-check-input" checked={e.isManager} disabled={self} onChange={setField('isManager')} /> Manager
-            </label>
+            <PillToggle checked={e.isManager} disabled={self} onChange={(on) => setE({ ...e, isManager: on })}>Manager</PillToggle>
           )}
         </div>
         {self && <p className="tm-muted small mb-0">You can't remove your own manager access or deactivate yourself.</p>}
@@ -187,9 +194,7 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
               </select>
             </div>
             <div className="col-sm-6 d-flex align-items-end">
-              <label className="form-check">
-                <input type="checkbox" className="form-check-input" checked={pay.step2} onChange={setPayField('step2')} /> Step 2 box checked (two jobs)
-              </label>
+              <PillToggle checked={pay.step2} onChange={(on) => setPay({ ...pay, step2: on })}>Step 2 box checked (two jobs)</PillToggle>
             </div>
             <Money id="pe-dep" label="Step 3: dependents (total $)" value={pay.dependents} onChange={setPayField('dependents')} />
             <Money id="pe-oth" label="Step 4(a): other income ($ a year)" value={pay.otherIncome} onChange={setPayField('otherIncome')} />
@@ -212,9 +217,7 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
             </div>
             <Money id="pe-nyx" label="Extra state withholding ($ per paycheck)" value={pay.nyExtra} onChange={setPayField('nyExtra')} />
             <div className="col-sm-6 d-flex align-items-end">
-              <label className="form-check">
-                <input type="checkbox" className="form-check-input" checked={pay.nycResident} onChange={setPayField('nycResident')} /> Lives in New York City
-              </label>
+              <PillToggle checked={pay.nycResident} onChange={(on) => setPay({ ...pay, nycResident: on })}>Lives in New York City</PillToggle>
             </div>
           </div>
           <p className="tm-muted small mt-3 mb-0">
