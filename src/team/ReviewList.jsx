@@ -4,7 +4,7 @@ import Avatar from './Avatar.jsx'
 import PunchDetails from './PunchDetails.jsx'
 import { payPeriodOf, punchMinutes } from './paycheck.js'
 import { isLateWarning, punchStatus, punchWarnings, STATUS_LABEL } from './review.js'
-import { rangeLabel, useNow } from './format.js'
+import { dayLabel, rangeLabel, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
 const duration = (minutes) => (minutes >= 1440 ? `${Math.floor(minutes / 1440)}d ` : '') + `${Math.floor((minutes % 1440) / 60)}h ${Math.round(minutes % 60)}m`
@@ -46,45 +46,50 @@ export default function ReviewList({ data }) {
         <label className="form-check small mb-0">
           <input type="checkbox" className="form-check-input" checked={onlyPending} onChange={(e) => setOnlyPending(e.target.checked)} /> Not approved only
         </label>
+        {pending.length > 0 && (
+          <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
+            Approve all ({pending.length})
+          </button>
+        )}
       </div>
       {range === 'period' && <p className="tm-muted small mb-2">{rangeLabel(payPeriodOf(now))}</p>}
 
       {list.length ? (
-        <div className="tm-card tm-review">
+        <div className="rc-grid">
           {list.map((p) => {
             const person = name(p.employeeId)
             const status = punchStatus(p)
             const warnings = punchWarnings(p, data.shifts, data.shop, now)
-            const day = fromKey(dateKey(new Date(p.clockIn)))
+            const dayKey = dateKey(new Date(p.clockIn))
             return (
-              <div key={p.id} className={`tm-rv st-${status}`}>
-                <button type="button" className="tm-rv-main" onClick={() => setOpen(p)}>
-                  <div className="tm-datebox">
-                    <small>{DAY_NAMES[day.getDay()].slice(0, 3).toUpperCase()}</small>
-                    <b>{day.getDate()}</b>
-                  </div>
-                  <div className="tm-rv-body">
-                    <b className="tm-rv-name">
-                      <Avatar employee={person} size={24} />
-                      {person?.name ?? '?'}
-                      {warnings.some(isLateWarning) && <span className="tm-rv-warn" title={warnings.filter(isLateWarning).join('\n')}> ⚠️</span>}
-                    </b>
-                    <span>
-                      {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : ''}
-                      {p.clockOut && dateKey(new Date(p.clockOut)) !== dateKey(new Date(p.clockIn)) && <small className="tm-bad"> (next day)</small>}
+              <article key={p.id} className={`rc st-${status}`}>
+                <button type="button" className="rc-main" onClick={() => setOpen(p)}>
+                  <span className="rc-top">
+                    <Avatar employee={person} size={38} />
+                    <span className="rc-who">
+                      <b>{person?.name ?? '?'}</b>
+                      <small>{person?.position}</small>
                     </span>
-                    <small className="tm-muted">{person?.position}</small>
-                    <small>
-                      <span className={`tm-rv-status st-${status}`}>{STATUS_LABEL[status]}</span> · {duration(punchMinutes(p, now))}
-                    </small>
-                    {warnings.length > 0 && <small className="tm-rv-why">{warnings[0]}{warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ''}</small>}
-                  </div>
+                    <span className={`rc-chip st-${status}`}>{STATUS_LABEL[status]}</span>
+                  </span>
+                  <span className="rc-day">{dayLabel(dayKey)}</span>
+                  <span className="rc-time">
+                    {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : '…'}
+                    {p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <small className="tm-bad"> (next day)</small>}
+                  </span>
+                  <span className="rc-dur">{duration(punchMinutes(p, now))}</span>
+                  {warnings.length > 0 && (
+                    <span className={`rc-why ${warnings.some(isLateWarning) ? 'late' : ''}`}>
+                      {warnings.some(isLateWarning) && <span aria-hidden="true">⚠️ </span>}
+                      {warnings[0]}{warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ''}
+                    </span>
+                  )}
                 </button>
                 {status === 'pending' && (
-                  <button type="button" className="btn btn-success btn-sm tm-rv-ok" disabled={busy} onClick={() => approve([p.id])}>Approve</button>
+                  <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve</button>
                 )}
-                {status === 'approved' && <span className="tm-rv-done" title={`Approved by ${p.approvedBy ?? ''}`}>✓</span>}
-              </div>
+                {status === 'approved' && <span className="rc-done" title={`Approved by ${p.approvedBy ?? ''}`}>✓ Approved</span>}
+              </article>
             )
           })}
         </div>
