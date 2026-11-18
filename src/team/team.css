@@ -3033,3 +3033,31 @@ a:hover { color: var(--navy-hover); }
 .wk-time { font-size: 13.5px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .wk-off { display: flex; align-items: center; gap: 8px; padding: 2px 10px; color: var(--muted); font-size: 13px; font-weight: 600; }
 .wk-off em { margin-left: auto; font-style: normal; font-size: 12px; font-weight: 700; }
+
+/* ---------- Timesheet on a phone: a card per person (TimesheetCards) ---------- */
+.ts-cards { display: none; }
+@media (max-width: 767px) {
+  .ts-table { display: none; }
+  .ts-cards { display: flex; flex-direction: column; gap: 10px; }
+}
+@media print { .ts-cards { display: none !important; } .ts-table { display: block !important; } }
+.ts-sum { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(160deg, color-mix(in srgb, var(--navy) 9%, var(--paper)), var(--paper) 70%); }
+.ts-sum span { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.ts-sum b { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ts-sum small { color: var(--muted); font-size: 12.5px; font-weight: 600; }
+.ts-card { border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(160deg, color-mix(in srgb, var(--navy) 9%, var(--paper)), var(--paper) 70%); overflow: hidden; }
+.ts-card summary { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto 18px; gap: 12px; align-items: center; padding: 12px 14px; cursor: pointer; list-style: none; }
+.ts-card summary::-webkit-details-marker { display: none; }
+.ts-who { display: flex; flex-direction: column; min-width: 0; }
+.ts-who b { font-size: 15px; font-weight: 700; }
+.ts-who small { color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ts-total { display: flex; align-items: baseline; gap: 4px; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ts-total small { color: var(--muted); font-size: 12px; font-weight: 700; }
+.ts-chev { width: 18px; height: 18px; fill: none; stroke: var(--muted); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s ease; }
+.ts-card[open] .ts-chev { transform: rotate(90deg); }
+.ts-days { list-style: none; margin: 0; padding: 0 14px 10px; }
+.ts-days li { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 8px 0; border-top: 1px solid var(--line-soft); font-size: 14px; font-variant-numeric: tabular-nums; }
+.ts-date { color: var(--muted); font-weight: 700; font-size: 13px; }
+.ts-times { display: flex; flex-direction: column; gap: 2px; font-weight: 600; }
+.ts-days li b { font-weight: 800; }
+.ts-none { margin: 0; padding: 0 14px 12px; color: var(--muted); font-size: 13.5px; }

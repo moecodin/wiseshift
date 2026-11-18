@@ -11,6 +11,7 @@ import MyHours from './MyHours.jsx'
 import { useFeatures } from './features.js'
 import ExportHours from './ExportHours.jsx'
 import PunchDetails from './PunchDetails.jsx'
+import TimesheetCards from './TimesheetCards.jsx'
 import ReviewList from './ReviewList.jsx'
 import { punchStatus } from './review.js'
 
@@ -312,7 +313,8 @@ function Timesheet({ data, period, now }) {
       {unapproved > 0 && (
         <p className="tm-warn no-print">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.</p>
       )}
-      <div className="tm-gridwrap">
+      <TimesheetCards rows={rows} data={data} pay={pay} total={total} />
+      <div className="tm-gridwrap ts-table">
         <table className="tm-sheet">
           <thead>
             <tr>
