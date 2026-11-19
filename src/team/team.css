@@ -3574,3 +3574,39 @@ html [data-bs-theme='light'] .tm, [data-bs-theme='light'] .tm .tm-pill, [data-bs
 [data-bs-theme='light'] .tm .tm-pill { background-color: #ececf0 !important; }
 [data-bs-theme='light'] .tm .mt-count { background-color: #16171a !important; color: #fff; }
 [data-bs-theme='light'] .tm .ms-card, [data-bs-theme='light'] .tm .wh-card { background: #ffffff !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
+
+/* ---------- Computer header and menu ----------
+   "My clock" is a small chip in the header's right corner; the theme, notification and settings buttons
+   live in the side menu; the menu can hide its labels (remembered on this computer). */
+.tm-head-slot:empty, .tm-clockchip, .tm-side-btns, .tm-nav-toggle { display: none; }
+@media (min-width: 900px) {
+  .tm-head { grid-template-columns: 1fr auto auto; }
+  .tm-head-btns.in-side { display: none; }
+  .tm-clockchip { display: inline-flex; align-items: center; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font-size: 13px; font-weight: 500; color: var(--muted); }
+  .tm-clockchip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+  .tm-clockchip.in .tm-clockchip-dot { background: var(--ok, #17803d); }
+  .tm-clockchip.in .tm-clockchip-text { color: var(--ink); }
+  .tm-clockchip button { height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 13px; font-weight: 600; }
+  .tm-clockchip button:hover { background: var(--hover, var(--head)); }
+  .mt.desk > .mt-in { display: none; }
+  .tm-main { padding-top: 16px; }
+  .tm-side-btns { display: flex; gap: 4px; margin-top: auto; padding: 10px 2px; }
+  .tm-side-btns .tm-icon { width: 34px; height: 34px; border-radius: 8px; }
+  .tm-me { margin-top: 0; }
+  .tm-nav-toggle { display: grid; place-items: center; position: absolute; top: 26px; right: 10px; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); }
+  .tm-nav-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .tm-nav-toggle:hover { background: var(--hover, var(--head)); color: var(--ink); }
+
+  .tm.nav-off { --side: 64px; }
+  .tm.nav-off .tm-side { padding: 22px 8px 16px; align-items: center; }
+  .tm.nav-off .tm-brand { margin: 0 0 12px; }
+  .tm.nav-off .tm-brand b { display: none; }
+  .tm.nav-off .tm-nav-toggle { position: static; margin: 0 0 14px; }
+  .tm.nav-off .tm-side .tm-tabs { width: 100%; }
+  .tm.nav-off .tm-side .tm-tabs button { justify-content: center; padding: 10px 0; position: relative; }
+  .tm.nav-off .tm-side .tm-tabs button > span:not(.tm-badge) { display: none; }
+  .tm.nav-off .tm-side .tm-tabs .tm-badge { position: absolute; top: 3px; right: 8px; margin: 0; transform: scale(0.85); }
+  .tm.nav-off .tm-side-btns { flex-direction: column; align-items: center; }
+  .tm.nav-off .tm-me { justify-content: center; padding: 14px 0 0; }
+  .tm.nav-off .tm-me > span { display: none; }
+}

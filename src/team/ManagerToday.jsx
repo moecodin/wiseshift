@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { dateKey, formatClock } from '../lib/dates.js'
 import { scheduleWeekOf } from './paycheck.js'
 import { datesLabel, scheduleOnly, shiftTimes, useNow } from './format.js'
@@ -60,8 +61,23 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
 
   const othersOff = (t) => data.teamOff.filter((o) => o.employeeId !== t.employeeId && o.start <= t.end && o.end >= t.start).map((o) => first(o.employeeId))
 
+  // On a computer, "My clock" is a small chip in the header's right corner instead of a strip.
+  const [slot, setSlot] = useState(null)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSlot(document.getElementById('tm-head-slot'))
+  }, [])
+
   return (
     <div className="tm-narrow desk mt">
+      {f.timeClock && slot && createPortal(
+        <div className={`tm-clockchip ${myOpen ? 'in' : ''}`}>
+          <span className="tm-clockchip-dot" aria-hidden="true" />
+          <span className="tm-clockchip-text">{myOpen ? w.since(formatClock(myOpen.clockIn)).replace(/^Since /, 'In since ') : w.youOut}</span>
+          <button type="button" onClick={() => onView('clock')}>{w.myClock}</button>
+        </div>,
+        slot,
+      )}
       {f.timeClock && (
         <div className={`mt-in ${myOpen ? '' : 'out'}`}>
           <div><small>{myOpen ? w.youIn : w.youOut}</small><b>{myOpen ? w.since(formatClock(myOpen.clockIn)) : w.clockHint}</b></div>

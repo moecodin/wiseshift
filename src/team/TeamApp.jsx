@@ -185,6 +185,23 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     document.addEventListener('visibilitychange', ping)
     return () => document.removeEventListener('visibilitychange', ping)
   }, [me?.id])
+  // Computer menu: hide the labels to leave a slim icon bar (remembered on this computer).
+  const [navOff, setNavOff] = useState(() => {
+    try {
+      return localStorage.getItem('wiseshift-nav-off') === '1'
+    } catch {
+      return false
+    }
+  })
+  const toggleNav = () =>
+    setNavOff((v) => {
+      try {
+        localStorage.setItem('wiseshift-nav-off', v ? '0' : '1')
+      } catch {
+        // Not important if this can't be saved.
+      }
+      return !v
+    })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
   const look = themeById()
@@ -242,16 +259,9 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     )
   }
 
-  return (
-    <FeaturesContext.Provider value={features}>
-    <div className="tm">
-      <header className="tm-head">
-        <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /></a>
-        <div className="tm-hello">
-          {me ? `${lang === 'es' ? 'Hola' : 'Hi'} ${me.name.split(' ')[0]}` : 'WiseShift'}
-          <small>{me ? (me.position || 'Team') : 'Team'}</small>
-        </div>
-        <span className="tm-head-btns">
+  // Theme, notifications and settings: in the header on a phone, in the side menu on a computer.
+  const iconButtons = (
+    <>
           <button type="button" className="tm-icon" onClick={onToggleTheme} aria-label="Light or dark" title="Light or dark">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></svg>
           </button>
@@ -265,7 +275,20 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
             </button>
           )}
-        </span>
+    </>
+  )
+
+  return (
+    <FeaturesContext.Provider value={features}>
+    <div className={`tm ${navOff ? 'nav-off' : ''}`}>
+      <header className="tm-head">
+        <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /></a>
+        <div className="tm-hello">
+          {me ? `${lang === 'es' ? 'Hola' : 'Hi'} ${me.name.split(' ')[0]}` : 'WiseShift'}
+          <small>{me ? (me.position || 'Team') : 'Team'}</small>
+        </div>
+        <div id="tm-head-slot" className="tm-head-slot" />
+        <span className={`tm-head-btns ${me ? 'in-side' : ''}`}>{iconButtons}</span>
       </header>
 
       {data.sample && (
@@ -288,6 +311,9 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       {me && (
         <div className="tm-side">
           <a className="tm-brand" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /><b>WiseShift</b></a>
+          <button type="button" className="tm-nav-toggle" onClick={toggleNav} aria-label={navOff ? 'Show the menu labels' : 'Hide the menu labels'} title={navOff ? 'Show the menu labels' : 'Hide the menu labels'}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={navOff ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'} /></svg>
+          </button>
           <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
             {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
             {tabs.map((id) => (
@@ -298,6 +324,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
               </button>
             ))}
           </nav>
+          <div className="tm-side-btns">{iconButtons}</div>
           <div className="tm-me">
             <Avatar employee={me} size={36} />
             <span><b>{me.name}</b><small>{me.position || (boss ? 'Manager' : 'Team')}</small></span>
