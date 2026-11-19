@@ -74,3 +74,5 @@ Newest first. When a change is copied over, fill in the last column and note it 
 - s01 Schedule editor, Hours timesheet and Team page still use the old layout (WiseShift only for now).
 
 Backlog lives in the artifact https://claude.ai/artifact/E9FzR3siUUgTWQtMnpqZbm.
+
+**2026-11-19 port status:** bundles A (payroll fixes), B (phone timesheet cards) and D (Today screens) are ported to Roosevelt Pups on branch `port-wiseshift-nov19` (from `e422940`), not pushed yet. Not ported: Tasks tab, staff groups (030), schedule tools, dock and picker polish, time-off privacy (028).
