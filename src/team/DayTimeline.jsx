@@ -176,7 +176,7 @@ export default function DayTimeline({ data, me, date, today, lang, mode, onEdit,
           {f.coverage && renderCoverage(shifts, w)}
           <div className="tl-tools">
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={copyYesterday}>{w.copyYesterday}</button>
-            <button type="button" className="btn btn-success btn-sm" disabled={!drafts.length} onClick={publish}>{w.publish} ({drafts.length})</button>
+            <button type="button" className="btn btn-brand btn-sm" disabled={!drafts.length} onClick={publish}>{w.publish} ({drafts.length})</button>
           </div>
           {message && <p className="tm-msg" role="status">{message}</p>}
         </>

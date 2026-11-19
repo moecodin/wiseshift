@@ -11,6 +11,7 @@ import Avatar from './Avatar.jsx'
 import { loadDensity, saveDensity } from './viewPref.js'
 import { dayLabel, hoursLabel, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
+import Icon from './Icon.jsx'
 
 // "Maria L.", "8a", "Tue 17": short forms so a punch fits on one line.
 const shortName = (full = '') => {
@@ -33,7 +34,7 @@ const dayShort = (key) => `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)} ${fro
 export default function ReviewList({ data }) {
   const now = useNow()
   const [range, setRange] = useState('week') // 'week' (past 7 days), 'period' (this pay period) or 'last' (the one before)
-  const [status, setStatus] = useState('pending') // 'pending' (awaiting approval), 'progress' (still clocked in), 'approved' or 'all'
+  const [status, setStatus] = useState('pending') // 'pending', 'progress' (still clocked in), 'approved' or 'all'
   const [picked, setPicked] = useState(() => new Set()) // the employees ticked in the picker; none = everyone
   const [stepper, setStepper] = useState(null) // Review one by one: the punch ids to step through
   const stepRuns = useRef(0) // a new key each time it starts, so the pop-up starts fresh
@@ -51,6 +52,7 @@ export default function ReviewList({ data }) {
     setSavedDensity(value)
   }
   const [groupBy, setGroupBy] = useState(null) // 'group' (staff group), 'role', 'date' or 'none'; null = the best default
+  const [leaving, setLeaving] = useState([]) // punches that are fading out because they were just approved
   const [undo, setUndo] = useState(null) // { ids, text } for a few seconds after approving
 
   const today = dateKey(now)
@@ -120,7 +122,13 @@ export default function ReviewList({ data }) {
   const approve = async (ids) => {
     setBusy(true)
     setError('')
+    // Each approved punch fades out first (a short, staggered cascade), then it is saved and leaves the list.
+    if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setLeaving(ids)
+      await new Promise((r) => setTimeout(r, 200 + Math.min(ids.length - 1, 5) * 20))
+    }
     const problem = await data.actions.approvePunches(ids, true)
+    setLeaving([])
     setBusy(false)
     if (problem) setError(problem)
     else setUndo({ ids, text: `Approved ${ids.length} ${ids.length === 1 ? 'punch' : 'punches'}` })
@@ -180,7 +188,7 @@ export default function ReviewList({ data }) {
         const warnings = punchWarnings(p, data.shifts, data.shop, now)
         const dayKey = dateKey(new Date(p.clockIn))
         return (
-          <article key={p.id} className={`rc st-${st}`}>
+          <article key={p.id} className={`rc st-${st} ${leaving.includes(p.id) ? 'leaving' : ''}`} style={leaving.includes(p.id) ? { '--i': Math.min(leaving.indexOf(p.id), 5) } : undefined}>
             <button type="button" className="rc-main" onClick={() => setOpen(p)}>
               <span className="rc-top">
                 <Avatar employee={person} size={36} />
@@ -230,7 +238,7 @@ export default function ReviewList({ data }) {
                   const role = mode === 'date' ? roleOf(p) || person?.position || '' : ''
                   const roleColor = roles.find((r) => r.name === role)?.color
                   return (
-                    <div key={p.id} className={`rv-row st-${st} ${again ? 'again' : ''}`}>
+                    <div key={p.id} className={`rv-row st-${st} ${again ? 'again' : ''} ${leaving.includes(p.id) ? 'leaving' : ''}`} style={leaving.includes(p.id) ? { '--i': Math.min(leaving.indexOf(p.id), 5) } : undefined}>
                       <button type="button" className={`rv-main ${mode === 'date' ? 'with-role' : ''}`} onClick={() => setOpen(p)} title={`${person?.name ?? '?'} · ${formatClock(p.clockIn)} – ${p.clockOut ? formatClock(p.clockOut) : 'still in'}`}>
                         <span className="rv-name">{again ? '' : shortName(person?.name)}</span>
                         {mode === 'date' && <span className="rv-role">{roleColor !== undefined && <i className={`rl-dot t${roleColor}`} aria-hidden="true" />}<span>{role}</span></span>}
@@ -242,7 +250,7 @@ export default function ReviewList({ data }) {
                       <button type="button" className="rv-more" onClick={() => setOpen(p)} aria-label={`Details for ${person?.name ?? 'this punch'}`} title="Details">⋯</button>
                       {st === 'pending' && <button type="button" className="rv-ok" disabled={busy} onClick={() => approve([p.id])} aria-label={`Approve ${hoursLabel(punchMinutes(p, now))} for ${person?.name ?? 'this person'}`} title={`Approve ${hoursLabel(punchMinutes(p, now))}`}>✓</button>}
                       {st === 'progress' && <button type="button" className="rv-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)} title="Clock out now">Out</button>}
-                      {st === 'approved' && <span className="rv-done" title="Approved" aria-label="Approved">✓</span>}
+                      {st === 'approved' && <span className="rv-done" title="Approved" aria-label="Approved"><Icon name="check" size={14} /></span>}
                     </div>
                   )
                 })}
@@ -296,7 +304,7 @@ export default function ReviewList({ data }) {
         )}
       </div>
       <div className="tm-seg rc-status" role="group" aria-label="Status">
-        {[['pending', 'Awaiting approval'], ['progress', 'In progress'], ['approved', 'Approved'], ['all', 'All']].map(([id, label]) => (
+        {[['pending', 'Pending'], ['progress', 'In progress'], ['approved', 'Approved'], ['all', 'All']].map(([id, label]) => (
           <button key={id} type="button" aria-pressed={status === id} onClick={() => setStatus(id)}>
             {label}{id !== 'all' && <span className="rc-n">{countOf(id)}</span>}
           </button>

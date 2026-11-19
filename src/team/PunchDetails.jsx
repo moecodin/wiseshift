@@ -8,6 +8,7 @@ import { isLateWarning, punchStatus, punchWarnings, shiftFor, STATUS_LABEL } fro
 import { shiftTimes, useNow } from './format.js'
 import { streetAddress } from './location.js'
 import SpotTag from './SpotTag.jsx'
+import Icon from './Icon.jsx'
 
 // The map library is only downloaded when someone opens a punch.
 const PunchMap = lazy(() => import('./PunchMap.jsx'))
@@ -127,8 +128,8 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
           </span>
           {stepper ? (
             <>
-              <button type="button" className="btn btn-outline-secondary" disabled={!stepper.canBack} onClick={stepper.onBack}>‹ Back</button>
-              <button type="button" className="btn btn-outline-secondary" onClick={stepper.onSkip}>{status === 'approved' ? 'Next ›' : 'Skip'}</button>
+              <button type="button" className="btn btn-outline-secondary" disabled={!stepper.canBack} onClick={stepper.onBack}><Icon name="left" /> Back</button>
+              <button type="button" className="btn btn-outline-secondary" onClick={stepper.onSkip}>{status === 'approved' ? <>Next <Icon name="right" /></> : 'Skip'}</button>
               {status !== 'approved' && (
                 <button type="button" className="btn btn-success pd-ok" disabled={busy || status === 'progress'} onClick={() => approve(true)}>
                   {status === 'progress' ? 'Still clocked in' : 'Approve and next'}

@@ -10,6 +10,7 @@ import ExportHours from './ExportHours.jsx'
 import TimesheetCards, { PersonHours } from './TimesheetCards.jsx'
 import ReviewList from './ReviewList.jsx'
 import { punchStatus } from './review.js'
+import Icon from './Icon.jsx'
 
 // Hours for a pay period (Friday to Thursday, two weeks) and the paycheck
 // estimate. Managers can look at anyone, fix punches, see everyone's timesheet
@@ -30,9 +31,9 @@ export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
       <div className="tm-toolbar">
         {!reviewing && (
         <div className="tm-weeknav nav-center">
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, -1))} aria-label="Pay period before">‹</button>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, -1))} aria-label="Pay period before"><Icon name="left" /></button>
           <b>{rangeLabel(period)}</b>
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, 1))} aria-label="Pay period after">›</button>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, 1))} aria-label="Pay period after"><Icon name="right" /></button>
           {!current && <button type="button" className="btn btn-link btn-sm" onClick={() => onPeriod(payPeriodOf(new Date()))}>This pay period</button>}
         </div>
         )}
