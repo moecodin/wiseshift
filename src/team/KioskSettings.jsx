@@ -1,6 +1,6 @@
 // Settings → Business → Kiosk (managers): register the store computer and copy its one-time link.
 import { useCallback, useEffect, useState } from 'react'
-import { addKioskDevice, kioskLink, listKioskDevices, revokeKioskDevice } from './kioskApi.js'
+import { addKioskDevice, kioskLink, listKioskDevices, revokeKioskDevice, setKioskTheme } from './kioskApi.js'
 
 const lastSeen = (iso) => (iso ? new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'never used')
 
@@ -43,6 +43,11 @@ export default function KioskSettings() {
       document.getElementById('ks-link')?.select()
     }
   }
+  const changeTheme = async (id, theme) => {
+    const problem = await setKioskTheme(id, theme)
+    if (problem) setError(/set_kiosk_theme|schema cache|theme/.test(problem) ? "Kiosk themes need the latest update 025 in the database." : problem)
+    load()
+  }
   const revoke = async (id) => {
     const problem = await revokeKioskDevice(id)
     setRevoking(null)
@@ -61,6 +66,12 @@ export default function KioskSettings() {
           {devices.map((d) => (
             <li key={d.id} className="d-flex align-items-center gap-2 py-1">
               <span className="me-auto"><b>{d.name}</b> <small className="tm-muted">· {lastSeen(d.lastUsedAt)}</small></span>
+              <label className="visually-hidden" htmlFor={`ks-theme-${d.id}`}>Look of {d.name}</label>
+              <select id={`ks-theme-${d.id}`} className="form-select form-select-sm" style={{ width: 'auto' }} value={d.theme} onChange={(e) => changeTheme(d.id, e.target.value)}>
+                <option value="auto">Auto (follows the computer)</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
               {revoking === d.id ? (
                 <>
                   <small>Stop this computer?</small>

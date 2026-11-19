@@ -51,6 +51,10 @@ create table if not exists public.kiosk_devices (
   revoked_at    timestamptz,
   created_at    timestamptz not null default now()
 );
+-- How the kiosk screen looks: 'auto' follows the computer's light or dark setting.
+alter table public.kiosk_devices add column if not exists theme text not null default 'auto';
+alter table public.kiosk_devices drop constraint if exists kiosk_devices_theme_check;
+alter table public.kiosk_devices add constraint kiosk_devices_theme_check check (theme in ('auto', 'light', 'dark'));
 alter table public.kiosk_devices enable row level security;
 revoke all on public.kiosk_devices from public, anon, authenticated;
 
@@ -58,7 +62,7 @@ revoke all on public.kiosk_devices from public, anon, authenticated;
 drop policy if exists "Managers see kiosk devices" on public.kiosk_devices;
 create policy "Managers see kiosk devices" on public.kiosk_devices
   for select to authenticated using ((select public.is_team_manager()));
-grant select (id, name, last_used_at, revoked_at, created_at) on public.kiosk_devices to authenticated;
+grant select (id, name, last_used_at, revoked_at, created_at, theme) on public.kiosk_devices to authenticated;
 
 -- ---------- 3. Which punches came from a kiosk ----------
 
@@ -364,6 +368,41 @@ begin
 end;
 $$;
 
+-- The kiosk page asks for its look before anyone types a PIN (and every minute after, so a
+-- change in Settings reaches it). Answers 'off' for an unknown or revoked device.
+create or replace function public.kiosk_info(device_token text)
+returns table (status text, theme text)
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $$
+  select case when public.kiosk_feature_on() then 'ok' else 'off' end, d.theme
+    from kiosk_devices d
+   where d.token_hash = encode(digest(coalesce(device_token, ''), 'sha256'), 'hex') and d.revoked_at is null
+  union all
+  select 'off', 'auto'
+   where not exists (select 1 from kiosk_devices d where d.token_hash = encode(digest(coalesce(device_token, ''), 'sha256'), 'hex') and d.revoked_at is null)
+$$;
+
+-- Managers: set how a kiosk looks ('auto', 'light' or 'dark').
+create or replace function public.set_kiosk_theme(device_id uuid, new_theme text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_team_manager() then
+    raise exception 'Managers only';
+  end if;
+  if new_theme not in ('auto', 'light', 'dark') then
+    raise exception 'Pick auto, light or dark';
+  end if;
+  update kiosk_devices set theme = new_theme where id = device_id;
+end;
+$$;
+
 -- ---------- 7. Who may call what ----------
 
 revoke all on function public.kiosk_feature_on() from public, anon, authenticated;
@@ -375,6 +414,8 @@ revoke all on function public.clear_kiosk_pin(uuid) from public, anon;
 revoke all on function public.kiosk_pin_status() from public, anon;
 revoke all on function public.new_kiosk_device(text) from public, anon;
 revoke all on function public.revoke_kiosk_device(uuid) from public, anon;
+revoke all on function public.kiosk_info(text) from public;
+revoke all on function public.set_kiosk_theme(uuid, text) from public, anon;
 revoke all on function public.kiosk_lookup(text, text) from public;
 revoke all on function public.kiosk_punch(text, text, boolean) from public;
 
@@ -386,6 +427,8 @@ grant execute on function public.kiosk_pin_status() to authenticated;
 grant execute on function public.new_kiosk_device(text) to authenticated;
 grant execute on function public.revoke_kiosk_device(uuid) to authenticated;
 -- The kiosk page has no sign-in: the device token is what proves it's a registered kiosk.
+grant execute on function public.kiosk_info(text) to anon, authenticated;
+grant execute on function public.set_kiosk_theme(uuid, text) to authenticated;
 grant execute on function public.kiosk_lookup(text, text) to anon, authenticated;
 grant execute on function public.kiosk_punch(text, text, boolean) to anon, authenticated;
 

@@ -3,7 +3,7 @@
 // Flow: PIN → "Hi Maria, clock in?" → Confirm → result, then back to the keypad.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { clockTime } from './format.js'
-import { forgetKioskToken, kioskLookup, kioskPunch, saveKioskToken, savedKioskToken } from './kioskApi.js'
+import { forgetKioskToken, kioskInfo, kioskLookup, kioskPunch, saveKioskToken, savedKioskToken } from './kioskApi.js'
 import { usingSupabase } from '../lib/supabase.js'
 import './kiosk.css'
 
@@ -47,6 +47,7 @@ export default function KioskPage() {
   const [busy, setBusy] = useState(false)
   const [lockedUntil, setLockedUntil] = useState(0)
   const timer = useRef(0)
+  const [theme, setTheme] = useState('auto') // set by a manager in Settings → Kiosk
 
   // The sample kiosk has no device token.
   const ready = Boolean(token) || !usingSupabase
@@ -149,15 +150,32 @@ export default function KioskPage() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  // Same theme as the rest of the app: the device's light or dark.
+  // Ask which look this kiosk has (and again every minute, so a change in Settings reaches it).
+  useEffect(() => {
+    if (!ready) return
+    let alive = true
+    const ask = () =>
+      kioskInfo(token).then((r) => {
+        if (!alive) return
+        if (r.status === 'ok' || r.status === 'off') setTheme(r.theme)
+      })
+    ask()
+    const t = setInterval(ask, 60000)
+    return () => {
+      alive = false
+      clearInterval(t)
+    }
+  }, [token, ready])
+
+  // 'auto' follows the computer's light or dark setting; light or dark is fixed by the manager.
   useEffect(() => {
     const dark = window.matchMedia('(prefers-color-scheme: dark)')
-    const apply = () => (document.documentElement.dataset.bsTheme = dark.matches ? 'dark' : 'light')
+    const apply = () => (document.documentElement.dataset.bsTheme = theme === 'auto' ? (dark.matches ? 'dark' : 'light') : theme)
     apply()
     dark.addEventListener('change', apply)
     document.title = 'WiseShift kiosk'
     return () => dark.removeEventListener('change', apply)
-  }, [])
+  }, [theme])
 
   const clock = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
   const date = now.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })

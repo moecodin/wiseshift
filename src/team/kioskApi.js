@@ -32,6 +32,24 @@ export const kioskLink = (token) => `${location.origin}${location.pathname}?kios
 
 // ---------- the kiosk page ----------
 
+// How this kiosk looks ('auto', 'light' or 'dark'). The manager sets it in Settings → Kiosk;
+// the page asks before any PIN is typed and again every minute. Sample mode keeps it on this browser.
+const SAMPLE_THEME_KEY = 'wiseshift-kiosk-sample-theme'
+export async function kioskInfo(token) {
+  if (!usingSupabase) {
+    try {
+      return { status: 'ok', theme: localStorage.getItem(SAMPLE_THEME_KEY) || 'auto' }
+    } catch {
+      return { status: 'ok', theme: 'auto' }
+    }
+  }
+  const { data, error } = await supabase.rpc('kiosk_info', { device_token: token })
+  if (error) return { status: 'error', theme: 'auto' }
+  const row = data?.[0]
+  return { status: row?.status ?? 'off', theme: row?.theme ?? 'auto' }
+}
+
+
 const SAMPLE = {
   4821: { person: 'Maria Lopez', action: 'in', shiftStart: 540, shiftEnd: 1020, outside: false },
   7305: { person: 'Sam Lucero', action: 'out', shiftStart: 480, shiftEnd: 1020, outside: false, since: new Date(Date.now() - 6.2 * 3600000).toISOString() },
@@ -105,20 +123,36 @@ const samplePins = new Set()
 
 export async function listKioskDevices() {
   if (!usingSupabase) return { devices: sampleDevices.filter((d) => !d.revokedAt), error: '' }
-  const { data, error } = await supabase.from('kiosk_devices').select('id, name, last_used_at, revoked_at, created_at').is('revoked_at', null).order('created_at')
+  const { data, error } = await supabase.from('kiosk_devices').select('id, name, last_used_at, revoked_at, created_at, theme').is('revoked_at', null).order('created_at')
   if (error) return { devices: [], error: error.message }
-  return { devices: data.map((d) => ({ id: d.id, name: d.name, lastUsedAt: d.last_used_at, createdAt: d.created_at })), error: '' }
+  return { devices: data.map((d) => ({ id: d.id, name: d.name, lastUsedAt: d.last_used_at, createdAt: d.created_at, theme: d.theme ?? 'auto' })), error: '' }
 }
 
 // Returns { token } once; it is not kept anywhere.
 export async function addKioskDevice(name) {
   if (!usingSupabase) {
     const token = Array.from({ length: 48 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('')
-    sampleDevices.push({ id: `kd${sampleDevices.length + 1}`, name, createdAt: new Date().toISOString(), lastUsedAt: null })
+    sampleDevices.push({ id: `kd${sampleDevices.length + 1}`, name, createdAt: new Date().toISOString(), lastUsedAt: null, theme: 'auto' })
     return { token, error: '' }
   }
   const { data, error } = await supabase.rpc('new_kiosk_device', { device_name: name })
   return error ? { token: '', error: error.message } : { token: data, error: '' }
+}
+
+// 'auto', 'light' or 'dark'. Returns '' when it worked, otherwise the problem.
+export async function setKioskTheme(id, theme) {
+  if (!usingSupabase) {
+    const d = sampleDevices.find((x) => x.id === id)
+    if (d) d.theme = theme
+    try {
+      localStorage.setItem(SAMPLE_THEME_KEY, theme)
+    } catch {
+      // The sample kiosk then stays on Auto.
+    }
+    return ''
+  }
+  const { error } = await supabase.rpc('set_kiosk_theme', { device_id: id, new_theme: theme })
+  return error ? error.message : ''
 }
 
 export async function revokeKioskDevice(id) {
