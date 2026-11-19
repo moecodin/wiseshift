@@ -37,7 +37,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
   const dayName = (d, style) => fromKey(d).toLocaleDateString(locale(lang), { weekday: style })
 
   return (
-    <div className="tm-narrow desk">
+    <div className={`tm-narrow desk ${me.isManager ? 'ms-boss' : ''} ${view === 'mine' ? 'ms-mine' : ''}`}>
       <div className="sc-toggle" role="group" aria-label="Whose shifts">
         <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>{w.mine}</button>
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>{w.team}</button>
@@ -66,6 +66,7 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
       {view === 'mine' ? (
         <>
           <OpenShifts data={data} me={me} lang={lang} />
+          <MyWeekDesk data={data} me={me} week={week} today={today} w={w} lang={lang} />
           {span === 'week' ? (
             <div className="sc-mine week sc-up">
               <div className="sc-mine-l">
@@ -97,6 +98,40 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
         <div key={selected} className="sc-fade"><DayTimeline mode="staff" data={data} me={me} date={selected} today={today} lang={lang} /></div>
       )}
     </div>
+  )
+}
+
+// Computer layout of "My shifts": the whole week as seven cells (phones keep the day strip and cards).
+function MyWeekDesk({ data, me, week, today, w, lang }) {
+  const f = useFeatures()
+  const mineOn = (d) => data.shifts.filter((s) => s.date === d && s.employeeId === me.id).sort((a, b) => a.start - b.start)
+  const all = week.flatMap(mineOn)
+  const minutes = all.reduce((sum, s) => sum + shiftMinutes(s), 0)
+  return (
+    <section className="ms-desk" aria-label={w.week}>
+      <div className="ms-desk-grid">
+        {week.map((d) => {
+          const day = fromKey(d)
+          const mine = mineOn(d)
+          const off = offOn(data.teamOff, me.id, d)
+          return (
+            <div key={d} className={`ms-cell ${d === today ? 'today' : ''} ${mine.length || off ? '' : 'free'}`}>
+              <div className="ms-cell-h"><small>{day.toLocaleDateString(locale(lang), { weekday: 'short' }).replace('.', '').toUpperCase()}</small><b>{day.getDate()}</b></div>
+              {off ? <p className="ms-cell-off">{w.timeOff}</p> : mine.length ? mine.map((s) => (
+                <div key={s.id} className="ms-shift">
+                  <b>{shiftTimes(s)}</b>
+                  {s.title && <small>{s.title}</small>}
+                  {f.roles && s.role && <small>{s.role}</small>}
+                  <span>{formatHours(shiftMinutes(s))} {w.hrs}</span>
+                  <CoverStatus data={data} shift={s} lang={lang} />
+                </div>
+              )) : <p className="ms-cell-off">{w.dayOff}</p>}
+            </div>
+          )
+        })}
+      </div>
+      <p className="ms-desk-total"><span>{w.week}</span><b>{all.length} {all.length === 1 ? 'shift' : 'shifts'} · {formatHours(minutes)} {w.hrs}</b></p>
+    </section>
   )
 }
 

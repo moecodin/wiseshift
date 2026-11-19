@@ -342,7 +342,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       <main className={`tm-main ${tab === 'schedule' || tab === 'people' || tab === 'hours' ? 'wide' : ''}`}>
         {data.error && me && <p className="tm-error" role="alert">Couldn't refresh: {data.error}</p>}
         <div key={page} className={`tm-page slide-${dir}`}>{body}</div>
-        <p className="tm-foot">{signOut}</p>
+        <p className={`tm-foot ${page === 'schedule' ? 'desk-hide' : ''}`}>{signOut}</p>
       </main>
       {settingsOpen && (
         <SettingsPanel data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => setSettingsOpen(false)} />

@@ -120,6 +120,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
         {boss && (
           <div className="tm-tools">
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={copyLastWeek}>Copy last week</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setEditing({ batch: true, employeeId: '', date: week[0], start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })} title="Add the same shift to several people and days at once">Batch Schedule</button>
             <button type="button" className="btn btn-outline-secondary btn-sm" disabled={!drafts.length} onClick={clearDrafts} title="Remove this week's unpublished shifts (published ones stay)">Clear ({drafts.length})</button>
             <button type="button" className="btn btn-brand btn-sm" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
           </div>
@@ -215,15 +216,16 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
   const presets = data.settings.shiftPresets
   const roles = data.settings.roles ?? []
   const rolesOn = useFeature('roles')
-  const [s, setS] = useState({ ...shift })
+  const [s, setS] = useState(() => { const { batch: _batch, ...rest } = shift; return rest })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const set = (field) => (e) => setS({ ...s, [field]: e.target.value })
   const days = week.includes(s.date) ? week : scheduleWeekOf(fromKey(s.date))
   // A new shift can go to several people and several days at once; changing one stays a single shift.
   const adding = !shift.id
+  // Opened from the Batch Schedule button, nothing is picked yet; from a + on the grid, that person and day are.
   const [who, setWho] = useState(() => (shift.employeeId ? [shift.employeeId] : []))
-  const [dts, setDts] = useState(() => [shift.date])
+  const [dts, setDts] = useState(() => (shift.batch ? [] : [shift.date]))
   const toggle = (list, setList, id) => setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
   const people = data.employees.filter((e) => e.active)
   const clash = (e, d) => data.shifts.find((x) => x.id !== s.id && x.employeeId === e && x.date === d && s.start !== null && s.end !== null && x.start < s.end && s.start < x.end)
@@ -269,7 +271,7 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
 
   return (
     <Modal
-      title={s.id ? 'Change shift' : 'Add shift'}
+      title={s.id ? 'Change shift' : shift.batch ? 'Batch schedule' : 'Add shift'}
       onClose={onClose}
       footer={
         <>
@@ -283,13 +285,13 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
         {adding ? (
           <>
             <div className="col-12">
-              <span className="form-label d-block" id="sh-who-l">Who <small className="tm-muted">(pick one or more)</small></span>
+              <span className="form-label d-block" id="sh-who-l">Who <small className="tm-muted">(pick one or more)</small> <button type="button" className="tm-link small ms-2" onClick={() => setWho(who.length === people.length ? [] : people.map((e) => e.id))}>{who.length === people.length ? 'Clear' : 'Everyone'}</button></span>
               <div className="rl-picks" role="group" aria-labelledby="sh-who-l">
                 {people.map((e) => <button key={e.id} type="button" className="rl-pick" aria-pressed={who.includes(e.id)} onClick={() => toggle(who, setWho, e.id)}>{e.name}</button>)}
               </div>
             </div>
             <div className="col-12">
-              <span className="form-label d-block" id="sh-day-l">Days <small className="tm-muted">(pick one or more)</small></span>
+              <span className="form-label d-block" id="sh-day-l">Days <small className="tm-muted">(pick one or more)</small> <button type="button" className="tm-link small ms-2" onClick={() => setDts(dts.length === days.length ? [] : [...days])}>{dts.length === days.length ? 'Clear' : 'Whole week'}</button></span>
               <div className="rl-picks" role="group" aria-labelledby="sh-day-l">
                 {days.map((d) => <button key={d} type="button" className="rl-pick" aria-pressed={dts.includes(d)} onClick={() => toggle(dts, setDts, d)}>{dayLabel(d)}</button>)}
               </div>

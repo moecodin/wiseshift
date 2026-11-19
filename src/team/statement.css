@@ -461,3 +461,32 @@ html[data-bs-theme] body .tm .rl-pick:active { transform: scale(0.97); }
   html[data-bs-theme] body .tm .pp-chev { transition: none; }
   html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn, .to-ask, .to-btn, .mh-edit, .rc-details, .rc-ok, .mt-call):active, html[data-bs-theme] body .tm .rl-pick:active { transform: none; }
 }
+
+/* ======================= My shifts on a computer =======================
+   A week of seven cells and a ruled total, instead of the phone's toggles, day strip and big card. Phones are unchanged. */
+.ms-desk { display: none; }
+@media (min-width: 900px) {
+  html[data-bs-theme] body .tm .ms-mine :is(.sc-span, .sc-strip, .sc-mine) { display: none; }
+  html[data-bs-theme] body .tm .ms-boss :is(.sc-toggle) { display: none; }
+  html[data-bs-theme] body .tm .tm-foot.desk-hide { display: none; }
+  html[data-bs-theme] body .tm .ms-mine .tm-narrow, html[data-bs-theme] body .tm .tm-narrow.ms-mine { max-width: none; }
+  .ms-mine .ms-desk { display: block; margin-top: 12px; }
+  .ms-desk-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); overflow: hidden; }
+  .ms-cell { min-height: 150px; padding: 12px 12px 14px; border-left: 1px solid var(--line); border-top: 3px solid transparent; display: flex; flex-direction: column; gap: 8px; }
+  .ms-cell:first-child { border-left: 0; }
+  .ms-cell.today { border-top-color: var(--ink); background: var(--head); }
+  .ms-cell-h { display: flex; align-items: baseline; gap: 8px; }
+  .ms-cell-h small { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); }
+  .ms-cell-h b { font-size: 20px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ms-shift { display: flex; flex-direction: column; gap: 2px; }
+  .ms-shift b { font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ms-shift small { font-size: 12.5px; color: var(--muted); }
+  .ms-shift span { font-size: 13px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ms-cell-off { margin: 0; font-size: 14px; color: var(--muted); }
+  .ms-cell.free .ms-cell-off { color: var(--faint); }
+  .ms-desk-total { display: flex; justify-content: space-between; align-items: baseline; margin: 12px 0 0; padding-top: 10px; border-top: 2px solid var(--ink); font-size: 14px; color: var(--muted); }
+  .ms-desk-total b { font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 900px) {
+  html[data-bs-theme] body .tm .ms-cell { animation: tm-item 0.26s cubic-bezier(0.16, 1, 0.3, 1) both; }
+}
