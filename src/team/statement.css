@@ -1,0 +1,463 @@
+/* The statement look. Loaded after team.css, so it wins over the older glass, gold and soft-grey
+   layers: navy ink on white, 1px hairlines, small corners, no shadows, no blur, no gradients, steady
+   digits. The older layers are being removed screen by screen; until then this sheet flattens them.
+   Colors live in index.css. */
+
+:root { --r-xs: 2px; --r-sm: 3px; --r-md: 6px; --r-lg: 6px; --r-table: 4px; }
+.tm, .modal-content, .offcanvas { font-variant-numeric: tabular-nums; }
+
+/* Structure is hairlines only: no shadows (focus rings stay), no blur, no gradients */
+[data-bs-theme] .tm *:not(:focus):not(:focus-visible),
+[data-bs-theme] .modal-content { box-shadow: none; }
+[data-bs-theme] .tm *, [data-bs-theme] .modal-content, [data-bs-theme] .modal-backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme] .tm :not(.tm-punch):not(.tm-punch *):not(svg *) { background-image: none; }
+[data-bs-theme] .tm::before, [data-bs-theme] .tm::after, [data-bs-theme] .tm-clock::before, [data-bs-theme] .tm-clock::after { display: none; }
+body::before, body::after { display: none; }
+
+/* Cards: a hairline box with a small corner */
+[data-bs-theme] .tm .tm-card, [data-bs-theme] .modal-content { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-lg); }
+
+/* Buttons: an outline, 36px high, small corner. Only the main action is filled navy. */
+[data-bs-theme] .tm :is(.btn, .to-ask, .to-btn, .mt-in button, .mt-call, .mt-draft button, .mh-edit, .cv-btn, .cv-row .cv-take, .cv-pass, .nt-add button, .pd-mapbtn, .pn-fix, .pn-got, .mh-pending button, .mh-approve, .td-more, .rc-details, .rc-ok, .pn-add) {
+  min-height: 36px; padding: 0 14px; border-radius: var(--r-sm); border: 1px solid var(--navy); background: transparent; color: var(--navy);
+  font-size: 14px; font-weight: 600; letter-spacing: 0; filter: none; transform: none;
+}
+[data-bs-theme] .tm :is(.btn, .to-ask, .to-btn, .mt-in button, .mt-call, .mt-draft button, .mh-edit, .cv-btn, .cv-row .cv-take, .cv-pass, .nt-add button, .pd-mapbtn, .pn-fix, .pn-got, .mh-pending button, .mh-approve, .td-more, .rc-details, .rc-ok, .pn-add):hover { background: var(--head); color: var(--navy); border-color: var(--navy); }
+[data-bs-theme] .tm .btn-sm { min-height: 30px; padding: 0 10px; font-size: 13px; }
+[data-bs-theme] .tm :is(.btn-brand, .btn-success, .btn-primary, .to-btn.yes, .mh-approve, .rc-ok, .rc-all, .rv-all, .mh-pending button, .mt-draft button, .cv-row .cv-take) {
+  background: var(--navy); color: var(--on-navy); border-color: var(--navy);
+}
+[data-bs-theme] .tm :is(.btn-brand, .btn-success, .btn-primary, .to-btn.yes, .mh-approve, .rc-ok, .rc-all, .rv-all, .mh-pending button, .mt-draft button, .cv-row .cv-take):hover { background: var(--navy-hover); color: var(--on-navy); border-color: var(--navy-hover); }
+[data-bs-theme] .tm :is(.btn-outline-danger, .to-btn.no) { color: var(--red); border-color: var(--red); background: transparent; }
+[data-bs-theme] .tm .tm-icon, [data-bs-theme] .tm .tm-side-btns .tm-icon { border-radius: var(--r-sm); background: transparent; }
+
+/* Header: a 2px ink rule under the title, like a statement's heading */
+@media (min-width: 900px) {
+  [data-bs-theme] .tm-head { border-bottom: 2px solid var(--ink); margin: 0 32px; padding: 24px 0 12px; }
+  [data-bs-theme] .tm-hello { font-weight: 600; letter-spacing: 0; }
+  [data-bs-theme] .tm-clockchip { border-radius: var(--r-sm); background: transparent; border-color: var(--ink); color: var(--ink); }
+  [data-bs-theme] .tm-clockchip button { border-radius: var(--r-xs); }
+}
+
+/* Side rail: pale rail, the current item has a 3px ink bar on the left */
+[data-bs-theme] .tm-side { background: var(--head); box-shadow: none; border-right: 1px solid var(--line); }
+[data-bs-theme] .tm-side .tm-tabs button, [data-bs-theme] .tm-tabs button { border-radius: var(--r-sm); font-weight: 600; color: var(--muted); }
+[data-bs-theme] .tm-tabs button[aria-selected='true'], [data-bs-theme] .tm-tabs .tm-pill ~ button[aria-selected='true'] { background: var(--paper); color: var(--ink); font-weight: 700; outline: 1px solid var(--line); }
+[data-bs-theme] .tm-pill { background: var(--paper); border-radius: var(--r-sm); }
+@media (min-width: 900px) {
+  [data-bs-theme] .tm-side .tm-pill { display: none; }
+  [data-bs-theme] .tm-side .tm-tabs button { border-radius: 0; border-left: 3px solid transparent; }
+  [data-bs-theme] .tm-side .tm-tabs button[aria-selected='true'] { background: var(--paper); outline: none; border-left-color: var(--ink); }
+}
+[data-bs-theme] .tm-badge { background: var(--red); color: var(--on-red); border-radius: var(--r-sm); }
+
+/* Phone: the tab bar is a plain bar fixed to the bottom edge, not a floating dock */
+@media (max-width: 899px) {
+  [data-bs-theme] .tm-tabs { left: 0; right: 0; bottom: 0; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); border: 0; border-top: 1px solid var(--line); border-radius: 0; background: var(--paper); }
+  [data-bs-theme] .tm-tabs button, [data-bs-theme] .tm-pill { border-radius: var(--r-sm); min-height: 50px; }
+}
+
+/* Today's four figures: one ruled strip, not four cards */
+@media (min-width: 900px) {
+  [data-bs-theme] .mt-stats.ms-cards { gap: 0; border-bottom: 1px solid var(--line); margin: 20px 0 28px; }
+  [data-bs-theme] .ms-card { border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent; padding: 4px 22px 22px; }
+  [data-bs-theme] .ms-card:first-child { border-left: 0; padding-left: 0; }
+  [data-bs-theme] .ms-card small { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  [data-bs-theme] .ms-card b { font-size: 36px; font-weight: 600; letter-spacing: 0; }
+  [data-bs-theme] .ms-card.warn { border-color: var(--line); }
+  [data-bs-theme] .ms-card em.up { color: var(--muted); }
+  [data-bs-theme] .ms-card em.bad { color: var(--red); }
+}
+
+/* Status chips: plain, with a hairline; red only for late and wrong */
+[data-bs-theme] .tm :is(.mt-pill, .pt-chip, .to-chip, .rl-badge, .tm-tag) { border-radius: var(--r-xs); background: transparent; border: 1px solid var(--line); color: var(--ink); font-weight: 600; }
+[data-bs-theme] .tm :is(.mt-pill.late, .to-chip.declined) { color: var(--red); border-color: var(--red); }
+
+/* People: initials in a plain hairline circle, one tone for everyone */
+.tm-avatar { background: var(--head) !important; color: var(--ink); border: 1px solid var(--line); font-weight: 600; }
+
+/* Fields */
+[data-bs-theme] .form-control, [data-bs-theme] .form-select { border-radius: var(--r-sm); border-color: var(--line); background-color: var(--paper); color: var(--ink); }
+[data-bs-theme] .form-control:focus, [data-bs-theme] .form-select:focus { border-color: var(--focus); box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus) 30%, transparent); }
+
+/* Text selection and the caret belong to the palette too */
+::selection { background: var(--navy); color: var(--on-navy); }
+input, textarea { caret-color: var(--focus); }
+
+/* ---- Winning over the older layers (their selectors are stronger; remove them as screens are cleaned up) ---- */
+[data-bs-theme] .tm :is(.btn-brand, .btn-success, .btn-primary, .to-btn.yes, .mh-approve, .rc-ok, .rc-all, .rv-all, .mh-pending button, .mt-draft button, .cv-row .cv-take, .to-ask, .pn-got) {
+  background: var(--navy) !important; color: var(--on-navy) !important; border: 1px solid var(--navy) !important; border-radius: var(--r-sm) !important; box-shadow: none !important; filter: none !important;
+}
+[data-bs-theme] .tm :is(.btn-brand, .btn-success, .btn-primary, .to-btn.yes, .mh-approve, .rc-ok, .rc-all, .rv-all, .mh-pending button, .mt-draft button, .cv-row .cv-take, .to-ask, .pn-got):hover { background: var(--navy-hover) !important; border-color: var(--navy-hover) !important; }
+[data-bs-theme] .tm :is(.tm-tabs button[aria-selected='true'], .tm-pill, .sc-day.on, .tm-seg button[aria-pressed='true'], .sc-toggle button[aria-pressed='true'], .mo-seg button[aria-pressed='true']) {
+  background: var(--paper) !important; color: var(--ink) !important; box-shadow: none !important; border-radius: var(--r-sm) !important; outline: 1px solid var(--line);
+}
+[data-bs-theme] .tm .tm-tabs .tm-pill ~ button[aria-selected='true'] { background: transparent !important; outline: 0; }
+[data-bs-theme] .tm .ms-card { border: 0 !important; border-left: 1px solid var(--line) !important; border-radius: 0 !important; background: transparent !important; }
+[data-bs-theme] .tm .ms-card:first-child { border-left: 0 !important; }
+
+/* Banners: a hairline strip, no emoji, no pill */
+[data-bs-theme] .tm .app-banner { border-radius: var(--r-md); border: 1px solid var(--line); background: var(--head); color: var(--ink); box-shadow: none; }
+[data-bs-theme] .tm .app-banner.new { background: var(--navy); color: var(--on-navy); }
+[data-bs-theme] .tm .tm-side-btns .tm-icon, [data-bs-theme] .tm .tm-head-btns .tm-icon { background: transparent !important; border: 1px solid var(--line) !important; box-shadow: none !important; border-radius: var(--r-sm) !important; }
+[data-bs-theme] .tm :is(.mt-eyebrow, .to-eyebrow, .mt-eyebrow.ok, .mt-eyebrow.bad) { color: var(--muted); }
+[data-bs-theme] .tm .mt-eyebrow.bad { color: var(--red); }
+
+/* ---- Schedule: neutral boxes. A shift is a hairline box; the role is a word, not a colour. ---- */
+[data-bs-theme] .tm :is(.tm-shift, .tl-bar, .mg-shift)[class] {
+  background: var(--paper) !important; color: var(--ink) !important; border: 1px solid var(--line) !important; border-radius: var(--r-sm) !important; box-shadow: none !important;
+}
+[data-bs-theme] .tm :is(.tm-shift, .tl-bar, .mg-shift).draft { background: transparent !important; border: 1px dashed var(--muted) !important; }
+[data-bs-theme] .tm :is(.tm-shift, .tl-bar).me { border-color: var(--navy) !important; }
+[data-bs-theme] .tm button:is(.tm-shift, .tl-bar):hover { border-color: var(--navy) !important; transform: none; }
+[data-bs-theme] .tm .tm-shift b { font-weight: 600; }
+[data-bs-theme] .tm .tm-shift .gr-meta { opacity: 1; color: var(--muted); }
+/* Role label: a hairline tag with the role's colour dot (the colour is chosen per role in Settings) */
+[data-bs-theme] .tm .rl-badge { border-radius: var(--r-xs); background: transparent !important; border: 1px solid var(--line) !important; color: var(--muted) !important; font-weight: 600; padding: 1px 7px; }
+[data-bs-theme] .tm .rl-badge .rl-dot { display: inline-block; width: 9px; height: 9px; margin-right: 7px; vertical-align: 0; }
+[data-bs-theme] .tm .sc-tag[class] { background: transparent !important; color: var(--muted) !important; border: 1px solid var(--line); border-radius: var(--r-xs); filter: none; }
+/* The grid header's "today" column and empty cells stay quiet */
+[data-bs-theme] .tm .tm-grid thead th.today, [data-bs-theme] .tm .tm-grid td.today { background: var(--head); }
+
+/* Leftover yellows from the old looks */
+[data-bs-theme] .tm .hr-bar i { background: var(--navy) !important; }
+[data-bs-theme] .tm .hr-hero .hr-ot { background: transparent !important; color: var(--red) !important; padding: 0; }
+[data-bs-theme] .tm .tm-punch.in { background: var(--navy) !important; color: var(--on-navy) !important; box-shadow: none !important; }
+[data-bs-theme] .tm .tm-logo { border-color: var(--line) !important; background: var(--paper) !important; border-radius: var(--r-sm) !important; }
+
+/* Shift boxes must stand out from the page: a light blue-grey fill, a firmer outline, heavier times */
+[data-bs-theme] .tm :is(.tm-shift, .tl-bar, .mg-shift)[class] { background: var(--shift-bg) !important; border: 1px solid var(--shift-line) !important; }
+[data-bs-theme] .tm :is(.tm-shift, .tl-bar, .mg-shift).draft { background: var(--paper) !important; border: 1px dashed var(--shift-line) !important; }
+[data-bs-theme] .tm .tm-shift b, [data-bs-theme] .tm .mg-shift .sc-time { font-weight: 700; color: var(--ink); }
+[data-bs-theme] .tm .tm-shift .gr-meta { color: var(--ink); opacity: 0.8; }
+[data-bs-theme] .tm :is(.tm-shift, .mg-shift, .tl-bar) .rl-badge { background: var(--paper) !important; border-color: var(--shift-line) !important; color: var(--ink) !important; }
+[data-bs-theme] .tm .tm-grid td { background: var(--paper); border-color: var(--line); }
+[data-bs-theme] .tm .tm-grid .tm-add, [data-bs-theme] .tm .tm-grid button:not(.tm-shift) { color: var(--faint); }
+
+/* Shift times stay on one line where the column is wide enough; below that they may wrap */
+@media (min-width: 1200px) {
+  [data-bs-theme] .tm .mg-grid .tm-shift b { white-space: nowrap; font-size: 12px; letter-spacing: -0.01em; }
+}
+
+/* ---- Hours ---- */
+/* Punch cards and groups: hairline boxes, small corners */
+[data-bs-theme] .tm :is(.rc, .rv-group, .rv:not(.cols) .rv-group, .rc-note, .rc-why) { border-radius: var(--r-md); }
+[data-bs-theme] .tm .rc { background: var(--paper); border: 1px solid var(--line); }
+/* Status is a word, not a coloured badge; red only for what is wrong */
+[data-bs-theme] .tm .rc-chip { background: transparent !important; border: 1px solid var(--line); color: var(--muted) !important; font-weight: 600; }
+[data-bs-theme] .tm .rc-chip.st-progress { color: var(--ink) !important; }
+[data-bs-theme] .tm .rc-chip.st-approved { color: var(--ok) !important; }
+[data-bs-theme] .tm .rc-why { background: var(--head); color: var(--ink); }
+[data-bs-theme] .tm .rv-when em { color: var(--red); }
+/* Filters and switches: flat boxes */
+[data-bs-theme] .tm :is(.tm-seg, .sc-toggle, .rv-density, .mo-seg) { border-radius: var(--r-sm); background: var(--head); border: 1px solid var(--line); }
+[data-bs-theme] .tm :is(.tm-seg, .sc-toggle, .rv-density, .mo-seg) button { border-radius: var(--r-xs); color: var(--muted); font-weight: 600; }
+[data-bs-theme] .tm :is(.tm-seg, .sc-toggle, .rv-density, .mo-seg) button[aria-pressed='true'] { background: var(--paper) !important; color: var(--ink) !important; outline: 1px solid var(--line); }
+
+/* ---- Timesheet ---- */
+/* Warnings: a hairline note in ink, not a yellow bar; the colour is only in the word that matters */
+[data-bs-theme] .tm .tm-warn { background: var(--head) !important; color: var(--ink) !important; border: 1px solid var(--line); border-radius: var(--r-md); }
+/* Totals sit under a 2px ink rule, like the bottom line of a statement */
+[data-bs-theme] .tm .tm-grid tfoot td, [data-bs-theme] .tm .tm-grid tfoot th { border-top: 2px solid var(--ink); background: transparent; font-weight: 700; }
+[data-bs-theme] .tm .tm-grid thead th { background: var(--head); color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--ink); }
+
+/* One small corner everywhere */
+[data-bs-theme] .tm :is(.mo-card, .mt-card, .pp-btn, .wk-table, .tm-gridwrap, .pt-person, .to-card, .st-section, .td-req) { border-radius: var(--r-md) !important; }
+
+/* ---- Pop-ups (they render outside .tm, so they need their own rules) ---- */
+[data-bs-theme] .modal-content { border-radius: var(--r-md) !important; border: 1px solid var(--line); background: var(--paper); }
+[data-bs-theme] .modal-header, [data-bs-theme] .modal-footer { border-color: var(--line); }
+[data-bs-theme] .modal-content .st-section, [data-bs-theme] .modal-content :is(.mo-card, .mt-card, .tm-card) { border-radius: var(--r-md) !important; box-shadow: none !important; background: var(--paper) !important; }
+[data-bs-theme] .modal-content .btn-close { border-radius: var(--r-sm); border: 1px solid var(--line); background-color: transparent; box-shadow: none; }
+[data-bs-theme] .modal-content .btn { min-height: 36px; border-radius: var(--r-sm); font-weight: 600; letter-spacing: 0; box-shadow: none !important; }
+[data-bs-theme] .modal-content .btn:is(.btn-outline-secondary, .btn-outline-primary, .btn-light, .btn-secondary) { background: transparent !important; color: var(--navy) !important; border: 1px solid var(--navy) !important; }
+[data-bs-theme] .modal-content .btn:is(.btn-brand, .btn-primary, .btn-success) { background: var(--navy) !important; color: var(--on-navy) !important; border: 1px solid var(--navy) !important; }
+[data-bs-theme] .modal-content .btn-outline-danger { color: var(--red) !important; border: 1px solid var(--red) !important; background: transparent !important; }
+[data-bs-theme] .modal-content :is(.tm-seg, .sc-toggle) { border-radius: var(--r-sm); background: var(--head); border: 1px solid var(--line); }
+[data-bs-theme] .modal-content :is(.tm-seg, .sc-toggle) button { border-radius: var(--r-xs); font-weight: 600; color: var(--muted); }
+[data-bs-theme] .modal-content :is(.tm-seg, .sc-toggle) button[aria-pressed='true'] { background: var(--paper) !important; color: var(--ink) !important; outline: 1px solid var(--line); }
+/* Sample-data bar: quiet, not amber */
+[data-bs-theme] .tm .tm-sample { background: var(--head) !important; color: var(--muted) !important; border-bottom: 1px solid var(--line); }
+
+/* ---- Manager pop-ups: Punch details and Change shift ---- */
+/* Role pickers keep the role's colour dot too */
+[data-bs-theme] .modal-content .rl-pick { background: var(--paper) !important; color: var(--ink) !important; border: 1px solid var(--line) !important; border-radius: var(--r-sm) !important; box-shadow: none !important; font-weight: 600; }
+[data-bs-theme] .modal-content .rl-pick[aria-pressed='true'], [data-bs-theme] .modal-content .rl-pick.on { background: var(--head) !important; border: 2px solid var(--navy) !important; color: var(--ink) !important; }
+[data-bs-theme] .modal-content .tm-presets .btn { border-radius: var(--r-sm); }
+/* Status words and the map button */
+[data-bs-theme] .modal-content :is(.tm-rv-status, .rc-chip, .pd-status) { background: transparent !important; border: 1px solid var(--line); color: var(--muted) !important; border-radius: var(--r-xs); font-weight: 600; }
+[data-bs-theme] .modal-content .pd-mapbtn { background: transparent !important; border: 1px solid var(--navy) !important; color: var(--navy) !important; box-shadow: none !important; border-radius: var(--r-sm); min-height: 36px; }
+[data-bs-theme] .modal-content .pd-times, [data-bs-theme] .modal-content :is(.pd-card, .pd-box) { border-radius: var(--r-md); box-shadow: none; }
+/* Modal title row: title left, close at the far right */
+[data-bs-theme] .modal-header { justify-content: space-between; }
+
+/* ---- Manager Today (computer): Today's shifts, Payroll readiness, Overtime watch, Schedule status ---- */
+.td-desk { display: none; }
+@media (min-width: 900px) {
+  .td-desk { display: block; }
+  /* Schedule status replaces the old "draft" card on a computer */
+  .mt.desk .mt-fold:has(.mt-draft) { display: none; }
+  .mt-right > .td-desk { order: -2; }
+}
+.td-tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.td-tbl th { text-align: left; font-size: 13px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--ink); padding: 6px 0; }
+.td-tbl td { padding: 9px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+.td-tbl tr:last-child td { border-bottom: 0; }
+.td-tbl .r { text-align: right; font-variant-numeric: tabular-nums; }
+.td-tbl .td-act { width: 1%; white-space: nowrap; padding-left: 12px; }
+.td-st { font-weight: 600; }
+.td-st.muted { color: var(--muted); font-weight: 400; }
+.td-st.bad { color: var(--red); }
+.td-sub { display: block; color: var(--muted); font-size: 13px; font-weight: 400; margin-top: 1px; }
+.td-foot { margin: 10px 0 0; padding-top: 10px; border-top: 2px solid var(--ink); font-weight: 700; }
+.td-foot.bad { color: var(--red); }
+.td-tbl td:first-child { white-space: nowrap; padding-right: 14px; }
+/* Working now leads the right-hand column on a computer */
+@media (min-width: 900px) { .mt-right > .mt-workingnow { order: -3; } }
+
+/* The old glass variables still feed many rules; point them at the statement palette */
+[data-bs-theme] .tm, [data-bs-theme] .modal-content, [data-bs-theme] .modal, [data-bs-theme] body, :root {
+  --accent-rgb: 20, 33, 61; --amb-a: 243, 245, 248; --amb-b: 243, 245, 248; --amb-c: 243, 245, 248; --amb-base: var(--desk);
+  --g-fill: var(--paper); --g-fill-strong: var(--paper); --g-fill-soft: var(--paper); --g-edge: var(--line);
+}
+[data-bs-theme='dark'] .tm, [data-bs-theme='dark'] .modal-content, [data-bs-theme='dark'] .modal, [data-bs-theme='dark'] body, [data-bs-theme='dark'] { --accent-rgb: 237, 237, 237; --amb-a: 30, 32, 31; --amb-b: 30, 32, 31; --amb-c: 30, 32, 31; }
+[data-bs-theme] .form-check-input:not(:checked) { background-color: var(--paper); border-color: var(--faint); }
+[data-bs-theme] .modal-content .tm-warn { background: var(--head) !important; color: var(--ink) !important; border: 1px solid var(--line); border-radius: var(--r-md); }
+[data-bs-theme] .modal-content :is(.tm-grid thead th, .ex-table th) { background: var(--head); color: var(--muted); font-weight: 600; }
+
+/* Hours review, compact: name | day | times | hours (right) | warning */
+@media (min-width: 900px) {
+  [data-bs-theme] .tm .rv-main { grid-template-columns: 150px 80px 150px minmax(0, 1fr) 18px; gap: 12px; }
+  [data-bs-theme] .tm .rv-main > * { border: 0; padding: 0; }
+  [data-bs-theme] .tm .rv-main .rv-dur { justify-self: end; }
+}
+[data-bs-theme] .tm .tm-grid thead th.today, [data-bs-theme] .tm .tm-grid thead th.today * { color: var(--ink) !important; font-weight: 700; }
+
+/* Dark: the side rail is the same colour as the page, with a hairline, like the reference */
+[data-bs-theme='dark'] .tm-side { background: var(--desk); }
+
+/* ---- Buttons, after the Supabase reference ----
+   An ordinary button is a quiet filled box with a thin grey edge and a 6px corner. The main action is
+   a plain filled button. Approve is the one green button. */
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn, .to-ask, .to-btn, .mt-in button, .mt-call, .mt-draft button, .mh-edit, .cv-btn, .cv-row .cv-take, .cv-pass, .nt-add button, .pd-mapbtn, .pn-fix, .pn-got, .mh-pending button, .mh-approve, .td-more, .rc-details, .rc-ok, .pn-add, .rv-all, .rc-all, .pd-ok) {
+  background: var(--btn-bg) !important; color: var(--ink) !important; border: 1px solid var(--btn-line) !important;
+  border-radius: var(--r-md) !important; font-weight: 600; box-shadow: none !important; filter: none !important;
+}
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn, .to-ask, .to-btn, .mt-in button, .mt-call, .mt-draft button, .mh-edit, .cv-btn, .cv-row .cv-take, .cv-pass, .nt-add button, .pd-mapbtn, .pn-fix, .pn-got, .mh-pending button, .mh-approve, .td-more, .rc-details, .rc-ok, .pn-add, .rv-all, .rc-all, .pd-ok):hover { background: var(--btn-hover) !important; border-color: var(--faint) !important; }
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn-brand, .btn-primary, .mt-draft button, .cv-row .cv-take, .to-ask, .pn-got) {
+  background: var(--navy) !important; color: var(--on-navy) !important; border-color: var(--navy) !important;
+}
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn-brand, .btn-primary, .mt-draft button, .cv-row .cv-take, .to-ask, .pn-got):hover { background: var(--navy-hover) !important; border-color: var(--navy-hover) !important; }
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn-success, .to-btn.yes, .rc-ok, .rc-all, .rv-all, .mh-approve, .mh-pending button, .pd-ok) {
+  background: var(--approve) !important; color: var(--on-approve) !important; border-color: var(--approve-edge) !important;
+}
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn-success, .to-btn.yes, .rc-ok, .rc-all, .rv-all, .mh-approve, .mh-pending button, .pd-ok):hover { background: var(--approve-hover) !important; border-color: var(--approve-edge) !important; }
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn, .to-ask, .to-btn, .mt-in button, .mt-call, .mt-draft button, .mh-edit, .cv-btn, .cv-row .cv-take, .cv-pass, .nt-add button, .pd-mapbtn, .pn-fix, .pn-got, .mh-pending button, .mh-approve, .td-more, .rc-details, .rc-ok, .pn-add, .rv-all, .rc-all, .pd-ok):disabled { opacity: 0.5; }
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn-outline-danger, .to-btn.no) { color: var(--red) !important; }
+html[data-bs-theme] body .modal-content .tm-chip { background: transparent !important; border: 1px solid var(--line); color: var(--muted) !important; border-radius: var(--r-xs); font-weight: 600; }
+html[data-bs-theme] body .modal-content .tm-chip.st-approved { color: var(--ok) !important; }
+
+/* Working now: "Clock out" is red text on the ordinary outline button (owner choice) */
+html[data-bs-theme] body .tm .mt-working .mt-out { color: var(--red) !important; }
+
+/* ======================= Motion: calm, quick, no bounce =======================
+   Tab changes on a computer are one short rise-and-fade of the whole screen (no staggered cards): a manager
+   switches tabs all day. Phones keep the slide. Confirmations are gentle and carry the new palette. Reduced motion
+   removes the movement; colour and state changes stay. */
+@keyframes tm-fade { from { opacity: 0; } to { opacity: 1; } }
+/* Tab change on a computer: the whole screen rises 24px as it fades in. One move, no stagger. */
+@keyframes tm-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@media (min-width: 900px) {
+  .tm-page, .tm-page.slide-l { animation: tm-up 0.38s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .tm-page :is(.tm-card, .mt-card, .sc-row, .sc-hero, .hr-hero, .pt-person, .mg-person, .rc, .td-desk, .ms-card) { animation: none; }
+}
+
+/* The clock button settles instead of popping */
+@keyframes tm-pop { 0% { transform: scale(0.97); } 100% { transform: scale(1); } }
+.tm-holdwrap.pulse .tm-punch { animation: tm-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+/* The logo bars slide in once, with no overshoot */
+.lg-bar { animation: lg-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes lg-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+/* The check on a time-off or cover card eases in */
+.mt-stamp { animation: mt-stamp 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes mt-stamp { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+/* A moved or saved shift gets one soft ring in the ink colour (it used to be the old green, with a scale pop) */
+@keyframes sh-ripple { 0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.35); } 100% { box-shadow: 0 0 0 8px rgba(var(--accent-rgb), 0); } }
+.tm-shift.flash, .mg-shift.flash, .tl-bar.flash, .wk-row.flash { animation: sh-ripple 0.7s ease-out; }
+.live-dot { background: var(--ok); }
+
+/* The Undo toast: a plain bordered box in the palette (it was a dark pill with a yellow link) */
+html[data-bs-theme] body .rv-toast { background: var(--paper); color: var(--ink); border: 1px solid var(--btn-line); border-radius: var(--r-md); box-shadow: none; font-weight: 600; }
+html[data-bs-theme] body .rv-toast button { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-page, .tm-page.slide-l, .tm-holdwrap.pulse .tm-punch, .lg-bar, .mt-stamp { animation: none; }
+  .tm-shift.flash, .mg-shift.flash, .tl-bar.flash, .wk-row.flash { animation: none; }
+}
+@media (min-width: 900px) { .sc-up, .sc-fade { animation: none; } }
+
+/* ======================= Motion, part 2: feedback and state =======================
+   Everything below is opacity, colour or a small move; reduced motion keeps the colour changes only. */
+
+/* Buttons, rows and tabs fade their colour in 120 ms on hover and focus (before there was only a press shrink) */
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn, button, .tm-tabs button, .pt-person, .mo-item, .td-req) {
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+}
+
+/* The Undo toast rises in 8px and fades; it leaves with the existing timer */
+@keyframes rv-toast-in { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+html[data-bs-theme] body .rv-toast { animation: rv-toast-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Approving a punch: the card or row turns green-edged and fades, one after another (200 ms, 20 ms apart, at most 6) */
+@keyframes rc-leave { 0% { opacity: 1; } 35% { opacity: 1; border-color: var(--approve-edge); } 100% { opacity: 0; border-color: var(--approve-edge); } }
+.rc.leaving, .rv-row.leaving { animation: rc-leave 0.2s ease-in both; animation-delay: calc(var(--i, 0) * 20ms); }
+
+/* Today's shifts: a status that changes fades in and holds a soft highlight for a moment */
+@keyframes td-flash { from { background-color: var(--head); } to { background-color: transparent; } }
+.td-flash { animation: td-flash 1.4s ease-out both; padding: 1px 4px; margin: -1px -4px; border-radius: var(--r-xs); }
+.td-st { transition: color 0.25s ease; }
+
+/* Payroll readiness: the rule under the lines is short and red until everything is clear, then draws across in ink */
+.td-foot { position: relative; border-top: 0; }
+.td-foot::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--ink); transform-origin: left center; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease; }
+.td-foot.bad::before { background: var(--red); transform: scaleX(0.3); }
+.td-foot.ready::before { transform: scaleX(1); }
+.td-foot { transition: color 0.3s ease; }
+
+/* Week grid: when you move a week the grid slides in from the side you moved towards (48px, 320 ms): next week slides left */
+@keyframes wk-next { from { opacity: 0; translate: 48px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes wk-prev { from { opacity: 0; translate: -48px 0; } to { opacity: 1; translate: 0 0; } }
+.mg-grid.wk-next { animation: wk-next 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.mg-grid.wk-prev { animation: wk-prev 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Hours this week: the bars grow from the baseline when the chart opens */
+@keyframes wh-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@media (min-width: 900px) { .wh-bar { transform-origin: bottom; animation: wh-grow 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; } }
+
+/* Side menu: hiding or showing the labels eases instead of snapping */
+@media (min-width: 900px) {
+  .tm { transition: padding-left 0.2s ease; }
+  .tm-side { transition: width 0.2s ease; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc.leaving, .rv-row.leaving, .td-flash, .mg-grid.wk-next, .mg-grid.wk-prev, .wh-bar, html[data-bs-theme] body .rv-toast { animation: none; }
+  .td-foot::before, .tm, .tm-side { transition: none; }
+}
+
+/* ======================= Review fixes (independent finish review) ======================= */
+.ic { flex: none; vertical-align: -3px; }
+.btn .ic, button .ic { vertical-align: -3px; }
+.mt-stamp .ic { stroke-width: 2.2; }
+
+/* Request type: a quiet sentence-case line under the name, not a kicker above it */
+html[data-bs-theme] body .tm .mt-type { display: block; color: var(--muted); font-size: 13px; font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 1px; }
+
+/* One status vocabulary: a status is a word, set in weight and colour (no boxed badges that look like buttons).
+   Words: On time, Late, Missing, Approved (plus Pending and Done). Red is only for Late and Missing. */
+html[data-bs-theme] body .tm :is(.mt-pill, .rc-chip, .tm-chip, .pt-chip) { background: transparent !important; border: 0 !important; padding: 0 !important; border-radius: 0; font-weight: 600; font-size: 13px; color: var(--muted) !important; }
+html[data-bs-theme] body .modal-content :is(.rc-chip, .tm-chip) { background: transparent !important; border: 0 !important; padding: 0 !important; font-weight: 600; color: var(--muted) !important; }
+html[data-bs-theme] body .tm .mt-pill:not(.late) { color: var(--ink) !important; }
+html[data-bs-theme] body .tm .mt-pill.late { color: var(--red) !important; }
+html[data-bs-theme] body .tm .rc-chip.st-approved, html[data-bs-theme] body .modal-content .tm-chip.st-approved { color: var(--ink) !important; }
+/* The presence dot has no halo */
+.live-dot::after { display: none; }
+.live-dot { background: var(--ink); }
+/* Punch history dots: plain neutral dots, no traffic-light red and green */
+.tm-dot.in, .tm-dot.out, .tm-dot.ok, .tm-dot.edit { background: var(--faint); }
+
+/* Red is for late, missing and errors only */
+.td-st.strong { color: var(--ink); font-weight: 700; }
+.td-foot.bad { color: var(--ink); }
+.td-foot.bad::before { background: var(--faint); }
+
+/* Schedule: the dashed + boxes appear on hover or keyboard focus (always visible on touch screens) */
+@media (hover: hover) {
+  html[data-bs-theme] body .tm .tm-grid .tm-add { opacity: 0; transition: opacity 0.12s ease; }
+  html[data-bs-theme] body .tm .tm-grid td:hover .tm-add, html[data-bs-theme] body .tm .tm-grid .tm-add:focus-visible { opacity: 1; }
+}
+
+/* Install banner: one slim row in the content column, not a centred card */
+@media (min-width: 900px) {
+  html[data-bs-theme] body .tm .app-banner { width: auto; max-width: none; margin: 8px 32px 0; padding: 5px 12px; gap: 10px; border-radius: var(--r-md); }
+  html[data-bs-theme] body .tm .app-banner.install img { width: 24px; height: 24px; border-radius: 5px; }
+  html[data-bs-theme] body .tm .app-banner.install > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; }
+  html[data-bs-theme] body .tm .app-banner.install small { display: inline; }
+  html[data-bs-theme] body .tm .app-banner .btn { min-height: 28px; }
+}
+
+/* Timesheet: the Total row sits under a 2px ink rule, not in a grey band */
+html[data-bs-theme] body .tm .tm-grid tfoot td, html[data-bs-theme] body .tm .tm-grid tfoot th { background: transparent !important; border-top: 2px solid var(--ink) !important; }
+
+/* Scrollbars follow the palette */
+html { scrollbar-color: var(--btn-line) var(--desk); scrollbar-width: thin; }
+.tm *, .modal-content * { scrollbar-color: var(--btn-line) transparent; scrollbar-width: thin; }
+
+/* Settings pop-up: sections are separated by one hairline each, not boxed (no cards inside the pop-up card) */
+html[data-bs-theme] body .modal-content .st-section { border: 0 !important; border-top: 1px solid var(--line) !important; border-radius: 0 !important; background: transparent !important; margin: 0 !important; padding: 16px 0 14px !important; }
+html[data-bs-theme] body .modal-content .st-section:first-of-type { border-top: 0 !important; padding-top: 4px !important; }
+html[data-bs-theme] body .modal-content .st-section .tm-h3 { border-top: 0 !important; padding-top: 0 !important; margin-top: 0 !important; }
+html[data-bs-theme] body .modal-content .st-section + .st-section { margin-top: 0 !important; }
+
+/* Today: a tighter figure strip so requests and readiness sit higher on a 1366x768 screen */
+@media (min-width: 900px) {
+  html[data-bs-theme] body .mt-stats.ms-cards { margin: 12px 0 16px; }
+  html[data-bs-theme] body .tm .ms-card { padding: 2px 22px 14px; }
+  html[data-bs-theme] body .tm .ms-card b { font-size: 32px; }
+  .tm-main { padding-top: 8px; }
+}
+
+/* "Needs your attention" count: a red badge (owner choice); white text on the dark red, dark text on the lighter dark-mode red */
+html[data-bs-theme] body .tm .mt-count { background: var(--red) !important; border-color: var(--red) !important; color: #fff !important; }
+html[data-bs-theme='dark'] body .tm .mt-count { color: #131413 !important; }
+
+/* Team list: each person is a full hairline box with a gap between rows (was a stack of boxes touching, with no top edge) */
+html[data-bs-theme] body .tm .pt-list { gap: 8px 14px; }
+html[data-bs-theme] body .tm .pt-person.sc-row { border-width: 1px !important; border-radius: var(--r-md) !important; }
+
+/* Publish confirmation: the same quiet toast as Hours review, with a check; the check draws in */
+html[data-bs-theme] body .pub-toast { gap: 10px; padding: 10px 18px; }
+html[data-bs-theme] body .pub-toast svg { flex: none; stroke-dasharray: 24; stroke-dashoffset: 24; animation: pub-check 0.4s 0.12s ease-out forwards; }
+@keyframes pub-check { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { html[data-bs-theme] body .pub-toast svg { animation: none; stroke-dashoffset: 0; } }
+
+/* ======================= Motion, part 3: menus, lists and feedback =======================
+   Short, quiet and never bouncy (150 to 300 ms, one ease-out curve). Lists only stagger on a computer, at most 8 items
+   30 ms apart, so a long list never makes you wait. Reduced motion turns all of it off. */
+
+/* Menus: the people picker drops in from its button, and its arrow turns */
+@keyframes pp-drop { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+html[data-bs-theme] body .tm .pp-panel { transform-origin: top left; animation: pp-drop 0.16s cubic-bezier(0.16, 1, 0.3, 1) both; }
+html[data-bs-theme] body .tm .pp-chev { transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+html[data-bs-theme] body .tm .pp-btn[aria-expanded='true'] .pp-chev { transform: rotate(180deg); }
+
+/* Pop-ups: the dim behind a pop-up is softer and the box settles a touch slower than it leaves */
+html[data-bs-theme] body .pu-root .modal-content { animation-duration: 0.24s; }
+
+/* Lists: rows and cards come in one after another (computer only) */
+@keyframes tm-item { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (min-width: 900px) {
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc:not(.leaving), .rv-row:not(.leaving), .mt-left > .mt-card, .mt-left > .mt-alert, .mt-right > section, .td-desk, .tm-gridwrap .tm-grid tbody tr) {
+    animation: tm-item 0.26s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--n, 0) * 30ms + 60ms);
+  }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(1) { --n: 0; }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(2) { --n: 1; }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(3) { --n: 2; }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(4) { --n: 3; }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(5) { --n: 4; }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(6) { --n: 5; }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(7) { --n: 6; }
+  html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .tm-gridwrap .tm-grid tbody tr):nth-child(n+8) { --n: 7; }
+}
+
+/* Feedback: buttons press in a little, and a new shift gets the same ring as a published one */
+html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn, .to-ask, .to-btn, .mh-edit, .rc-details, .rc-ok, .mt-call):not(:disabled):active { transform: scale(0.97); }
+html[data-bs-theme] body .tm .rl-pick { transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease; }
+html[data-bs-theme] body .tm .rl-pick:active { transform: scale(0.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-bs-theme] body .tm .pp-panel, html[data-bs-theme] body .tm-page :is(.pt-list > .pt-person, .rv > .rc, .rv-row, .mt-left > *, .mt-right > *, .td-desk, .tm-gridwrap .tm-grid tbody tr) { animation: none; }
+  html[data-bs-theme] body .tm .pp-chev { transition: none; }
+  html[data-bs-theme] body :is(.tm, .modal-content) :is(.btn, .to-ask, .to-btn, .mh-edit, .rc-details, .rc-ok, .mt-call):active, html[data-bs-theme] body .tm .rl-pick:active { transform: none; }
+}

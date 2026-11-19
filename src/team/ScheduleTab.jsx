@@ -39,13 +39,19 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
   // Shifts that were drafts a moment ago and are published now get a short ripple.
   const [flash, setFlash] = useState(() => new Set())
   const draftIds = useRef(new Set())
+  const seenShifts = useRef(null) // { week, ids }: shifts already on screen, so a newly added one can ripple too
   const flashTimer = useRef(0)
   useEffect(() => {
     const nowDrafts = new Set(drafts.map((s) => s.id))
     const done = [...draftIds.current].filter((id) => !nowDrafts.has(id) && shifts.some((s) => s.id === id))
     draftIds.current = nowDrafts
-    if (!done.length) return
-    setFlash(new Set(done))
+    // A shift that just appeared in the same week (Add shift, Copy last week, Undo) rings once. Changing week doesn't.
+    const ids = new Set(shifts.map((s) => s.id))
+    const seen = seenShifts.current
+    seenShifts.current = { week: week[0], ids }
+    const added = seen && seen.week === week[0] ? [...ids].filter((id) => !seen.ids.has(id)) : []
+    if (!done.length && !added.length) return
+    setFlash(new Set([...done, ...added]))
     clearTimeout(flashTimer.current)
     flashTimer.current = setTimeout(() => setFlash(new Set()), 1100)
   })
