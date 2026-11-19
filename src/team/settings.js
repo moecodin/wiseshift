@@ -40,6 +40,7 @@ export const DEFAULT_SETTINGS = {
   businessLogo: '', // a small image as a data URL; empty = the WiseShift mark
   setupDone: true, // false until the owner has been through the first-setup wizard (a new business)
   setupReady: false, // update 031 has been run
+  storeHours: {}, // { open, close, closed: [0-6] } in minutes and weekday numbers (0 = Sunday); {} = not set (update 031)
 }
 
 // team_settings row (or nothing) → settings, falling back to the defaults.
@@ -68,6 +69,7 @@ export function settingsFromRow(r) {
     businessLogo: pick(r.business_logo, d.businessLogo),
     setupDone: pick(r.setup_done, d.setupDone),
     setupReady: r.setup_done !== undefined, // update 031 has been run
+    storeHours: r.store_hours && typeof r.store_hours === 'object' ? r.store_hours : d.storeHours,
   }
 }
 
@@ -89,7 +91,7 @@ export const settingsToRow = (s) => ({
   notice_text: s.noticeText,
   notice_version: s.noticeVersion,
   // Only sent once update 031 exists, so saving other settings keeps working before it.
-  ...(s.setupReady ? { business_name: s.businessName, business_logo: s.businessLogo, setup_done: s.setupDone } : {}),
+  ...(s.setupReady ? { business_name: s.businessName, business_logo: s.businessLogo, setup_done: s.setupDone, store_hours: s.storeHours ?? {} } : {}),
 })
 
 // Has this person acknowledged the current location notice?

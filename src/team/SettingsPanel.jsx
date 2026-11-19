@@ -10,7 +10,8 @@ import KioskSettings from './KioskSettings.jsx'
 import { FEATURES, PRESETS, featuresOf, presetFeatures, useFeatures } from './features.js'
 import { dayName, say } from './words.js'
 import Icon from './Icon.jsx'
-import { shrinkImage } from './onboardingHelpers.js'
+import { defaultHours, hoursProblem, normalizeHours, presetsFromHours, shrinkImage } from './onboardingHelpers.js'
+import StoreHoursFields from './StoreHours.jsx'
 
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
@@ -234,6 +235,7 @@ function BusinessSettings({ data, onClose }) {
         <p className="tm-warn">These use update 018. Run <code>supabase/updates/018-settings.sql</code> in Supabase, then reload, before saving here.</p>
       )}
       <BusinessProfile data={data} onClose={onClose} />
+      <StoreHoursSettings data={data} />
       <Features data={data} />
       {f.location && <ShopLocation data={data} />}
       {f.timeClock && <ClockInRules data={data} />}
@@ -289,6 +291,31 @@ function BusinessProfile({ data, onClose }) {
         <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={() => save({ businessName: name.trim(), businessLogo: logo })}>Save</button>
         <button type="button" className="tm-link small" onClick={again}>Run the setup wizard again</button>
       </div>
+      <Result result={result} />
+    </section>
+  )
+}
+
+// When the business is open. The day view's time range follows it; the quick-pick shifts can follow it too.
+function StoreHoursSettings({ data }) {
+  const [hours, setHours] = useState(() => normalizeHours(data.settings.storeHours) ?? defaultHours()) // seven days, Sunday first
+  const [picks, setPicks] = useState(false)
+  const { busy, result, save } = useSave(data)
+  const bad = hoursProblem(hours)
+  const submit = () => {
+    const presets = picks ? presetsFromHours(hours) : null
+    save({ storeHours: { days: hours }, ...(presets ? { shiftPresets: presets } : {}) }, 'Saved.')
+  }
+  return (
+    <section className="st-section">
+      <h3 className="tm-h3">Store hours</h3>
+      <p className="tm-muted small mb-2">Each day can have its own hours, or be closed. The day view on the schedule starts and ends with that day's opening and closing time.</p>
+      <StoreHoursFields value={hours} onChange={setHours} lang={data.lang} />
+      <div className="form-check mt-3">
+        <input id="sh-picks" className="form-check-input" type="checkbox" checked={picks} onChange={(e) => setPicks(e.target.checked)} />
+        <label className="form-check-label" htmlFor="sh-picks">Also set the Open, Close and All Day quick picks from these hours</label>
+      </div>
+      <button type="button" className="btn btn-brand btn-sm mt-3" disabled={busy || bad} onClick={submit}>Save</button>
       <Result result={result} />
     </section>
   )

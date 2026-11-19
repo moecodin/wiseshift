@@ -14,6 +14,8 @@ import { startShiftDrag, wasJustDragged } from './shiftDrag.js'
 // The visible hours are 6 AM to 10 PM, widened when a shift falls outside them.
 // (Opening hours could become a setting later.)
 
+import { hoursOnDate } from './onboardingHelpers.js'
+
 const DEFAULT_START = 6 * 60
 const DEFAULT_END = 22 * 60
 
@@ -57,8 +59,13 @@ export default function DayTimeline({ data, me, date, today, lang, mode, onEdit,
 
   const shifts = data.shifts.filter((s) => s.date === date && (manager || s.published)).sort((a, b) => a.start - b.start)
   // Visible hours: 6 AM to 10 PM unless a shift needs more.
-  const H0 = Math.min(DEFAULT_START, ...shifts.map((s) => Math.floor(s.start / 60) * 60))
-  const H1 = Math.max(DEFAULT_END, ...shifts.map((s) => Math.ceil(s.end / 60) * 60))
+  // The axis runs from that day's opening to closing time (Settings → Business → Store hours), or 6 AM to 10 PM if the
+  // day has none (not set, or closed), and stretches to fit any shift outside it.
+  const hours = hoursOnDate(data.settings?.storeHours, date)
+  const axisStart = hours ? Math.floor(hours.open / 60) * 60 : DEFAULT_START
+  const axisEnd = hours && hours.close > hours.open ? Math.ceil(hours.close / 60) * 60 : DEFAULT_END
+  const H0 = Math.min(axisStart, ...shifts.map((s) => Math.floor(s.start / 60) * 60))
+  const H1 = Math.max(axisEnd, ...shifts.map((s) => Math.ceil(s.end / 60) * 60))
   const span = H1 - H0
   const pct = (m) => `${((Math.min(H1, Math.max(H0, m)) - H0) / span) * 100}%`
   const ticks = []
