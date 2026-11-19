@@ -111,6 +111,8 @@ const punchFromRow = (r) => ({
   inSpot: spot(r.in_lat, r.in_lng, r.in_accuracy), outSpot: spot(r.out_lat, r.out_lng, r.out_accuracy),
   // Update 015: approval and street addresses.
   approvedBy: r.approved_by ?? null, approvedAt: r.approved_at ?? null, inAddress: r.in_address ?? '', outAddress: r.out_address ?? '',
+  // Update 025: clocked on the store kiosk (no phone location).
+  inKiosk: Boolean(r.in_kiosk_id), outKiosk: Boolean(r.out_kiosk_id),
 })
 const eventFromRow = (r) => ({ id: r.id, kind: r.kind, detail: r.detail ?? '', by: r.by_name ?? '', at: r.at })
 const shopFromRow = (r) => (r && r.shop_lat != null ? { lat: r.shop_lat, lng: r.shop_lng, radius: r.shop_radius, address: r.shop_address ?? '' } : null)

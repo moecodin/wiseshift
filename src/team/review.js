@@ -52,15 +52,15 @@ export function punchWarnings(p, shifts, shop, now = new Date()) {
   }
 
   // Where: a time a manager typed in has no location, so it isn't "missing".
-  const place = (spot, what) => {
+  const place = (spot, what, kiosk) => {
     if (!spot) {
-      if (!p.editedBy) out.push(`No location at ${what}`)
+      if (!p.editedBy && !kiosk) out.push(`No location at ${what}`)
       return
     }
     const where = describeSpot(spot, shop)
     if (where.far) out.push(`Clocked ${what === 'clock-in' ? 'in' : 'out'} ${where.label}`)
   }
-  place(p.inSpot, 'clock-in')
-  if (p.clockOut) place(p.outSpot, 'clock-out')
+  place(p.inSpot, 'clock-in', p.inKiosk)
+  if (p.clockOut) place(p.outSpot, 'clock-out', p.outKiosk)
   return out
 }
