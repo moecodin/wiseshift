@@ -1,0 +1,54 @@
+/* The kiosk screen (layout B): clock and date on the left, keypad or card on the right. */
+.ks { position: fixed; inset: 0; z-index: 50; overflow: auto; display: grid; grid-template-columns: 1fr 1fr; background: var(--desk); color: var(--ink); }
+.ks, .ks * { box-sizing: border-box; }
+.ks-left { padding: clamp(20px, 4vw, 48px); display: grid; grid-template-rows: auto 1fr auto; border-right: 1px solid var(--line); background: var(--paper); }
+.ks-left > div:nth-child(2) { align-self: center; }
+.ks-brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.ks-mark { width: 22px; height: 22px; border-radius: 6px; background: var(--navy); }
+.ks-clock { font-size: clamp(56px, 9vw, 120px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.ks-date { margin-top: 12px; font-size: clamp(16px, 2vw, 22px); color: var(--muted); }
+.ks-foot { font-size: 13px; color: var(--muted); }
+.ks-right { display: grid; place-items: center; padding: 24px; }
+.ks-col { width: min(360px, 100%); display: grid; gap: 16px; }
+.ks-dots { display: flex; gap: 14px; justify-content: center; align-items: center; min-height: 22px; }
+.ks-dots i { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.ks-dots i.f { background: var(--ink); border-color: var(--ink); }
+.ks-dots.shake { animation: ks-shake 0.35s; }
+@keyframes ks-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.ks-hint { margin: 0; min-height: 1.4em; text-align: center; font-size: 15px; color: var(--muted); }
+.ks-hint.bad { color: var(--red, #c2362f); }
+.ks-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ks-pad button { height: clamp(60px, 9vh, 80px); border-radius: 12px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 28px; font-weight: 500; font-variant-numeric: tabular-nums; touch-action: manipulation; }
+.ks-pad button:active { background: var(--head); }
+.ks-pad button.fn { background: transparent; border-color: transparent; font-size: 15px; font-weight: 600; color: var(--muted); }
+.ks-card { width: min(380px, 100%); display: grid; gap: 14px; justify-items: center; text-align: center; padding: 28px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.ks-card h2 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.ks-card p { margin: 0; color: var(--muted); font-size: 16px; }
+.ks-card small { color: var(--muted); font-size: 13px; }
+.ks-av { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; font-weight: 700; background: #b9a3f0; color: #231a40; }
+.ks-av.muted { background: var(--head); color: var(--muted); }
+.ks-av.bad { background: color-mix(in srgb, var(--red, #c2362f) 16%, transparent); color: var(--red, #c2362f); }
+.ks-av svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ks-tick { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--ok, #17803d) 18%, transparent); color: var(--ok, #17803d); }
+.ks-tick svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ks-big { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ks-btns { display: flex; gap: 10px; width: 100%; }
+.ks-btn { height: 52px; min-width: 0; padding: 0 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 16px; font-weight: 600; touch-action: manipulation; }
+.ks-btns .ks-btn { flex: 1; }
+.ks-btn.primary { background: var(--navy); border-color: var(--navy); color: var(--on-navy); }
+.ks-btn.wide { width: 100%; }
+.ks-btn:disabled { opacity: 0.4; }
+.ks-drain { width: 100%; height: 3px; border-radius: 2px; background: var(--head); overflow: hidden; }
+.ks-drain i { display: block; height: 100%; background: var(--muted); animation: ks-drain 4s linear forwards; }
+@keyframes ks-drain { from { width: 100%; } to { width: 0; } }
+.ks :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+@media (max-width: 760px) {
+  .ks { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .ks-left { grid-template-rows: auto auto auto; gap: 14px; border-right: 0; border-bottom: 1px solid var(--line); padding: 16px; }
+  .ks-clock { font-size: 48px; }
+  .ks-foot { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ks-dots.shake, .ks-drain i { animation: none; } }
+
+.ks-code { width: 100%; height: 60px; text-align: center; font-size: 28px; font-weight: 600; letter-spacing: 0.16em; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); text-transform: uppercase; }
+.ks-bad { color: var(--red, #c2362f); font-size: 14px; }

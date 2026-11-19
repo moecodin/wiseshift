@@ -6,6 +6,7 @@ import { clockTime, dayLabel, fromTimeInput, scheduleOnly, toTimeInput } from '.
 import { NotifyOptions } from './NotifySettings.jsx'
 import ShopLocation from './ShopLocation.jsx'
 import { noticeAcked } from './settings.js'
+import KioskSettings from './KioskSettings.jsx'
 import { FEATURES, PRESETS, featuresOf, presetFeatures, useFeatures } from './features.js'
 import { dayName, say } from './words.js'
 import { getDarkStyle, setDarkStyle } from './darkStyle.js'
@@ -245,6 +246,7 @@ function BusinessSettings({ data }) {
       <Features data={data} />
       {f.location && <ShopLocation data={data} />}
       {f.timeClock && <ClockInRules data={data} />}
+      {f.timeClock && f.kioskClock && <KioskSettings />}
       <ShiftPicks data={data} />
       {f.roles && <Roles data={data} />}
       <Groups data={data} />

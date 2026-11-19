@@ -8,7 +8,7 @@ Written 2026-11-18 from the code in `src/team` and the SQL in `supabase/legacy/u
 - **Phone first, computer aware.** The same screens re-lay out: cards and sheets on a phone, columns and grids on a computer.
 - **English and Spanish** on most screens, chosen in Settings. Light and dark themes, plus a Black & Gold dark style and a yellow light style (the November 2026 redesign).
 - **Sample mode** (no Supabase needed): made-up data to try everything, with a switch between a 6-person shop and a 23-person restaurant, and a View as picker to see any person's screens.
-- **Feature switches** (Settings, Features), so a business only sees what it uses: Time clock, Timesheets and payroll export, Location on punches, Kiosk clock-in (unfinished), Time-off requests, Shift swaps and cover, Shift roles, Coverage warnings, Tasks, Manager notes and tasks, Pay rates and paycheck estimates. Presets: Just scheduling, Scheduling + time clock, Everything.
+- **Feature switches** (Settings, Features), so a business only sees what it uses: Time clock, Timesheets and payroll export, Location on punches, Kiosk clock-in, Time-off requests, Shift swaps and cover, Shift roles, Coverage warnings, Tasks, Manager notes and tasks, Pay rates and paycheck estimates. Presets: Just scheduling, Scheduling + time clock, Everything.
 
 ## 2. Staff
 **Today**
@@ -59,6 +59,8 @@ Written 2026-11-18 from the code in `src/team` and the SQL in `supabase/legacy/u
 - **Punch safety:** no overlapping punches for one person (update 027), one open punch per person, and punches round to the hour within a chosen number of minutes (the real times stay saved).
 - **Location on punches** (NY monitoring notice): location saved at clock-in and out, "away from the shop" flags, and a notice each person acknowledges (versioned).
 
+**Kiosk clock-in** (branch `kiosk-clock`; feature switch, off by default). A shared store computer or tablet: the split screen has a big clock on the left and a PIN keypad on the right. PIN, then "Hi Maria, clock in?" with Confirm, then a result that clears itself after 4 seconds. Same early window as the phone; too early shows **Clock in anyway** (managers see "Clocked in N min early" or "No shift scheduled" in Hours review). Clocking out is never blocked and shows nothing extra; managers see "Left N min early". Five wrong PINs lock the device for 5 minutes. Managers add the computer in Settings → Kiosk (a one-time link) and set PINs in Team. No location on kiosk punches; Details shows "Store kiosk".
+
 ## 6. People and business settings
 - **Team:** add, edit and remove people; email login, position, **staff group** (update 030), start date, active, manager, schedule-only; phone and emergency contact; pay type and rate, W-4 and IT-2104 details for the paycheck estimate (when pay rates are on). How to give someone a login.
 - **Settings → Business:** shop location (for "at the shop"), clocking-in rules (early window, allow unscheduled clock-in, rounding), shift types, roles, **groups**, positions, notification timing (shift reminder, still-clocked-in nudge, late alert, quiet hours), the location notice text, and the feature switches.
@@ -66,10 +68,10 @@ Written 2026-11-18 from the code in `src/team` and the SQL in `supabase/legacy/u
 - **Themes and sounds** per person (update 016).
 
 ## 7. Database updates (in `supabase/legacy/updates`)
-013 team, 014 clock location, 015 punch approvals and history, 016 themes, 017 push, 018 business settings, 019 schedule seen, 020 schedule-only people, 025 kiosk clock-in (unfinished, not committed), 027 no overlapping punches, 028 own time off only, 029 team tasks, 030 staff groups. (Updates 021 to 026 for covers, notes and the like live in the Roosevelt Pups repo; the sync file explains the numbering.)
+013 team, 014 clock location, 015 punch approvals and history, 016 themes, 017 push, 018 business settings, 019 schedule seen, 020 schedule-only people, 025 kiosk clock-in (on the kiosk-clock branch, not run anywhere yet), 027 no overlapping punches, 028 own time off only, 029 team tasks, 030 staff groups. (Updates 021 to 026 for covers, notes and the like live in the Roosevelt Pups repo; the sync file explains the numbering.)
 
 ## 8. What is not finished or not verified
-- **Kiosk clock-in:** the SQL exists locally and the feature switch is listed, but the kiosk page isn't built and neither is committed.
+- **Kiosk clock-in** (branch `kiosk-clock`, not merged): built and tried in sample mode only. Update 025 is not run on dev or live.
 - **SQL not yet run** on dev or live: 028, 029, 030 (027 is on dev).
 - Everything marked as built was checked in sample mode in the browser, not against a live Supabase project. Light mode and real touch devices weren't fully checked.
 - **Long screens with 23+ people** still need grouping: the timesheet cards, the Team list, and Today's Working now.

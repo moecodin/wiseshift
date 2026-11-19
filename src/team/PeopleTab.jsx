@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { money, scheduleOnly } from './format.js'
 import { NY_MIN_WAGE } from './taxRates.js'
@@ -7,6 +7,7 @@ import { dayLabel } from './format.js'
 import { noticeAcked } from './settings.js'
 import Avatar from './Avatar.jsx'
 import { useFeatures } from './features.js'
+import { clearKioskPin, kioskPinOwners, setKioskPin } from './kioskApi.js'
 
 // A yes / no choice as a rounded button (the same look as the role and day pickers) instead of a
 // small browser tick box. Used for Active, Manager and the pay questions.
@@ -161,6 +162,7 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
         {self && <p className="tm-muted small mb-0">You can't remove your own manager access or deactivate yourself.</p>}
       </div>
       {employee.id && !none && <Contact priv={data.privateById[employee.id]} settings={data.settings} />}
+      {employee.id && !none && f.timeClock && f.kioskClock && <KioskPin employee={employee} />}
 
       {f.payRates && (
       <>
@@ -244,6 +246,47 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
 
 // Someone left: usually just mark them not active (their hours stay on record
 // for payroll and taxes), or delete them and everything about them for good.
+// The PIN this person types on the kiosk. Managers set or clear it; it is never shown again.
+function KioskPin({ employee }) {
+  const [has, setHas] = useState(null)
+  const [pin, setPin] = useState('')
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    kioskPinOwners().then((r) => setHas(r.owners.has(employee.id)))
+  }, [employee.id])
+  const save = async () => {
+    setBusy(true)
+    const problem = await setKioskPin(employee.id, pin)
+    setBusy(false)
+    setMsg(problem ? problem : 'PIN saved.')
+    if (!problem) {
+      setPin('')
+      setHas(true)
+    }
+  }
+  const clear = async () => {
+    setBusy(true)
+    const problem = await clearKioskPin(employee.id)
+    setBusy(false)
+    setMsg(problem ? problem : 'PIN removed.')
+    if (!problem) setHas(false)
+  }
+  return (
+    <>
+      <h3 className="tm-h3">Kiosk PIN</h3>
+      <div className="d-flex gap-2 flex-wrap align-items-center">
+        <label className="visually-hidden" htmlFor="pe-pin">New PIN</label>
+        <input id="pe-pin" className="form-control" style={{ maxWidth: 160 }} inputMode="numeric" autoComplete="off" maxLength={6} placeholder={has ? 'New PIN' : '4 to 6 digits'} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
+        <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy || pin.length < 4} onClick={save}>{has ? 'Change PIN' : 'Set PIN'}</button>
+        {has && <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy} onClick={clear}>Remove PIN</button>}
+        <small className="tm-muted">{has === null ? '' : has ? 'Has a PIN.' : 'No PIN yet.'}</small>
+      </div>
+      {msg && <p className="small mb-0 mt-1" role="status">{msg}</p>}
+    </>
+  )
+}
+
 function RemovePerson({ employee, data, onCancel, onDone }) {
   const [typed, setTyped] = useState('')
   const [error, setError] = useState('')

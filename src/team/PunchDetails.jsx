@@ -151,8 +151,8 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
 
       <div className="pd-grid">
         <div className="pd-times">
-          <Side label="Clock in" at={punch.clockIn} actual={punch.actualIn} spot={punch.inSpot} address={punch.inAddress} shop={data.shop} typed={punch.editedBy && !punch.inSpot} />
-          <Side label="Clock out" at={punch.clockOut} actual={punch.actualOut} spot={punch.outSpot} address={punch.outAddress} shop={data.shop} typed={punch.editedBy && !punch.outSpot} />
+          <Side label="Clock in" at={punch.clockIn} actual={punch.actualIn} spot={punch.inSpot} address={punch.inAddress} shop={data.shop} typed={punch.editedBy && !punch.inSpot} kiosk={punch.inKiosk} />
+          <Side label="Clock out" at={punch.clockOut} actual={punch.actualOut} spot={punch.outSpot} address={punch.outAddress} shop={data.shop} typed={punch.editedBy && !punch.outSpot} kiosk={punch.outKiosk} />
         </div>
         {hasSpot && (
           <div className="pd-map">
@@ -198,7 +198,7 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
 }
 
 // One side of the punch: the time, the day, and the street it happened on.
-function Side({ label, at, actual, spot, address, shop, typed }) {
+function Side({ label, at, actual, spot, address, shop, typed, kiosk }) {
   const [found, setFound] = useState(null) // null while looking it up, '' if not found
   // Punches saved before addresses were: look the street up just for showing it.
   useEffect(() => {
@@ -224,7 +224,7 @@ function Side({ label, at, actual, spot, address, shop, typed }) {
               <SpotTag spot={spot} shop={shop} />
             </>
           ) : (
-            <div className="tm-muted small">{typed ? 'Typed in by a manager' : 'No location'}</div>
+            <div className="tm-muted small">{kiosk ? 'Store kiosk' : typed ? 'Typed in by a manager' : 'No location'}</div>
           )}
         </>
       ) : (
