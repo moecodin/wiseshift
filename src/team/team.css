@@ -3364,3 +3364,15 @@ td.sd-over { background: color-mix(in srgb, var(--navy) 22%, var(--paper)) !impo
 .rv-density { width: auto; }
 .rv-density button { min-height: 36px; padding: 0 12px; font-size: 13px; }
 @media (min-width: 900px) { .rv-cards { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
+
+/* Review one by one (PunchStepper inside the Details pop-up) */
+.pd-step { margin-bottom: 12px; }
+.pd-step-bar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; margin-bottom: 6px; }
+.pd-step-bar i { display: block; height: 100%; background: var(--navy); border-radius: 999px; transition: width 0.25s ease; }
+.pd-step small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.pd-done { font-size: 17px; margin-bottom: 6px; }
+.rv-step { flex: none; min-height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-size: 12.5px; font-weight: 800; white-space: nowrap; margin-left: auto; }
+.rv-step + .rv-all { margin-left: 6px; }
+.rv-head .rv-step ~ .rv-all { margin-left: 6px; }
+@media (max-width: 560px) { .modal-footer .pd-ok { flex: 1 1 100%; order: -1; } }
+@media (hover: none) { .pd-keys { display: none; } }

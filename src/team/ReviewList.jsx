@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
 import PunchDetails from './PunchDetails.jsx'
+import PunchStepper from './PunchStepper.jsx'
 import PeoplePicker from './PeoplePicker.jsx'
 import { PunchEditor } from './HoursTab.jsx'
 import { formatHours, moveDays, payPeriodOf, punchMinutes } from './paycheck.js'
@@ -34,6 +35,8 @@ export default function ReviewList({ data }) {
   const [range, setRange] = useState('week') // 'week' (past 7 days), 'period' (this pay period) or 'last' (the one before)
   const [status, setStatus] = useState('pending') // 'pending' (awaiting approval), 'progress' (still clocked in), 'approved' or 'all'
   const [picked, setPicked] = useState(() => new Set()) // the employees ticked in the picker; none = everyone
+  const [stepper, setStepper] = useState(null) // Review one by one: the punch ids to step through
+  const stepRuns = useRef(0) // a new key each time it starts, so the pop-up starts fresh
   const [adding, setAdding] = useState(null) // a blank punch being added from the toolbar
   const [open, setOpen] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -65,6 +68,22 @@ export default function ReviewList({ data }) {
   const people = data.employees.filter((e) => !scheduleOnly(e)).sort((a, b) => a.name.localeCompare(b.name))
   const pending = list.filter((p) => punchStatus(p) === 'pending')
   const pendingMinutes = pending.reduce((sum, p) => sum + punchMinutes(p, now), 0)
+
+  // Review one by one: a day's pending punches, the ones with a warning first, then by start time. From the toolbar it
+  // runs through every pending punch in the list, earliest day first.
+  const dayOf = (p) => dateKey(new Date(p.clockIn))
+  const flagged = (p) => (punchWarnings(p, data.shifts, data.shop, now).length > 0 ? 1 : 0)
+  const reviewOrder = (rows) => [...rows].sort((a, b) => dayOf(a).localeCompare(dayOf(b)) || flagged(b) - flagged(a) || new Date(a.clockIn) - new Date(b.clockIn))
+  const startReview = (rows) => setStepper({ ids: reviewOrder(rows).map((p) => p.id), key: ++stepRuns.current })
+  // The next day with punches still waiting, after the days being reviewed.
+  const nextAfter = (ids) => {
+    const days = ids.map((id) => data.punches.find((p) => p.id === id)).filter(Boolean).map(dayOf).sort()
+    const last = days.at(-1)
+    const later = data.punches.filter((p) => punchStatus(p) === 'pending' && (!last || dayOf(p) > last) && (!picked.size || picked.has(p.employeeId)))
+    if (!later.length) return null
+    const day = later.map(dayOf).sort()[0]
+    return reviewOrder(later.filter((p) => dayOf(p) === day)).map((p) => p.id)
+  }
 
   // How the punches are sorted into columns: by staff group (Settings → Business → Groups), by the role
   // on the shift they belong to, by day, or one plain list. Defaults to staff group when groups exist.
@@ -237,6 +256,9 @@ export default function ReviewList({ data }) {
                   <i className={`rl-dot t${bucket.color}`} aria-hidden="true" />
                   <b>{bucket.name}</b>
                   <small>{bucket.rows.length} {bucket.rows.length === 1 ? 'punch' : 'punches'}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
+                  {bucket.pending.length > 0 && mode === 'date' && (
+                    <button type="button" className="rv-step" onClick={(e) => { e.preventDefault(); startReview(bucket.pending) }} title="Go through this day's punches one by one">Review</button>
+                  )}
                   {bucket.pending.length > 0 && (
                     <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>Approve {bucket.pending.length}</button>
                   )}
@@ -266,6 +288,7 @@ export default function ReviewList({ data }) {
           <button type="button" aria-pressed={!roomy} onClick={() => setDensity('compact')}>Compact</button>
         </div>
         <button type="button" className="btn btn-outline-secondary btn-sm rv-add" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
+        {pending.length > 0 && <button type="button" className="btn btn-outline-secondary btn-sm rv-add rv-review" onClick={() => startReview(pending)} title="Go through the punches waiting for approval one at a time">Review one by one</button>}
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
             Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
@@ -318,6 +341,7 @@ export default function ReviewList({ data }) {
         </div>,
         document.body,
       )}
+      {stepper && <PunchStepper key={stepper.key} ids={stepper.ids} data={data} onClose={() => setStepper(null)} nextDay={nextAfter(stepper.ids)} onNextDay={(ids) => setStepper({ ids, key: ++stepRuns.current })} />}
       {adding && <PunchEditor punch={adding} data={data} onClose={() => setAdding(null)} />}
       {open && <PunchDetails punch={open} data={data} onClose={() => setOpen(null)} />}
     </div>

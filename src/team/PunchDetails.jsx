@@ -27,7 +27,7 @@ const duration = (minutes) => `${Math.floor(minutes / 60)}h ${String(Math.round(
 // One punch, like Humanity's Time Clock Details: how long, the shift it was for,
 // when and where they clocked in and out (street and map), its history, and
 // Approve / Edit for the manager.
-export default function PunchDetails({ punch: start, data, onClose }) {
+export default function PunchDetails({ punch: start, data, onClose, stepper }) {
   const now = useNow()
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -62,21 +62,57 @@ export default function PunchDetails({ punch: start, data, onClose }) {
     const problem = await data.actions.approvePunches([punch.id], yes)
     setBusy(false)
     if (problem) setError(problem)
-    // Approving is the end of the job, so the pop-up closes (Unapprove stays open).
+    // Approving is the end of the job, so the pop-up closes (Unapprove stays open). Stepping through a
+    // day's punches, it moves on to the next person's card instead.
+    else if (yes && stepper) stepper.onApprove(punch)
     else if (yes) onClose()
   }
+
+  // Stepping through punches (Review one by one): A approves, S or → skips, ← goes back, E edits.
+  useEffect(() => {
+    if (!stepper || editing) return undefined
+    const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('input, textarea, select')) return
+      const k = e.key.toLowerCase()
+      if (k === 'a' && status === 'pending' && !busy) {
+        e.preventDefault()
+        approve(true)
+      } else if (k === 's' || k === 'arrowright') {
+        e.preventDefault()
+        stepper.onSkip()
+      } else if (k === 'arrowleft' && stepper.canBack) {
+        e.preventDefault()
+        stepper.onBack()
+      } else if (k === 'e') {
+        e.preventDefault()
+        setEditing(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 
   if (editing) return <PunchEditor punch={punch} data={data} onClose={() => setEditing(false)} />
 
   return (
     <Modal
-      title="Punch details"
+      title={stepper ? 'Review punches' : 'Punch details'}
       size="lg"
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn-outline-secondary me-auto" onClick={() => setEditing(true)}>Edit times</button>
-          {status === 'approved' ? (
+          {stepper ? (
+            <>
+              <button type="button" className="btn btn-outline-secondary" disabled={!stepper.canBack} onClick={stepper.onBack}>‹ Back</button>
+              <button type="button" className="btn btn-outline-secondary" onClick={stepper.onSkip}>{status === 'approved' ? 'Next ›' : 'Skip'}</button>
+              {status !== 'approved' && (
+                <button type="button" className="btn btn-success pd-ok" disabled={busy || status === 'progress'} onClick={() => approve(true)}>
+                  {status === 'progress' ? 'Still clocked in' : 'Approve and next'}
+                </button>
+              )}
+            </>
+          ) : status === 'approved' ? (
             <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={() => approve(false)}>Unapprove</button>
           ) : (
             <button type="button" className="btn btn-success" disabled={busy || status === 'progress'} onClick={() => approve(true)}>
@@ -86,6 +122,12 @@ export default function PunchDetails({ punch: start, data, onClose }) {
         </>
       }
     >
+      {stepper && (
+        <div className="pd-step">
+          <div className="pd-step-bar"><i style={{ width: `${(stepper.index / stepper.total) * 100}%` }} /></div>
+          <small>{stepper.index + 1} of {stepper.total} · {stepper.approved} approved · {stepper.skipped} skipped<span className="pd-keys"> · A approve, S skip, ← back, E edit</span></small>
+        </div>
+      )}
       <div className="pd-top">
         <Avatar employee={person} size={44} />
         <div className="pd-who">
