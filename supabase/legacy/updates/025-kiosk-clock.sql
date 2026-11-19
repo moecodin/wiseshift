@@ -55,6 +55,17 @@ create table if not exists public.kiosk_devices (
 alter table public.kiosk_devices add column if not exists theme text not null default 'auto';
 alter table public.kiosk_devices drop constraint if exists kiosk_devices_theme_check;
 alter table public.kiosk_devices add constraint kiosk_devices_theme_check check (theme in ('auto', 'light', 'dark'));
+-- Pairing: a manager gets a short code, types it once on the store computer, and the
+-- computer receives its token. A device waiting to be paired has no token yet.
+alter table public.kiosk_devices alter column token_hash drop not null;
+alter table public.kiosk_devices add column if not exists paired_at       timestamptz;
+alter table public.kiosk_devices add column if not exists pair_code_hash  text;
+alter table public.kiosk_devices add column if not exists pair_expires_at timestamptz;
+update public.kiosk_devices set paired_at = created_at where token_hash is not null and paired_at is null;
+-- Wrong pairing codes are counted here (the table has no rules, so only the functions below touch it).
+create table if not exists public.kiosk_pair_attempts (at timestamptz not null default now());
+alter table public.kiosk_pair_attempts enable row level security;
+revoke all on public.kiosk_pair_attempts from public, anon, authenticated;
 alter table public.kiosk_devices enable row level security;
 revoke all on public.kiosk_devices from public, anon, authenticated;
 
@@ -62,7 +73,7 @@ revoke all on public.kiosk_devices from public, anon, authenticated;
 drop policy if exists "Managers see kiosk devices" on public.kiosk_devices;
 create policy "Managers see kiosk devices" on public.kiosk_devices
   for select to authenticated using ((select public.is_team_manager()));
-grant select (id, name, last_used_at, revoked_at, created_at, theme) on public.kiosk_devices to authenticated;
+grant select (id, name, last_used_at, revoked_at, created_at, theme, paired_at, pair_expires_at) on public.kiosk_devices to authenticated;
 
 -- ---------- 3. Which punches came from a kiosk ----------
 
@@ -185,8 +196,8 @@ begin
   if not public.is_team_manager() then
     raise exception 'Managers only';
   end if;
-  insert into kiosk_devices (name, token_hash)
-  values (btrim(device_name), encode(digest(token, 'sha256'), 'hex'));
+  insert into kiosk_devices (name, token_hash, paired_at)
+  values (btrim(device_name), encode(digest(token, 'sha256'), 'hex'), now());
   return token;
 end;
 $$;
@@ -403,6 +414,101 @@ begin
 end;
 $$;
 
+-- ---------- Pairing a store computer ----------
+-- A manager taps "Pair a computer" in Settings and gets a code like K7M2-9QX4 (good for
+-- 10 minutes). On the store computer they open the kiosk page and type it once; the page
+-- then receives its token. "New code" on an existing kiosk stops the old computer at once.
+-- Ten wrong codes in five minutes pause pairing for everyone for a few minutes.
+
+create or replace function public.new_kiosk_pairing(device_name text)
+returns table (code text, expires_at timestamptz)
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  alphabet constant text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  raw text := '';
+  bytes bytea := gen_random_bytes(8);
+  i int;
+begin
+  if not public.is_team_manager() then
+    raise exception 'Managers only';
+  end if;
+  if btrim(coalesce(device_name, '')) = '' then
+    raise exception 'Name the computer, like "Front counter"';
+  end if;
+  for i in 0..7 loop
+    raw := raw || substr(alphabet, 1 + (get_byte(bytes, i) % length(alphabet)), 1);
+  end loop;
+  insert into kiosk_devices (name, pair_code_hash, pair_expires_at)
+  values (btrim(device_name), encode(digest(raw, 'sha256'), 'hex'), now() + interval '10 minutes');
+  return query select substr(raw, 1, 4) || '-' || substr(raw, 5, 4), now() + interval '10 minutes';
+end;
+$$;
+
+create or replace function public.repair_kiosk_device(device_id uuid)
+returns table (code text, expires_at timestamptz)
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  alphabet constant text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  raw text := '';
+  bytes bytea := gen_random_bytes(8);
+  i int;
+begin
+  if not public.is_team_manager() then
+    raise exception 'Managers only';
+  end if;
+  for i in 0..7 loop
+    raw := raw || substr(alphabet, 1 + (get_byte(bytes, i) % length(alphabet)), 1);
+  end loop;
+  update kiosk_devices
+     set token_hash = null, paired_at = null, fails = 0, locked_until = null,
+         pair_code_hash = encode(digest(raw, 'sha256'), 'hex'), pair_expires_at = now() + interval '10 minutes'
+   where id = device_id and revoked_at is null;
+  if not found then
+    raise exception 'That kiosk is gone';
+  end if;
+  return query select substr(raw, 1, 4) || '-' || substr(raw, 5, 4), now() + interval '10 minutes';
+end;
+$$;
+
+-- The store computer types the code. status: ok (token returned), bad_code, locked.
+create or replace function public.pair_kiosk(pair_code text)
+returns table (status text, token text)
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  norm text := upper(regexp_replace(coalesce(pair_code, ''), '[^A-Za-z0-9]', '', 'g'));
+  dev_id uuid;
+  new_token text := encode(gen_random_bytes(24), 'hex');
+begin
+  delete from kiosk_pair_attempts where at < now() - interval '10 minutes';
+  if (select count(*) from kiosk_pair_attempts where at > now() - interval '5 minutes') >= 10 then
+    return query select 'locked', null::text;
+    return;
+  end if;
+  select d.id into dev_id from kiosk_devices d
+   where d.pair_code_hash = encode(digest(norm, 'sha256'), 'hex')
+     and d.pair_expires_at > now() and d.revoked_at is null;
+  if dev_id is null then
+    insert into kiosk_pair_attempts default values;
+    return query select 'bad_code', null::text;
+    return;
+  end if;
+  update kiosk_devices
+     set token_hash = encode(digest(new_token, 'sha256'), 'hex'), paired_at = now(),
+         pair_code_hash = null, pair_expires_at = null, fails = 0, locked_until = null
+   where id = dev_id;
+  return query select 'ok', new_token;
+end;
+$$;
+
 -- ---------- 7. Who may call what ----------
 
 revoke all on function public.kiosk_feature_on() from public, anon, authenticated;
@@ -414,6 +520,9 @@ revoke all on function public.clear_kiosk_pin(uuid) from public, anon;
 revoke all on function public.kiosk_pin_status() from public, anon;
 revoke all on function public.new_kiosk_device(text) from public, anon;
 revoke all on function public.revoke_kiosk_device(uuid) from public, anon;
+revoke all on function public.new_kiosk_pairing(text) from public, anon;
+revoke all on function public.repair_kiosk_device(uuid) from public, anon;
+revoke all on function public.pair_kiosk(text) from public;
 revoke all on function public.kiosk_info(text) from public;
 revoke all on function public.set_kiosk_theme(uuid, text) from public, anon;
 revoke all on function public.kiosk_lookup(text, text) from public;
@@ -427,6 +536,9 @@ grant execute on function public.kiosk_pin_status() to authenticated;
 grant execute on function public.new_kiosk_device(text) to authenticated;
 grant execute on function public.revoke_kiosk_device(uuid) to authenticated;
 -- The kiosk page has no sign-in: the device token is what proves it's a registered kiosk.
+grant execute on function public.new_kiosk_pairing(text) to authenticated;
+grant execute on function public.repair_kiosk_device(uuid) to authenticated;
+grant execute on function public.pair_kiosk(text) to anon, authenticated;
 grant execute on function public.kiosk_info(text) to anon, authenticated;
 grant execute on function public.set_kiosk_theme(uuid, text) to authenticated;
 grant execute on function public.kiosk_lookup(text, text) to anon, authenticated;

@@ -27,8 +27,22 @@ export const forgetKioskToken = () => {
   }
 }
 
-// The link a manager opens once on the store computer. The page keeps the token and drops it from the address.
-export const kioskLink = (token) => `${location.origin}${location.pathname}?kiosk=${token}`
+// The kiosk lives at <site>/kiosk. (An older link, <site>/team?kiosk=TOKEN, still works once.)
+const BASE = import.meta.env.BASE_URL
+export const kioskAddress = () => `${location.origin}${BASE}kiosk`
+export const isKioskAddress = () => {
+  const path = location.pathname.replace(/\/+$/, '')
+  return path === `${BASE.replace(/\/+$/, '')}/kiosk` || new URLSearchParams(location.search).has('kiosk')
+}
+
+// The store computer types the pairing code once and receives its token.
+// Returns { status: 'ok' | 'bad_code' | 'locked' | 'error', token }.
+export async function kioskPair(code) {
+  if (!usingSupabase) return { status: 'ok', token: 'sample' }
+  const { data, error } = await supabase.rpc('pair_kiosk', { pair_code: code })
+  if (error) return { status: 'error', token: '', message: error.message }
+  return { status: data?.[0]?.status ?? 'error', token: data?.[0]?.token ?? '' }
+}
 
 // ---------- the kiosk page ----------
 
@@ -123,16 +137,41 @@ const samplePins = new Set()
 
 export async function listKioskDevices() {
   if (!usingSupabase) return { devices: sampleDevices.filter((d) => !d.revokedAt), error: '' }
-  const { data, error } = await supabase.from('kiosk_devices').select('id, name, last_used_at, revoked_at, created_at, theme').is('revoked_at', null).order('created_at')
+  const { data, error } = await supabase.from('kiosk_devices').select('id, name, last_used_at, revoked_at, created_at, theme, paired_at, pair_expires_at').is('revoked_at', null).order('created_at')
   if (error) return { devices: [], error: error.message }
-  return { devices: data.map((d) => ({ id: d.id, name: d.name, lastUsedAt: d.last_used_at, createdAt: d.created_at, theme: d.theme ?? 'auto' })), error: '' }
+  return {
+    devices: data.map((d) => ({
+      id: d.id, name: d.name, lastUsedAt: d.last_used_at, createdAt: d.created_at, theme: d.theme ?? 'auto',
+      paired: Boolean(d.paired_at), pairExpiresAt: d.pair_expires_at ?? null,
+    })),
+    error: '',
+  }
 }
 
-// Returns { token } once; it is not kept anywhere.
+// A manager asks for a pairing code for a new computer: { code, expiresAt } (the code is shown once).
+export async function newKioskPairing(name) {
+  if (!usingSupabase) {
+    sampleDevices.push({ id: `kd${sampleDevices.length + 1}`, name, createdAt: new Date().toISOString(), lastUsedAt: null, theme: 'auto', paired: false })
+    return { code: 'DEMO-2345', expiresAt: new Date(Date.now() + 600000).toISOString(), error: '' }
+  }
+  const { data, error } = await supabase.rpc('new_kiosk_pairing', { device_name: name })
+  return error ? { code: '', expiresAt: null, error: error.message } : { code: data[0].code, expiresAt: data[0].expires_at, error: '' }
+}
+
+// A new code for a kiosk that is already set up; the old computer stops working at once.
+export async function repairKioskDevice(id) {
+  if (!usingSupabase) {
+    return { code: 'DEMO-2345', expiresAt: new Date(Date.now() + 600000).toISOString(), error: '' }
+  }
+  const { data, error } = await supabase.rpc('repair_kiosk_device', { device_id: id })
+  return error ? { code: '', expiresAt: null, error: error.message } : { code: data[0].code, expiresAt: data[0].expires_at, error: '' }
+}
+
+// Returns { token } once; it is not kept anywhere. (Older way: a link with the token inside.)
 export async function addKioskDevice(name) {
   if (!usingSupabase) {
     const token = Array.from({ length: 48 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('')
-    sampleDevices.push({ id: `kd${sampleDevices.length + 1}`, name, createdAt: new Date().toISOString(), lastUsedAt: null, theme: 'auto' })
+    sampleDevices.push({ id: `kd${sampleDevices.length + 1}`, name, createdAt: new Date().toISOString(), lastUsedAt: null, theme: 'auto', paired: true })
     return { token, error: '' }
   }
   const { data, error } = await supabase.rpc('new_kiosk_device', { device_name: name })

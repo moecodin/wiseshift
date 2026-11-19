@@ -3,7 +3,7 @@
 // Flow: PIN → "Hi Maria, clock in?" → Confirm → result, then back to the keypad.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { clockTime } from './format.js'
-import { forgetKioskToken, kioskInfo, kioskLookup, kioskPunch, saveKioskToken, savedKioskToken } from './kioskApi.js'
+import { forgetKioskToken, kioskInfo, kioskLookup, kioskPair, kioskPunch, saveKioskToken, savedKioskToken } from './kioskApi.js'
 import { usingSupabase } from '../lib/supabase.js'
 import './kiosk.css'
 
@@ -28,15 +28,17 @@ function useNow() {
 
 export default function KioskPage() {
   // The link carries the token once; keep it on this computer and take it out of the address.
-  const [token] = useState(() => {
+  const [token, setToken] = useState(() => {
     const fromLink = new URLSearchParams(location.search).get('kiosk')
     if (fromLink) {
       saveKioskToken(fromLink)
-      history.replaceState(null, '', `${location.pathname}?kiosk`)
+      history.replaceState(null, '', `${import.meta.env.BASE_URL}kiosk`)
       return fromLink
     }
     return savedKioskToken()
   })
+  const [code, setCode] = useState('')
+  const [pairMsg, setPairMsg] = useState('')
   const now = useNow()
   const [pin, setPin] = useState('')
   const [phase, setPhase] = useState('entry') // entry | confirm | early | done | locked | blocked | off
@@ -181,16 +183,45 @@ export default function KioskPage() {
   const date = now.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
 
   let panel
-  if (!ready || phase === 'off') {
+  if (!ready) {
+    // Not paired yet: type the code a manager got from Settings → Kiosk.
+    const pair = async () => {
+      if (code.length < 8 || busy) return
+      setBusy(true)
+      setPairMsg('')
+      const r = await kioskPair(code)
+      setBusy(false)
+      if (r.status === 'ok') {
+        saveKioskToken(r.token)
+        setToken(r.token)
+        setCode('')
+        setPhase('entry')
+      } else if (r.status === 'locked') setPairMsg('Too many tries. Wait a few minutes, then try again.')
+      else if (r.status === 'bad_code') setPairMsg('That code did not work. Check it, or ask a manager for a new one.')
+      else setPairMsg(r.message || 'Something went wrong. Try again.')
+    }
+    panel = (
+      <form className="ks-card" onSubmit={(e) => { e.preventDefault(); pair() }}>
+        <h2>Pair this computer</h2>
+        <p>In WiseShift, a manager opens Settings → Kiosk, taps Pair a computer, and types the code here.</p>
+        <label className="visually-hidden" htmlFor="ks-code">Pairing code</label>
+        <input
+          id="ks-code" className="ks-code" autoComplete="off" autoCapitalize="characters" spellCheck="false" maxLength={9}
+          placeholder="XXXX-XXXX" value={code.length > 4 ? `${code.slice(0, 4)}-${code.slice(4)}` : code}
+          onChange={(e) => setCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8))}
+        />
+        {pairMsg && <small className="ks-bad" role="alert">{pairMsg}</small>}
+        <button type="submit" className="ks-btn primary wide" disabled={code.length < 8 || busy}>Pair</button>
+      </form>
+    )
+  } else if (phase === 'off') {
     panel = (
       <div className="ks-card">
-        <h2>{ready ? 'This kiosk is turned off' : 'This computer is not set up'}</h2>
-        <p>{ready ? 'The kiosk was removed or switched off. A manager can add it again in Settings → Kiosk.' : 'A manager adds a kiosk in Settings → Kiosk and opens the link on this computer.'}</p>
-        {ready && (
-          <button type="button" className="ks-btn" onClick={() => { forgetKioskToken(); location.href = `${location.pathname}?kiosk` }}>
-            Set up again
-          </button>
-        )}
+        <h2>This kiosk is turned off</h2>
+        <p>The kiosk was removed or switched off. A manager can pair it again in Settings → Kiosk.</p>
+        <button type="button" className="ks-btn" onClick={() => { forgetKioskToken(); setToken(''); setPhase('entry') }}>
+          Pair again
+        </button>
       </div>
     )
   } else if (phase === 'confirm' && who) {
