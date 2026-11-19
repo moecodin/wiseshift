@@ -3481,3 +3481,96 @@ td.sd-over { background: color-mix(in srgb, var(--navy) 22%, var(--paper)) !impo
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs .tm-pill { background: rgba(255, 255, 255, 0.1); box-shadow: none; }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs button[aria-selected='true'], [data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs .tm-pill ~ button[aria-selected='true'] { color: var(--ink); }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs { background: var(--paper); border-color: var(--glass-line); box-shadow: none; }
+
+/* ---------- Light mode, Linear-style ----------
+   Flat off-white page, solid white cards with a hairline border, three greys for text, neutral accent
+   (near-black), slim flat buttons. The yellow stays only on the clock-in button and focus rings. */
+[data-bs-theme='light'] {
+  --amb-base: #fafafa;
+  --g-fill: #ffffff; --g-fill-strong: #ffffff; --g-fill-soft: #ffffff;
+  --g-edge: #e6e6e9;
+  --g-edge-dark: #e6e6e9;
+  --g-shadow: none;
+  --g-blur: none; --glass-blur: none;
+  --ink: #16171a;
+  --muted: #4d5159;
+  --faint: #6b7078;
+  --line: #e6e6e9;
+  --line-soft: #efeff1;
+  --hover: #f3f3f5;
+  --head: #f6f6f8;
+}
+[data-bs-theme='light'] .tm {
+  --navy: #16171a; --navy-hover: #2c2e33; --on-navy: #ffffff; --navy-edge: #16171a;
+  --yellow-ui: #16171a;
+  background: #fafafa; font-size: 14px;
+}
+[data-bs-theme='light'] .tm, [data-bs-theme='light'] .tm * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+[data-bs-theme='light'] .tm :is(h1, h2, h3, .tm-hello, .tm-now, .hr-hero b, .sc-hero b, .tm-brand) { letter-spacing: -0.02em; }
+[data-bs-theme='light'] .tm-hello { font-size: 22px; font-weight: 600; }
+
+/* Surfaces: solid, hairline, no blur, no glow */
+[data-bs-theme='light'] :is(.tm-card, .mt-card, .mt-stat, .rc, .hr-week, .sc-mine-r, .tl-card, .tm-gridwrap, .nt-card, .tm-summary, .tt, .tm-paycheck, .st-notice-card, .sc-hero:not(.today), .pt-person.sc-row) {
+  background: #ffffff; border: 1px solid var(--line); border-radius: 10px; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+[data-bs-theme='light'] .mt-alert { background: #fff8ec; border-color: #f0e2c4; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] :is(.sc-row, .tm-req, .tm-person, .ft-preset, .st-found-opt, .cv-row, .to-card, .mo-card) { background: #ffffff; border-color: var(--line); box-shadow: none; }
+[data-bs-theme='light'] .rc:hover { border-color: #c9cbd1; box-shadow: none; }
+[data-bs-theme='light'] .rc.st-pending { border-color: var(--line); }
+[data-bs-theme='light'] :is(.hr-week .sc-h, .sc-mine-r .sc-h, .tm-grid thead th, .tm-sheet thead th) { background: var(--head); }
+[data-bs-theme='light'] :is(.tm-grid th, .tm-grid td, .tm-sheet th, .tm-sheet td) { border-color: var(--line-soft); }
+[data-bs-theme='light'] :is(.tm-grid tbody th, .tm-sheet tbody th) { background: #ffffff; }
+[data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) :is(td, th) { background: #fbfbfc; }
+[data-bs-theme='light'] .tm-grid td.today { background: #f3f3f5; }
+[data-bs-theme='light'] .tm-grid thead th.today { background: #16171a; color: #fff; }
+[data-bs-theme='light'] :is(.hr-hero, .sc-hero.today, .mt-in:not(.out)) { background: #16171a; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 10px; }
+[data-bs-theme='light'] .mt-in.out { background: #ffffff; border: 1px solid var(--line); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] .tm-clock, [data-bs-theme='light'] .tm-card.tm-clock { background: #ffffff; border: 1px solid var(--line); box-shadow: none; }
+[data-bs-theme='light'] .tm-clock::before, [data-bs-theme='light'] .tm-clock::after { display: none; }
+[data-bs-theme='light'] .pu-root .modal-content { background: #ffffff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] .pu-root .modal-backdrop { background: rgba(10, 10, 12, 0.35); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] :is(.form-control, .form-select) { background-color: #ffffff; border-color: #d9dadf; box-shadow: none; border-radius: 8px; }
+[data-bs-theme='light'] :is(.tm-seg, .sc-toggle, .mo-seg) { background: #f3f3f5; border: 1px solid var(--line); box-shadow: none; }
+[data-bs-theme='light'] :is(.tm-seg, .sc-toggle, .mo-seg, .rv-density, .hr-seg) button[aria-pressed='true'], [data-bs-theme='light'] .hr-seg button[aria-selected='true'] { background: #ffffff; color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
+
+/* Top bar, sidebar, dock, banner */
+[data-bs-theme='light'] .tm-head { background: #fafafa; box-shadow: 0 1px 0 var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] .tm-side { background: #fafafa; box-shadow: 1px 0 0 var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] .tm-tabs { background: #ffffff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] .tm-tabs .tm-pill { background: #ececf0; box-shadow: none; }
+[data-bs-theme='light'] .tm-tabs button[aria-selected='true'], [data-bs-theme='light'] .tm-tabs .tm-pill ~ button[aria-selected='true'] { color: var(--ink); background: none; box-shadow: none; }
+[data-bs-theme='light'] .tm-approve-bar { background: #ffffff; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-bs-theme='light'] .tm-sample { background: transparent; color: var(--faint); border-bottom: 1px solid var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (min-width: 900px) {
+  [data-bs-theme='light'] .tm-side .tm-tabs { gap: 2px; background: none; border: 0; box-shadow: none; }
+  [data-bs-theme='light'] .tm-side .tm-tabs button { padding: 7px 10px; font-size: 13px; font-weight: 500; border-radius: 8px; gap: 10px; color: var(--faint); }
+  [data-bs-theme='light'] .tm-side .tm-tabs button:hover:not([aria-selected='true']) { background: var(--hover); color: var(--ink); }
+  [data-bs-theme='light'] .tm-side .tm-tabs button[aria-selected='true'] { color: var(--ink); }
+  [data-bs-theme='light'] .tm-side .tm-pill { background: #ececf0; border-radius: 8px; }
+  [data-bs-theme='light'] .tm-side .tm-brand { font-size: 16px; }
+}
+
+/* Buttons: primary = near-black flat, secondary = hairline. All slim, 8px, no inset shadows */
+[data-bs-theme='light'] .tm :is(.btn, .tm-btn, .cv-btn, .rv-add, .btn-sm) { border-radius: 8px; box-shadow: none; font-weight: 600; }
+[data-bs-theme='light'] .tm :is(.to-btn, .to-ask, .mt-call, .mt-draft button, .mt-in button, .cv-row .cv-take, .cv-pass, .mh-edit, .mh-approve, .mh-pending button, .pn-fix, .pn-got, .pd-mapbtn, .nt-add button) {
+  min-height: 32px; padding: 0 14px; border-radius: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0; box-shadow: none; border: 1px solid var(--line); background: #ffffff; color: var(--ink);
+}
+[data-bs-theme='light'] .tm :is(.to-btn.yes, .to-ask, .mt-draft button, .mt-in button, .cv-row .cv-take, .mh-approve, .pn-got, .mh-pending button, .btn-success, .btn-primary, .rc-all, .rv-all) { background: #16171a; border: 1px solid #16171a; color: #ffffff; box-shadow: none; filter: none; border-radius: 8px; font-weight: 600; }
+[data-bs-theme='light'] .tm :is(.to-btn.yes, .to-ask, .mt-draft button, .mt-in button, .cv-row .cv-take, .mh-approve, .pn-got, .mh-pending button, .btn-success, .btn-primary, .rc-all, .rv-all):hover { background: #2c2e33; border-color: #2c2e33; color: #fff; filter: none; }
+[data-bs-theme='light'] .tm :is(.rv-ok, .rv-more, .td-more, .pp-btn, .cv-btn, .btn-outline-secondary) { border-radius: 8px; border: 1px solid var(--line); background: #ffffff; color: var(--muted); box-shadow: none; }
+[data-bs-theme='light'] .tm :is(.rv-ok, .rv-more, .td-more, .pp-btn, .cv-btn, .btn-outline-secondary, .to-btn:not(.yes), .mt-call, .cv-pass, .mh-edit, .pn-fix, .pd-mapbtn, .nt-add button):hover { background: var(--hover); color: var(--ink); border-color: #cfd0d6; }
+[data-bs-theme='light'] .tm :is(.rv-ok, .rv-more) { border-radius: 6px; }
+[data-bs-theme='light'] .tm .mt-in:not(.out) button { background: #ffffff; color: #16171a; border-color: #ffffff; }
+[data-bs-theme='light'] .tm .tm-punch.in { background: #f6d580; color: #2b2100; box-shadow: 0 0 20px rgba(200, 150, 30, 0.25); font-weight: 600; }
+[data-bs-theme='light'] .tm .tm-punch.out { background: #16171a; color: #fff; box-shadow: none; font-weight: 600; }
+[data-bs-theme='light'] :focus-visible { outline: 2px solid #c8961e; outline-offset: 2px; }
+[data-bs-theme='light'] .tm-pill, [data-bs-theme='light'] .tm-tabs button[aria-selected='true'], [data-bs-theme='light'] .tm-side .tm-pill { box-shadow: none; background-image: none; }
+[data-bs-theme='light'] .tm-tabs .tm-pill { background-color: #ececf0; }
+
+/* Light, Linear-style: win over the older glass sheen on the selected pill, count badges and stat cards */
+html [data-bs-theme='light'] .tm, [data-bs-theme='light'] .tm .tm-pill, [data-bs-theme='light'] .tm .tm-tabs button[aria-selected='true'], [data-bs-theme='light'] .tm .mt-count, [data-bs-theme='light'] .tm .sc-day.on {
+  box-shadow: none !important; background-image: none !important; border-color: transparent;
+}
+[data-bs-theme='light'] .tm .tm-pill { background-color: #ececf0 !important; }
+[data-bs-theme='light'] .tm .mt-count { background-color: #16171a !important; color: #fff; }
+[data-bs-theme='light'] .tm .ms-card, [data-bs-theme='light'] .tm .wh-card { background: #ffffff !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
