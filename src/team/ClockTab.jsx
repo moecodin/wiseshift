@@ -15,6 +15,7 @@ import ManagerToday from './ManagerToday.jsx'
 import TodayTiles from './TodayTiles.jsx'
 import NextShiftCards from './NextShiftCards.jsx'
 import { dayName, rangeName, say } from './words.js'
+import Icon from './Icon.jsx'
 
 const UPCOMING = 4 // shifts listed under "My next shifts"
 
@@ -27,7 +28,7 @@ export default function ClockTab({ data, me, boss, look, lang, onGoTo }) {
   return (
     <>
       <div className="tm-narrow">
-        <button type="button" className="tm-back" onClick={() => setView('today')}>‹ {lang === 'es' ? 'Hoy' : 'Today'}</button>
+        <button type="button" className="tm-back" onClick={() => setView('today')}><Icon name="left" /> {lang === 'es' ? 'Hoy' : 'Today'}</button>
       </div>
       {view === 'review' ? (
         <div className="tm-narrow"><ReviewList data={data} /></div>
