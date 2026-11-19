@@ -1764,8 +1764,11 @@ button.tl-bar:active { transform: scale(0.96); }
 .ts-away { color: var(--warn, #b26b00); font-weight: 700; }
 @page { size: landscape; margin: 10mm; }
 @media print {
-  html, html[data-bs-theme='dark'], html[data-bs-theme='light'] {
-    --paper: #fff; --desk: #fff; --head: #f2ede6; --ink: #1f1a16; --muted: #555; --line: #cfc6bb; --line-soft: #ddd5ca;
+  /* The Black & Gold dark theme sets these same colors on html[data-bs-theme='dark'][data-dark-style='gold'], which
+     is more specific than a plain html[data-bs-theme] rule and used to win: the timesheet printed as light text on
+     white paper (a blank page). More specific selectors and !important make paper always print dark on white. */
+  html, html[data-bs-theme], html[data-bs-theme][data-dark-style] {
+    --paper: #fff !important; --desk: #fff !important; --head: #f2ede6 !important; --ink: #1f1a16 !important; --muted: #555 !important; --line: #cfc6bb !important; --line-soft: #ddd5ca !important;
   }
   body, .tm { background: #fff !important; color: #1f1a16; }
   .no-print, .app-banner, .ex-note, .ex-btn, .tm-back, .hr-seg { display: none !important; }
@@ -3376,3 +3379,74 @@ td.sd-over { background: color-mix(in srgb, var(--navy) 22%, var(--paper)) !impo
 .rv-head .rv-step ~ .rv-all { margin-left: 6px; }
 @media (max-width: 560px) { .modal-footer .pd-ok { flex: 1 1 100%; order: -1; } }
 @media (hover: none) { .pd-keys { display: none; } }
+
+/* ---------- Dark (Black & Gold), Linear-style restyle ----------
+   Flat near-black, three greys for text, hairline borders, solid cards, quiet sidebar and
+   buttons. Amber is kept for the active tab, focus rings and the main clock button only. */
+[data-bs-theme='dark'][data-dark-style='gold'] {
+  --desk: #08090a;
+  --paper: #0f1011;
+  --head: #141516;
+  --ink: #f7f8f8;
+  --muted: #d0d6e0;
+  --faint: #8a8f98;
+  --line: #23252a;
+  --line-soft: #1b1d20;
+  --hover: #17181a;
+  --glass-bg: #0f1011;
+  --glass-line: rgba(255, 255, 255, 0.08);
+  --glass-ink: #f7f8f8;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+[data-bs-theme='dark'][data-dark-style='gold'] .tm { background: var(--desk); font-size: 14px; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm, [data-bs-theme='dark'][data-dark-style='gold'] .tm * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(h1, h2, h3, .tm-hello, .tm-now, .hr-hero b, .sc-hero b, .tm-brand) { letter-spacing: -0.02em; }
+
+/* Cards: solid, hairline border, smaller radius, no blur */
+[data-bs-theme='dark'][data-dark-style='gold'] :is(.tm-card, .mt-card, .mt-stat, .rc, .hr-week, .sc-mine-r, .tl-card, .tm-gridwrap, .nt-card, .tm-summary, .mt-alert, .sc-hero:not(.today), .pt-person.sc-row) {
+  background: var(--paper);
+  border-color: var(--glass-line);
+  border-radius: 10px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+[data-bs-theme='dark'][data-dark-style='gold'] .rc:hover { border-color: rgba(255, 255, 255, 0.18); box-shadow: none; }
+[data-bs-theme='dark'][data-dark-style='gold'] :is(.hr-hero, .sc-hero.today, .mt-in:not(.out)) { background: var(--paper); border-color: var(--glass-line); border-radius: 10px; }
+[data-bs-theme='dark'][data-dark-style='gold'] :is(.hr-hero b, .sc-hero.today b, .mt-in:not(.out) b, .mt-stat b) { color: var(--ink); }
+[data-bs-theme='dark'][data-dark-style='gold'] :is(.tm-gridwrap) { box-shadow: none; }
+[data-bs-theme='dark'][data-dark-style='gold'] :is(.tm-grid th, .tm-grid td) { border-color: var(--line-soft); }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-grid thead th { background: var(--head); }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-grid thead th:first-child { color: var(--muted); }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-grid tbody tr:hover :is(td, th) { background: var(--hover); }
+
+/* Top bar and greeting */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-head { background: var(--desk); box-shadow: 0 1px 0 var(--line); border-bottom: 0; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-hello { font-size: 22px; font-weight: 600; }
+@media (min-width: 900px) { [data-bs-theme='dark'][data-dark-style='gold'] .tm-hello { font-size: 22px; } }
+
+/* Sample-data banner: a quiet strip */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-sample { background: transparent; color: var(--faint); border-bottom: 1px solid var(--line); }
+
+/* Sidebar: small rows, grey active state */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-side { background: var(--desk); box-shadow: 1px 0 0 var(--line); }
+@media (min-width: 900px) {
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-side .tm-tabs { gap: 2px; }
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-side .tm-tabs button { padding: 7px 10px; font-size: 13px; font-weight: 500; border-radius: 8px; gap: 10px; color: var(--faint); }
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-side .tm-tabs button:hover:not([aria-selected='true']) { background: var(--hover); color: var(--ink); }
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-side .tm-tabs button[aria-selected='true'] { color: var(--ink); box-shadow: none; }
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-side .tm-pill { background: rgba(255, 255, 255, 0.07); border-radius: 8px; box-shadow: none; }
+  [data-bs-theme='dark'][data-dark-style='gold'] .tm-side .tm-brand { font-size: 16px; }
+}
+
+/* Buttons: flat, 8px radius, no inset shadow */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.btn, .tm-btn, .cv-btn, .rv-add, .btn-sm) { border-radius: 8px; box-shadow: none; font-weight: 600; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm .btn-primary { background: #e6e6e6; border-color: #e6e6e6; color: #08090a; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm .btn-primary:hover { background: #fff; border-color: #fff; color: #08090a; }
+
+/* Clock button: calmer */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm .tm-punch { font-weight: 600; box-shadow: 0 0 24px rgba(224, 164, 79, 0.18); }
+
+/* Focus ring and scrollbar */
+[data-bs-theme='dark'][data-dark-style='gold'] :focus-visible { outline: 2px solid #e0a44f; outline-offset: 2px; }
+[data-bs-theme='dark'][data-dark-style='gold'] * { scrollbar-width: thin; scrollbar-color: #2a2c31 transparent; }
