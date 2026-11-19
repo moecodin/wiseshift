@@ -3450,3 +3450,28 @@ td.sd-over { background: color-mix(in srgb, var(--navy) 22%, var(--paper)) !impo
 /* Focus ring and scrollbar */
 [data-bs-theme='dark'][data-dark-style='gold'] :focus-visible { outline: 2px solid #e0a44f; outline-offset: 2px; }
 [data-bs-theme='dark'][data-dark-style='gold'] * { scrollbar-width: thin; scrollbar-color: #2a2c31 transparent; }
+
+/* Linear-style dark, part 2: the accent becomes neutral. Amber stays on the clock-in button and focus rings only. */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm {
+  --navy: #e6e6e6;
+  --navy-hover: #ffffff;
+  --on-navy: #08090a;
+}
+[data-bs-theme='dark'][data-dark-style='gold'] .tm .tm-punch.out { background: #e0a44f; color: #1c1305; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.btn-success, .rc-all, .rv-all) { background: #e6e6e6; border: 0; color: #08090a; border-radius: 8px; font-weight: 600; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.btn-success, .rc-all, .rv-all):hover { background: #ffffff; color: #08090a; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.rv-ok, .rv-more, .td-more, .pp-btn, .cv-btn, .btn-outline-secondary) { border-radius: 8px; border: 1px solid var(--glass-line); background: transparent; color: var(--muted); box-shadow: none; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.rv-ok, .rv-more, .td-more, .pp-btn, .cv-btn, .btn-outline-secondary):hover { background: var(--hover); color: var(--ink); border-color: rgba(255, 255, 255, 0.18); }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.rv-ok, .rv-more) { border-radius: 6px; }
+[data-bs-theme='dark'][data-dark-style='gold'] .sc-hero.today .cv-btn, [data-bs-theme='dark'][data-dark-style='gold'] .tm-seg button { color: var(--muted); }
+[data-bs-theme='dark'][data-dark-style='gold'] :is(.tm-seg, .rv-density, .hr-seg) button[aria-pressed='true'], [data-bs-theme='dark'][data-dark-style='gold'] .hr-seg button[aria-selected='true'] { background: rgba(255, 255, 255, 0.1); color: var(--ink); }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm .mt-in button { background: #e6e6e6; color: #08090a; border: 0; border-radius: 8px; box-shadow: none; font-weight: 600; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm .mt-in button:hover { background: #ffffff; }
+
+/* Linear-style dark, part 3: the chunky action buttons (Approve, Decline, Call, Publish, Take...) get the same slim, flat look */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.to-btn, .to-ask, .mt-call, .mt-draft button, .mt-in button, .cv-row .cv-take, .cv-pass, .mh-edit, .mh-approve, .mh-pending button, .pn-fix, .pn-got, .pd-mapbtn, .nt-add button) {
+  min-height: 32px; padding: 0 14px; border-radius: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0; box-shadow: none; border: 1px solid var(--glass-line); background: transparent; color: var(--ink);
+}
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.to-btn.yes, .to-ask, .mt-draft button, .mt-in button, .cv-row .cv-take, .mh-approve, .pn-got) { background: #e6e6e6; border-color: #e6e6e6; color: #08090a; filter: none; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.to-btn.yes, .to-ask, .mt-draft button, .mt-in button, .cv-row .cv-take, .mh-approve, .pn-got):hover { background: #fff; filter: none; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.to-btn:not(.yes), .mt-call, .cv-pass, .mh-edit, .pn-fix, .pd-mapbtn, .nt-add button):hover { background: var(--hover); }
