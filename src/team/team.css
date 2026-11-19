@@ -3522,7 +3522,8 @@ td.sd-over { background: color-mix(in srgb, var(--navy) 22%, var(--paper)) !impo
 [data-bs-theme='light'] :is(.tm-grid tbody th, .tm-sheet tbody th) { background: #ffffff; }
 [data-bs-theme='light'] .tm-sheet tbody tr:nth-child(even) :is(td, th) { background: #fbfbfc; }
 [data-bs-theme='light'] .tm-grid td.today { background: #f3f3f5; }
-[data-bs-theme='light'] .tm-grid thead th.today { background: #16171a; color: #fff; }
+[data-bs-theme='light'] .tm-grid thead th.today { background: #ececf0; color: #16171a; }
+[data-bs-theme='light'] .tm-grid thead th.today :is(.gr-dow, .gr-date) { color: #16171a; }
 [data-bs-theme='light'] :is(.hr-hero, .sc-hero.today, .mt-in:not(.out)) { background: #16171a; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 10px; }
 [data-bs-theme='light'] .mt-in.out { background: #ffffff; border: 1px solid var(--line); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 [data-bs-theme='light'] .tm-clock, [data-bs-theme='light'] .tm-card.tm-clock { background: #ffffff; border: 1px solid var(--line); box-shadow: none; }
@@ -3572,7 +3573,7 @@ html [data-bs-theme='light'] .tm, [data-bs-theme='light'] .tm .tm-pill, [data-bs
   box-shadow: none !important; background-image: none !important; border-color: transparent;
 }
 [data-bs-theme='light'] .tm .tm-pill { background-color: #ececf0 !important; }
-[data-bs-theme='light'] .tm .mt-count { background-color: #16171a !important; color: #fff; }
+[data-bs-theme='light'] .tm .mt-count { background-color: #ececf0 !important; color: #16171a; border: 1px solid #dcdce2; }
 [data-bs-theme='light'] .tm .ms-card, [data-bs-theme='light'] .tm .wh-card { background: #ffffff !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
 
 /* ---------- Computer header and menu ----------
@@ -3610,3 +3611,31 @@ html [data-bs-theme='light'] .tm, [data-bs-theme='light'] .tm .tm-pill, [data-bs
   .tm.nav-off .tm-me { justify-content: center; padding: 14px 0 0; }
   .tm.nav-off .tm-me > span { display: none; }
 }
+
+/* ---------- Light mode, flat (no graphite) ----------
+   Everything that was near-black becomes a flat soft grey with dark text and a hairline; buttons are slim,
+   with no shadows. The clock-in circle keeps its soft yellow glow. */
+[data-bs-theme='light'] .tm :is(.btn-brand, .btn-success, .btn-primary, .to-btn.yes, .to-ask, .mt-draft button, .cv-row .cv-take, .mh-approve, .pn-got, .mh-pending button, .rc-all, .rv-all, .rc-ok, .tl-plus, .tm-tag.next, .tl-nowpill, .mt-count, .sc-ind, .tm-punch.out, .mt-in:not(.out) button) {
+  background: #ececf0; background-image: none; border: 1px solid #dcdce2; color: #16171a; filter: none;
+}
+[data-bs-theme='light'] .tm :is(.btn-brand, .btn-success, .btn-primary, .to-btn.yes, .to-ask, .mt-draft button, .cv-row .cv-take, .mh-approve, .pn-got, .mh-pending button, .rc-all, .rv-all, .rc-ok):hover { background: #e2e2e8; color: #16171a; border-color: #cfd0d6; }
+[data-bs-theme='light'] .tm .sc-day.on { color: #16171a; background-image: none; }
+[data-bs-theme='light'] .tm .sc-strip .sc-ind ~ .sc-day.on { background: transparent; }
+[data-bs-theme='light'] .tm .tm-punch.out { border-color: #dcdce2; }
+[data-bs-theme='light'] .tm .tl-plus { border-radius: 8px; width: 32px; height: 32px; }
+[data-bs-theme='light'] .tm .tl-nowpill { border-radius: 6px; }
+
+/* Smoked hero cards become plain white cards */
+[data-bs-theme='light'] .tm :is(.hr-hero, .sc-hero.today, .mt-in:not(.out)) { background: #ffffff; background-image: none; color: #16171a; border: 1px solid var(--line); box-shadow: none; }
+[data-bs-theme='light'] .tm :is(.hr-hero small, .sc-hero.today small, .sc-hero.today p, .mt-in small) { color: var(--muted); }
+[data-bs-theme='light'] .tm :is(.hr-hero b, .sc-hero.today b, .mt-in b) { color: #16171a; }
+[data-bs-theme='light'] .tm .hr-hero .hr-ot { background: #f6d580; color: #2b2100; }
+[data-bs-theme='light'] .tm .sc-hero.today .cv-btn { color: #16171a; border: 1px solid var(--line); }
+[data-bs-theme='light'] .tm .hr-bar { background: #ececf0; }
+[data-bs-theme='light'] .tm .hr-bar i { background: #16171a; }
+
+/* Slim, flat buttons everywhere: no shadows, no tall pills */
+[data-bs-theme='light'] .tm :is(button, .btn):not(.tm-punch):not(.ms-card):not(.tt):not(.rc-main):not(.sc-day):not(.mo-item):not(.tn-card) { box-shadow: none !important; }
+[data-bs-theme='light'] .tm :is(.td-more, .pn-add, .rc-details, .rc-ok) { min-height: 34px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+[data-bs-theme='light'] .tm .tm-icon { border-radius: 8px; }
+[data-bs-theme='light'] .tm :is(.hr-hero, .sc-hero.today) span:not(.hr-ot) { color: var(--muted); }
