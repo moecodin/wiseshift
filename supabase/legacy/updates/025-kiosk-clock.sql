@@ -1,6 +1,6 @@
 -- Update 025: kiosk clock-in (a store computer where people clock in with a PIN).
 --
--- Run once in Supabase → SQL Editor, after 024. Safe to re-run.
+-- Run once in Supabase → SQL Editor, after 020 (it needs 013, 015, 018 and 020). Safe to re-run.
 -- Run it on the dev project first, then live, BEFORE pushing the site version that
 -- has the kiosk page. Nothing changes for anyone until a business turns on
 -- Settings → Features → Kiosk clock-in AND a manager registers a kiosk device.
