@@ -6,6 +6,8 @@ import { clockTime } from './format.js'
 import { forgetKioskToken, kioskInfo, kioskLookup, kioskPair, kioskPunch, saveKioskToken, savedKioskToken } from './kioskApi.js'
 import { usingSupabase } from '../lib/supabase.js'
 import './kiosk.css'
+import Icon from './Icon.jsx'
+import Logo from './Logo.jsx'
 
 const MAX_PIN = 6
 const MIN_PIN = 4
@@ -306,7 +308,7 @@ export default function KioskPage() {
           ))}
           <button type="button" className="fn" onClick={() => press('clear')}>Clear</button>
           <button type="button" onClick={() => press('0')}>0</button>
-          <button type="button" className="fn" aria-label="Backspace" onClick={() => press('back')}>⌫</button>
+          <button type="button" className="fn" aria-label="Backspace" onClick={() => press('back')}><Icon name="backspace" size={22} /></button>
         </div>
         <button type="button" className="ks-btn primary wide" disabled={pin.length < MIN_PIN || busy} onClick={next}>Next</button>
       </div>
@@ -316,7 +318,7 @@ export default function KioskPage() {
   return (
     <div className="tm ks">
       <div className="ks-left">
-        <div className="ks-brand"><span className="ks-mark" aria-hidden="true" />WiseShift</div>
+        <div className="ks-brand"><span className="ks-mark" aria-hidden="true"><Logo /></span>WiseShift</div>
         <div>
           <div className="ks-clock">{clock}</div>
           <div className="ks-date">{date}</div>

@@ -52,3 +52,14 @@
 
 .ks-code { width: 100%; height: 60px; text-align: center; font-size: 28px; font-weight: 600; letter-spacing: 0.16em; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); text-transform: uppercase; }
 .ks-bad { color: var(--red, #c2362f); font-size: 14px; }
+
+/* Statement look: the kiosk fills the whole screen (no sidebar gutter), small corners, one tone for initials */
+.tm.ks { padding-left: 0; padding-top: 0; }
+.ks-mark { border-radius: 3px; }
+.ks-pad button, .ks-btn, .ks-code { border-radius: 4px; }
+.ks-card { border-radius: 4px; }
+.ks-av { background: var(--head); color: var(--ink); border: 1px solid var(--line); }
+.ks-btn.primary { font-weight: 700; }
+.ks-clock { letter-spacing: -0.02em; font-weight: 600; }
+.ks-mark { width: 26px; height: 26px; border-radius: 0; background: none; display: inline-block; }
+.ks-mark svg { width: 100%; height: 100%; display: block; }
