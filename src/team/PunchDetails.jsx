@@ -31,6 +31,7 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
   const now = useNow()
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState('')
   const [events, setEvents] = useState(null)
   // The map is big, so it starts closed; Show map opens it.
@@ -92,6 +93,17 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  // Delete the whole time card, after one more tap to confirm.
+  const remove = async () => {
+    setBusy(true)
+    const problem = await data.actions.deletePunch(punch.id)
+    setBusy(false)
+    setConfirmDelete(false)
+    if (problem) setError(problem)
+    else if (stepper) stepper.onSkip()
+    else onClose()
+  }
+
   if (editing) return <PunchEditor punch={punch} data={data} onClose={() => setEditing(false)} />
 
   return (
@@ -101,7 +113,18 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn-outline-secondary me-auto" onClick={() => setEditing(true)}>Edit times</button>
+          {confirmDelete ? (
+            <>
+              <span className="me-auto small pd-confirm" role="alert">Delete this time card? This can't be undone.</span>
+              <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={() => setConfirmDelete(false)}>Keep it</button>
+              <button type="button" className="btn btn-danger" disabled={busy} onClick={remove}>Delete</button>
+            </>
+          ) : (
+          <>
+          <span className="me-auto d-flex gap-2 flex-wrap">
+            <button type="button" className="btn btn-outline-secondary" onClick={() => setEditing(true)}>Edit times</button>
+            <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={() => setConfirmDelete(true)}>Delete time card</button>
+          </span>
           {stepper ? (
             <>
               <button type="button" className="btn btn-outline-secondary" disabled={!stepper.canBack} onClick={stepper.onBack}>‹ Back</button>
@@ -118,6 +141,8 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
             <button type="button" className="btn btn-success" disabled={busy || status === 'progress'} onClick={() => approve(true)}>
               {status === 'progress' ? 'Still clocked in' : 'Approve'}
             </button>
+          )}
+          </>
           )}
         </>
       }
