@@ -36,6 +36,10 @@ export const DEFAULT_SETTINGS = {
   quietTo: 6 * 60, // 6 AM
   noticeText: DEFAULT_NOTICE,
   noticeVersion: 1,
+  businessName: '', // shown instead of "WiseShift" (update 031); empty = WiseShift
+  businessLogo: '', // a small image as a data URL; empty = the WiseShift mark
+  setupDone: true, // false until the owner has been through the first-setup wizard (a new business)
+  setupReady: false, // update 031 has been run
 }
 
 // team_settings row (or nothing) → settings, falling back to the defaults.
@@ -60,6 +64,10 @@ export function settingsFromRow(r) {
     quietTo: pick(r.quiet_to, d.quietTo),
     noticeText: r.notice_text || d.noticeText,
     noticeVersion: pick(r.notice_version, d.noticeVersion),
+    businessName: pick(r.business_name, d.businessName),
+    businessLogo: pick(r.business_logo, d.businessLogo),
+    setupDone: pick(r.setup_done, d.setupDone),
+    setupReady: r.setup_done !== undefined, // update 031 has been run
   }
 }
 
@@ -80,6 +88,8 @@ export const settingsToRow = (s) => ({
   quiet_to: s.quietTo,
   notice_text: s.noticeText,
   notice_version: s.noticeVersion,
+  // Only sent once update 031 exists, so saving other settings keeps working before it.
+  ...(s.setupReady ? { business_name: s.businessName, business_logo: s.businessLogo, setup_done: s.setupDone } : {}),
 })
 
 // Has this person acknowledged the current location notice?

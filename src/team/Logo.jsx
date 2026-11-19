@@ -1,5 +1,7 @@
 // The WiseShift mark: three bars. Used in the side menu, the header and on the kiosk.
-export default function Logo() {
+export default function Logo({ src }) {
+  // A business can upload its own logo; otherwise the WiseShift mark.
+  if (src) return <img className="lg-img" src={src} alt="" />
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true">
       <rect className="lg-bar b1" x="6" y="10" width="34" height="13" rx="6.5" fill="var(--navy)" />

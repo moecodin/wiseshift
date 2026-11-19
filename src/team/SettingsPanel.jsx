@@ -10,6 +10,7 @@ import KioskSettings from './KioskSettings.jsx'
 import { FEATURES, PRESETS, featuresOf, presetFeatures, useFeatures } from './features.js'
 import { dayName, say } from './words.js'
 import Icon from './Icon.jsx'
+import { shrinkImage } from './onboardingHelpers.js'
 
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
@@ -29,7 +30,7 @@ export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut
       {page === 'me' ? (
         <MySettings data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} />
       ) : (
-        <BusinessSettings data={data} />
+        <BusinessSettings data={data} onClose={onClose} />
       )}
     </Modal>
   )
@@ -225,13 +226,14 @@ function Account({ onSignOut }) {
 
 // ---------- Business (managers) ----------
 
-function BusinessSettings({ data }) {
+function BusinessSettings({ data, onClose }) {
   const f = useFeatures()
   return (
     <>
       {!data.settingsReady && (
         <p className="tm-warn">These use update 018. Run <code>supabase/updates/018-settings.sql</code> in Supabase, then reload, before saving here.</p>
       )}
+      <BusinessProfile data={data} onClose={onClose} />
       <Features data={data} />
       {f.location && <ShopLocation data={data} />}
       {f.timeClock && <ClockInRules data={data} />}
@@ -243,6 +245,52 @@ function BusinessSettings({ data }) {
       <Reminders data={data} />
       {f.location && <NoticeEditor data={data} />}
     </>
+  )
+}
+
+// The business's name and logo (they replace "WiseShift" in the header, menu and kiosk), and the setup wizard again.
+function BusinessProfile({ data, onClose }) {
+  const s = data.settings
+  const [name, setName] = useState(s.businessName)
+  const [logo, setLogo] = useState(s.businessLogo)
+  const [error, setError] = useState('')
+  const { busy, result, save } = useSave(data)
+  const choose = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setError('')
+    try {
+      setLogo(await shrinkImage(file))
+    } catch (err) {
+      setError(err.message === 'big' ? 'That image is too large. Try a smaller one.' : "That file isn't an image.")
+    }
+  }
+  const again = async () => {
+    await data.actions.saveSettings({ setupDone: false })
+    onClose?.()
+  }
+  return (
+    <section className="st-section">
+      <h3 className="tm-h3">Business name and logo</h3>
+      <p className="tm-muted small mb-2">Shown in the menu, the header and on the kiosk.</p>
+      <label className="form-label" htmlFor="bp-name">Business name</label>
+      <input id="bp-name" className="form-control" value={name} maxLength={60} placeholder="WiseShift" onChange={(e) => setName(e.target.value)} />
+      <div className="ob-logo mt-3">
+        <span className="ob-logo-box">{logo ? <img src={logo} alt="" /> : <b>{(name.trim()[0] ?? 'W').toUpperCase()}</b>}</span>
+        <label className="btn btn-outline-secondary btn-sm mb-0">
+          {logo ? 'Change image' : 'Choose image'}
+          <input type="file" accept="image/*" hidden onChange={choose} />
+        </label>
+        {logo && <button type="button" className="tm-link small" onClick={() => setLogo('')}>Remove</button>}
+      </div>
+      {error && <p className="tm-error mt-2" role="alert">{error}</p>}
+      <div className="d-flex align-items-center gap-3 mt-3">
+        <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={() => save({ businessName: name.trim(), businessLogo: logo })}>Save</button>
+        <button type="button" className="tm-link small" onClick={again}>Run the setup wizard again</button>
+      </div>
+      <Result result={result} />
+    </section>
   )
 }
 

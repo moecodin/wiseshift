@@ -27,6 +27,8 @@ import './statement.css'
 import './darkStyle.js'
 import Icon from './Icon.jsx'
 import Logo from './Logo.jsx'
+import { OwnerOnboarding, StaffOnboarding } from './Onboarding.jsx'
+import { welcomeSeen } from './onboardingHelpers.js'
 
 const THEME_KEY = 'wiseshift-theme'
 function savedTheme() {
@@ -210,6 +212,12 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
   const look = themeById()
+  const business = data.settings.businessName || 'WiseShift'
+  const logoSrc = data.settings.businessLogo
+  // First-run wizards: the owner of a new business once; everyone else once per device. Hidden until sample/real data is in.
+  const [staffTourDone, setStaffTourDone] = useState(false)
+  const showOwnerTour = Boolean(me && boss && data.settingsReady && data.settings.setupReady && !data.settings.setupDone)
+  const showStaffTour = Boolean(me && !showOwnerTour && !staffTourDone && data.settingsReady && data.settings.setupDone && !welcomeSeen(me.id))
 
   const signOut = usingSupabase && (
     <button type="button" className="tm-link" onClick={onSignOut}>Sign out</button>
@@ -287,9 +295,9 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     <FeaturesContext.Provider value={features}>
     <div className={`tm ${navOff ? 'nav-off' : ''}`}>
       <header className="tm-head">
-        <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /></a>
+        <a className="tm-logo" href={import.meta.env.BASE_URL} aria-label={business}><Logo src={logoSrc} /></a>
         <div className="tm-hello">
-          {me ? `${lang === 'es' ? 'Hola' : 'Hi'} ${me.name.split(' ')[0]}` : 'WiseShift'}
+          {me ? `${lang === 'es' ? 'Hola' : 'Hi'} ${me.name.split(' ')[0]}` : business}
           <small>{me ? (me.position || 'Team') : 'Team'}</small>
         </div>
         <div id="tm-head-slot" className="tm-head-slot" />
@@ -315,7 +323,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
 
       {me && (
         <div className="tm-side">
-          <a className="tm-brand" href={import.meta.env.BASE_URL} aria-label="WiseShift"><Logo /><b>WiseShift</b></a>
+          <a className="tm-brand" href={import.meta.env.BASE_URL} aria-label={business}><Logo src={logoSrc} /><b>{business}</b></a>
           <button type="button" className="tm-nav-toggle" onClick={toggleNav} aria-label={navOff ? 'Show the menu labels' : 'Hide the menu labels'} title={navOff ? 'Show the menu labels' : 'Hide the menu labels'}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d={navOff ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'} /></svg>
           </button>
@@ -349,6 +357,8 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       )}
       {notifying && <NotifySettings data={data} boss={boss} onClose={() => setNotifying(false)} />}
       {me && features.timeClock && <ClockedOutNotice data={data} me={me} lang={lang} />}
+      {showOwnerTour && <OwnerOnboarding data={data} me={me} lang={lang} onTeam={() => go('people')} />}
+      {showStaffTour && <StaffOnboarding data={data} me={me} lang={lang} businessName={business} onNotify={() => setNotifying(true)} onClose={() => setStaffTourDone(true)} />}
     </div>
     </FeaturesContext.Provider>
   )

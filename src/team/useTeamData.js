@@ -276,7 +276,8 @@ function sampleView(state, viewAs) {
     notes: boss ? state.notes ?? [] : (state.notes ?? []).filter((n) => (n.assignees ?? []).includes(viewAs)),
     teamOff: state.timeOff.filter((t) => t.status === 'approved' && own(t)).map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
     shop: state.shop ?? null,
-    settings: { ...DEFAULT_SETTINGS, ...state.settings },
+    // In sample mode the first-setup wizard shows once, until it is finished or skipped.
+    settings: { ...DEFAULT_SETTINGS, setupDone: false, setupReady: true, ...state.settings },
     privateById: Object.fromEntries(Object.entries(state.private ?? {}).filter(([id]) => boss || id === viewAs)),
     settingsReady: true,
     seenById: boss ? state.seen ?? {} : {},

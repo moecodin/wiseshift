@@ -3,7 +3,7 @@
 // Flow: PIN → "Hi Maria, clock in?" → Confirm → result, then back to the keypad.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { clockTime } from './format.js'
-import { forgetKioskToken, kioskInfo, kioskLookup, kioskPair, kioskPunch, saveKioskToken, savedKioskToken } from './kioskApi.js'
+import { forgetKioskToken, kioskBrand, kioskInfo, kioskLookup, kioskPair, kioskPunch, saveKioskToken, savedKioskToken } from './kioskApi.js'
 import { usingSupabase } from '../lib/supabase.js'
 import './kiosk.css'
 import Icon from './Icon.jsx'
@@ -52,6 +52,7 @@ export default function KioskPage() {
   const [lockedUntil, setLockedUntil] = useState(0)
   const timer = useRef(0)
   const [theme, setTheme] = useState('auto') // set by a manager in Settings → Kiosk
+  const [brand, setBrand] = useState({ name: '', logo: '' }) // the business's own name and logo, if it set them
 
   // The sample kiosk has no device token.
   const ready = Boolean(token) || !usingSupabase
@@ -163,6 +164,7 @@ export default function KioskPage() {
         if (!alive) return
         if (r.status === 'ok' || r.status === 'off') setTheme(r.theme)
       })
+      kioskBrand(token).then((b) => alive && setBrand(b))
     ask()
     const t = setInterval(ask, 60000)
     return () => {
@@ -318,7 +320,7 @@ export default function KioskPage() {
   return (
     <div className="tm ks">
       <div className="ks-left">
-        <div className="ks-brand"><span className="ks-mark" aria-hidden="true"><Logo /></span>WiseShift</div>
+        <div className="ks-brand"><span className="ks-mark" aria-hidden="true"><Logo src={brand.logo} /></span>{brand.name || 'WiseShift'}</div>
         <div>
           <div className="ks-clock">{clock}</div>
           <div className="ks-date">{date}</div>

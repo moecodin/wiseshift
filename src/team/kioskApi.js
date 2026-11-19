@@ -49,6 +49,15 @@ export async function kioskPair(code) {
 // How this kiosk looks ('auto', 'light' or 'dark'). The manager sets it in Settings → Kiosk;
 // the page asks before any PIN is typed and again every minute. Sample mode keeps it on this browser.
 const SAMPLE_THEME_KEY = 'wiseshift-kiosk-sample-theme'
+// The business's name and logo for the kiosk's header (empty strings = WiseShift's own).
+export async function kioskBrand(token) {
+  if (!usingSupabase) return { name: '', logo: '' }
+  const { data, error } = await supabase.rpc('kiosk_brand', { device_token: token })
+  if (error) return { name: '', logo: '' }
+  const row = data?.[0]
+  return { name: row?.business_name ?? '', logo: row?.business_logo ?? '' }
+}
+
 export async function kioskInfo(token) {
   if (!usingSupabase) {
     try {
