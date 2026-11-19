@@ -3475,3 +3475,9 @@ td.sd-over { background: color-mix(in srgb, var(--navy) 22%, var(--paper)) !impo
 [data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.to-btn.yes, .to-ask, .mt-draft button, .mt-in button, .cv-row .cv-take, .mh-approve, .pn-got) { background: #e6e6e6; border-color: #e6e6e6; color: #08090a; filter: none; }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.to-btn.yes, .to-ask, .mt-draft button, .mt-in button, .cv-row .cv-take, .mh-approve, .pn-got):hover { background: #fff; filter: none; }
 [data-bs-theme='dark'][data-dark-style='gold'] .tm :is(.to-btn:not(.yes), .mt-call, .cv-pass, .mh-edit, .pn-fix, .pd-mapbtn, .nt-add button):hover { background: var(--hover); }
+
+/* Linear-style dark, part 4 (phone): no amber blobs on the clock card; the dock's selected tab is a quiet grey pill */
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::before, [data-bs-theme='dark'][data-dark-style='gold'] .tm-clock::after { display: none; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs .tm-pill { background: rgba(255, 255, 255, 0.1); box-shadow: none; }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs button[aria-selected='true'], [data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs .tm-pill ~ button[aria-selected='true'] { color: var(--ink); }
+[data-bs-theme='dark'][data-dark-style='gold'] .tm-tabs { background: var(--paper); border-color: var(--glass-line); box-shadow: none; }
