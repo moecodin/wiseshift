@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Modal from '../components/Modal.jsx'
 import { dateKey, fromKey } from '../lib/dates.js'
 import { formatHours, moveDays, scheduleWeekOf, shiftMinutes } from './paycheck.js'
@@ -11,6 +12,7 @@ import DayTimeline from './DayTimeline.jsx'
 import { loadSpan, saveSpan } from './viewPref.js'
 import DayStrip from './DayStrip.jsx'
 import ShiftDropDialog from './ShiftDropDialog.jsx'
+import Icon from './Icon.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -18,6 +20,7 @@ import ShiftDropDialog from './ShiftDropDialog.jsx'
 export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }) {
   // Employees start on their own shifts; managers on the whole-team grid.
   const [view, setView] = useState(boss ? 'everyone' : 'mine')
+  const [weekDir, setWeekDir] = useState('') // which way the week was just moved, for the grid's short slide
   const [editing, setEditing] = useState(null)
   // Manager on a phone: the day timeline or the week grid. The last choice is remembered.
   const [span, setSpan] = useState(loadSpan)
@@ -78,18 +81,28 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
     const same = shift.employeeId === target.employeeId && shift.date === target.date && shift.start === target.start && shift.end === target.end
     if (!same) setDropping({ shift, target })
   }
+  // Publishing confirms with a small toast (a check and one line) that goes away by itself.
+  const [published, setPublished] = useState('')
+  useEffect(() => {
+    if (!published) return undefined
+    const timer = setTimeout(() => setPublished(''), 4500)
+    return () => clearTimeout(timer)
+  }, [published])
   const publish = async () => {
+    const count = drafts.length
     const problem = await data.actions.publishWeek(week)
-    setMessage(problem || `Published ${drafts.length} shift${drafts.length === 1 ? '' : 's'}. The team can see them now.`)
+    if (problem) return setMessage(problem)
+    setMessage('')
+    setPublished(`Published ${count} shift${count === 1 ? '' : 's'}. The team can see them now.`)
   }
 
   return (
     <div>
       <div className="tm-toolbar">
         <div className="tm-weeknav nav-center">
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onWeek(moveDays(week, -1))} aria-label="Week before">‹</button>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => { setWeekDir('prev'); onWeek(moveDays(week, -1)) }} aria-label="Week before"><Icon name="left" /></button>
           <b>{rangeLabel(week)}</b>
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onWeek(moveDays(week, 1))} aria-label="Week after">›</button>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => { setWeekDir('next'); onWeek(moveDays(week, 1)) }} aria-label="Week after"><Icon name="right" /></button>
           {!thisWeek && <button type="button" className="btn btn-link btn-sm" onClick={() => onWeek(scheduleWeekOf(new Date()))}>This week</button>}
         </div>
         {boss && (
@@ -101,11 +114,16 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
         {boss && (
           <div className="tm-tools">
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={copyLastWeek}>Copy last week</button>
-            <button type="button" className="btn btn-outline-danger btn-sm" disabled={!drafts.length} onClick={clearDrafts} title="Remove this week's unpublished shifts (published ones stay)">Clear ({drafts.length})</button>
-            <button type="button" className="btn btn-success btn-sm" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm" disabled={!drafts.length} onClick={clearDrafts} title="Remove this week's unpublished shifts (published ones stay)">Clear ({drafts.length})</button>
+            <button type="button" className="btn btn-brand btn-sm" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
           </div>
         )}
       </div>
+      {/* In the page body, not here: the page slides in with a transform, which would pin this to the wrong box. */}
+      {published && createPortal(
+        <div className="rv-toast pub-toast" role="status"><Icon name="check" size={18} /><span>{published}</span></div>,
+        document.body,
+      )}
       {message && (
         <p className="tm-msg" role="status">
           {message}
@@ -119,14 +137,14 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
       ) : view === 'everyone' ? (
         <>
         <ManagerDay span={span} onSpan={changeSpan} picked={pickedDay} onPick={setPickedDay} flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} shifts={shifts} onEdit={setEditing} onDrop={dropShift} />
-        <WeekGrid className={`mg-grid ${span === 'week' ? 'show-phone' : ''}`} data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable showSeen flash={flash} onEdit={setEditing} onDrop={dropShift} onPickDay={(d) => { setPickedDay(d); changeSpan('day') }} />
+        <WeekGrid key={week[0]} className={`mg-grid ${span === 'week' ? 'show-phone' : ''} ${weekDir ? `wk-${weekDir}` : ''}`} data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable showSeen flash={flash} onEdit={setEditing} onDrop={dropShift} onPickDay={(d) => { setPickedDay(d); changeSpan('day') }} />
         </>
       ) : (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       )}
 
       {dropping && <ShiftDropDialog shift={dropping.shift} target={dropping.target} data={data} onClose={() => setDropping(null)} onDone={(text) => { setDropping(null); setMessage(text) }} />}
-      {editing && <ShiftEditor shift={editing} data={data} week={week} onClose={() => setEditing(null)} />}
+      {editing && <ShiftEditor shift={editing} data={data} week={week} onClose={() => setEditing(null)} onDone={setMessage} />}
     </div>
   )
 }
@@ -186,7 +204,7 @@ export function WeekTotal({ data, me, week, lang, onClick }) {
 }
 
 // Add or change one shift.
-function ShiftEditor({ shift, data, week, onClose }) {
+function ShiftEditor({ shift, data, week, onClose, onDone }) {
   // Quick picks (⚙️ → Business), starting from the Humanity schedule.
   const presets = data.settings.shiftPresets
   const roles = data.settings.roles ?? []
@@ -195,15 +213,41 @@ function ShiftEditor({ shift, data, week, onClose }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const set = (field) => (e) => setS({ ...s, [field]: e.target.value })
-  const person = data.employees.find((e) => e.id === s.employeeId)
   const days = week.includes(s.date) ? week : scheduleWeekOf(fromKey(s.date))
-  const off = offOn(data.teamOff, s.employeeId, s.date)
-  const overlap = data.shifts.find((x) => x.id !== s.id && x.employeeId === s.employeeId && x.date === s.date && x.start < s.end && s.start < x.end)
+  // A new shift can go to several people and several days at once; changing one stays a single shift.
+  const adding = !shift.id
+  const [who, setWho] = useState(() => (shift.employeeId ? [shift.employeeId] : []))
+  const [dts, setDts] = useState(() => [shift.date])
+  const toggle = (list, setList, id) => setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
+  const people = data.employees.filter((e) => e.active)
+  const clash = (e, d) => data.shifts.find((x) => x.id !== s.id && x.employeeId === e && x.date === d && s.start !== null && s.end !== null && x.start < s.end && s.start < x.end)
+  const combos = adding ? who.flatMap((e) => days.filter((d) => dts.includes(d)).map((d) => ({ e, d }))) : []
+  const many = combos.length > 1
+  const clashing = many ? combos.filter(({ e, d }) => clash(e, d)) : []
+  const offList = many ? combos.filter(({ e, d }) => offOn(data.teamOff, e, d)) : []
+  const fresh = many ? combos.length - clashing.length : combos.length
+  // The one person and day the single-shift warnings are about.
+  const oneWho = adding ? who[0] : s.employeeId
+  const oneDay = adding ? dts[0] : s.date
+  const person = data.employees.find((e) => e.id === oneWho)
+  const off = oneWho ? offOn(data.teamOff, oneWho, oneDay) : null
+  const overlap = oneWho ? data.shifts.find((x) => x.id !== s.id && x.employeeId === oneWho && x.date === oneDay && x.start < s.end && s.start < x.end) : null
 
   const save = async () => {
     if (s.start === null || s.end === null || s.end <= s.start) return setError('The end time has to be after the start time.')
+    const clean = { ...s, breakMin: Number(s.breakMin) || 0, title: s.title.trim(), role: s.role ?? '', note: s.note.trim() }
+    if (adding && many) {
+      const list = combos.filter(({ e, d }) => !clash(e, d)).map(({ e, d }) => ({ ...clean, employeeId: e, date: d }))
+      if (!list.length) return setError('Everyone picked already has a shift at that time.')
+      setBusy(true)
+      const problem = await data.actions.saveShifts(list)
+      setBusy(false)
+      if (problem) return setError(problem)
+      onDone?.(`Added ${list.length} draft shift${list.length === 1 ? '' : 's'}${clashing.length ? `; skipped ${clashing.length} that overlap an existing shift` : ''}. Press Publish when you're ready.`)
+      return onClose()
+    }
     setBusy(true)
-    const problem = await data.actions.saveShift({ ...s, breakMin: Number(s.breakMin) || 0, title: s.title.trim(), role: s.role ?? '', note: s.note.trim() })
+    const problem = await data.actions.saveShift(adding && who.length === 1 ? { ...clean, employeeId: who[0], date: dts[0] } : clean)
     setBusy(false)
     if (problem) setError(problem)
     else onClose()
@@ -225,11 +269,28 @@ function ShiftEditor({ shift, data, week, onClose }) {
         <>
           {s.id && <button type="button" className="btn btn-outline-danger me-auto" disabled={busy} onClick={remove}>Delete</button>}
           <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-brand" disabled={busy} onClick={save}>Save</button>
+          <button type="button" className="btn btn-brand" disabled={busy || (adding && (!who.length || !dts.length))} onClick={save}>{adding && many ? `Add ${fresh} ${fresh === 1 ? 'shift' : 'shifts'}` : 'Save'}</button>
         </>
       }
     >
       <div className="row g-2">
+        {adding ? (
+          <>
+            <div className="col-12">
+              <span className="form-label d-block" id="sh-who-l">Who <small className="tm-muted">(pick one or more)</small></span>
+              <div className="rl-picks" role="group" aria-labelledby="sh-who-l">
+                {people.map((e) => <button key={e.id} type="button" className="rl-pick" aria-pressed={who.includes(e.id)} onClick={() => toggle(who, setWho, e.id)}>{e.name}</button>)}
+              </div>
+            </div>
+            <div className="col-12">
+              <span className="form-label d-block" id="sh-day-l">Days <small className="tm-muted">(pick one or more)</small></span>
+              <div className="rl-picks" role="group" aria-labelledby="sh-day-l">
+                {days.map((d) => <button key={d} type="button" className="rl-pick" aria-pressed={dts.includes(d)} onClick={() => toggle(dts, setDts, d)}>{dayLabel(d)}</button>)}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
         <div className="col-7">
           <label className="form-label" htmlFor="sh-who">Who</label>
           <select id="sh-who" className="form-select" value={s.employeeId} onChange={set('employeeId')}>
@@ -242,6 +303,8 @@ function ShiftEditor({ shift, data, week, onClose }) {
             {days.map((d) => <option key={d} value={d}>{dayLabel(d)}</option>)}
           </select>
         </div>
+          </>
+        )}
         <div className="col-12">
           <div className="tm-presets">
             {presets.map((p) => (
@@ -287,8 +350,11 @@ function ShiftEditor({ shift, data, week, onClose }) {
           <input id="sh-note" className="form-control" value={s.note} maxLength={200} onChange={set('note')} />
         </div>
       </div>
-      {off && <p className="tm-warn mt-3">{person?.name} has approved time off that day.</p>}
-      {overlap && <p className="tm-warn mt-3">This overlaps {person?.name}'s other shift ({shiftTimes(overlap)}).</p>}
+      {many && <p className="tm-muted small mt-3 mb-0">{combos.length} shifts: {who.length} {who.length === 1 ? 'person' : 'people'} on {dts.length} {dts.length === 1 ? 'day' : 'days'}.</p>}
+      {many && offList.length > 0 && <p className="tm-warn mt-3">{offList.length} of these fall on approved time off: {[...new Set(offList.map(({ e }) => data.employees.find((x) => x.id === e)?.name))].join(', ')}.</p>}
+      {many && clashing.length > 0 && <p className="tm-warn mt-3">{clashing.length} already overlap an existing shift and will be skipped.</p>}
+      {!many && off && <p className="tm-warn mt-3">{person?.name} has approved time off that day.</p>}
+      {!many && overlap && <p className="tm-warn mt-3">This overlaps {person?.name}'s other shift ({shiftTimes(overlap)}).</p>}
       {!s.published && <p className="tm-muted small mt-3 mb-0">Draft until you press Publish on the schedule.</p>}
       {error && <p className="tm-error mt-2" role="alert">{error}</p>}
     </Modal>

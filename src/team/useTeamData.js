@@ -543,6 +543,17 @@ export function useTeamData({ signedIn, email, week, period }) {
       // A published shift changed: let that person know.
       return shift.published ? done.then(andTell('shift_changed', { shift_id: shift.id })) : done
     },
+    // Managers: add several new shifts at once (Add shift with more than one person or day). All drafts.
+    saveShifts: async (list) => {
+      if (!list.length) return ''
+      if (!usingSupabase) {
+        return change((s) => {
+          list.forEach((shift) => s.shifts.push({ ...shift, postedAt: null, id: newId('s') }))
+          return s
+        })
+      }
+      return run(supabase.from('shifts').insert(list.map(shiftToRow)))
+    },
     deleteShift: async (id) => {
       if (!usingSupabase) return change((s) => ({ ...s, shifts: s.shifts.filter((x) => x.id !== id) }))
       const gone = view.shifts.find((x) => x.id === id)

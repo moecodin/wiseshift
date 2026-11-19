@@ -43,6 +43,7 @@ Written 2026-11-18 from the code in `src/team` and the SQL in `supabase/legacy/u
 - **Day timeline** (phone): an hour axis, a row per person, a bar per shift; coverage strip that flags thin or empty stretches; Copy yesterday; Publish.
 - **Week:** a grid on a computer (people down the side, days across) and a card per day on a phone. With staff groups set up, both are **grouped by staff group**, and phone shifts are one short line each.
 - **Add / change a shift** (a sheet): person, day, quick types (Open, Close, All Day), start and end, label, unpaid break, role, note, delete. Warns about overlapping shifts and time off.
+- **Add shift to several people and days at once:** in the Add shift pop-up, pick one or more people and one or more days; Save creates one draft per person per day ("Add 6 shifts"). Combinations that overlap an existing shift are skipped and reported; time off is warned about. Changing an existing shift stays a single shift.
 - **Drag a shift** to a new time (Day timeline, 15-minute steps), another person, or another day (Week grid). A pop-up then asks **Move** or **Copy** (the copy is a draft); mouse drag, or press-and-hold on a phone.
 - **Drafts and publishing:** next week starts as a draft (dashed). Publish makes it visible and tells people; a changed published shift is posted again. **Copy last week** and **Clear (n)** (removes the shown week's drafts only, with Undo).
 - **Seen ticks:** whether each person has opened the app since the schedule was posted.
@@ -51,7 +52,7 @@ Written 2026-11-18 from the code in `src/team` and the SQL in `supabase/legacy/u
 
 ## 5. Time clock and hours (managers)
 - **Hours review** (the page for approving punches): one short line per punch with a round ✓ to approve and a ⋯ for Details, **Approve all**, and per-group approve. **Undo** for a few seconds after any approval.
-- **Filters:** a people picker (search by name, position or group; tick several people or whole groups), a period menu (Past 7 days, This pay period, Last pay period), status chips (Awaiting approval, In progress, Approved, All).
+- **Filters:** a people picker (search by name, position or group; tick several people or whole groups), a period menu (Past 7 days, This pay period, Last pay period), status chips (Pending, In progress, Approved, All).
 - **Group by:** staff group, role, date (earliest first, with each person's role on the line), or one list. Groups show as balanced columns on a computer and sections on a phone.
 - **+ Add punch** (pick who, day, times, a reason). **Edit times** and **Delete** from Details.
 - **Details:** the punch's map, street addresses, history (who changed what), the shift it belongs to, warnings (late in, early out, away from the shop, no shift, clocked out after the shift ended).
