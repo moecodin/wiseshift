@@ -28,10 +28,10 @@ export default function AppBanners() {
 
   return (
     <>
-      {!online && <div className="app-banner off" role="status"><span aria-hidden="true">📡</span> You’re offline. Clock in and out once you have signal.</div>}
+      {!online && <div className="app-banner off" role="status">You’re offline. Clock in and out once you have signal.</div>}
       {fresh && (
         <button type="button" className="app-banner new" onClick={() => window.location.reload()}>
-          ✨ New version of WiseShift. <u>Tap to refresh</u>
+          New version of WiseShift. <u>Tap to refresh</u>
         </button>
       )}
       {install.how && !hidden && (

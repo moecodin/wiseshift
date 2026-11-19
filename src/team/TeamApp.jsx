@@ -23,7 +23,10 @@ import { say } from './words.js'
 import MoreTab from './MoreTab.jsx'
 import { MORE } from './more.js'
 import './team.css'
+import './statement.css'
 import './darkStyle.js'
+import Icon from './Icon.jsx'
+import Logo from './Logo.jsx'
 
 const THEME_KEY = 'wiseshift-theme'
 function savedTheme() {
@@ -137,6 +140,8 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   // Screens slide in from the side the tab is on: toward the right for tabs further
   // along the bar (and pages opened from More), toward the left going back.
   const [dir, setDir] = useState('r')
+  // Tapping Today in the menu always returns a manager to the Today screen, even from My clock or Review inside it.
+  const [homeTick, setHomeTick] = useState(0)
   const rank = (id) => (TABS.includes(id) ? TABS.indexOf(id) : TABS.indexOf('more') + 0.5)
   const go = (id) => {
     if (id !== page) setDir(rank(id) >= rank(page) ? 'r' : 'l')
@@ -240,7 +245,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     body = (
       <>
         {inMore && (
-          <button type="button" className="tm-back" onClick={() => go('more')}>‹ {tabNames.more}</button>
+          <button type="button" className="tm-back" onClick={() => go('more')}><Icon name="left" /> {tabNames.more}</button>
         )}
         {needsNotice && page === 'clock' && (
           <section className="tm-card st-notice-card">
@@ -248,7 +253,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
             <LocationNotice data={data} me={me} />
           </section>
         )}
-        {page === 'clock' && <ClockTab {...shared} onGoTo={go} />}
+        {page === 'clock' && <ClockTab key={homeTick} {...shared} onGoTo={go} />}
         {page === 'schedule' && <ScheduleTab {...shared} week={week} onWeek={setWeek} />}
         {page === 'tasks' && <TasksTab {...shared} />}
         {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
@@ -317,7 +322,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
           <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
             {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
             {tabs.map((id) => (
-              <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => go(id)}>
+              <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => { go(id); if (id === 'clock') setHomeTick((n) => n + 1) }}>
                 <TabIcon id={id === 'clock' ? 'today' : id} />
                 <span>{id === 'clock' ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
                 {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
@@ -359,16 +364,6 @@ function Notice({ title, children }) {
 }
 
 // The WiseShift mark: three shift blocks.
-function Logo() {
-  return (
-    <svg viewBox="0 0 64 64" aria-hidden="true">
-      <rect className="lg-bar b1" x="6" y="10" width="34" height="13" rx="6.5" fill="var(--navy)" />
-      <rect className="lg-bar b2" x="20" y="26" width="38" height="13" rx="6.5" fill="#2F6B5A" />
-      <rect className="lg-bar b3" x="10" y="42" width="30" height="13" rx="6.5" fill="#F6D580" />
-    </svg>
-  )
-}
-
 const ICONS = {
   today: <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
