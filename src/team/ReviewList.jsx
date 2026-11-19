@@ -5,8 +5,10 @@ import PunchDetails from './PunchDetails.jsx'
 import PeoplePicker from './PeoplePicker.jsx'
 import { PunchEditor } from './HoursTab.jsx'
 import { formatHours, moveDays, payPeriodOf, punchMinutes } from './paycheck.js'
-import { isLateWarning, punchStatus, punchWarnings, shiftFor } from './review.js'
-import { hoursLabel, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
+import { isLateWarning, punchStatus, punchWarnings, shiftFor, STATUS_LABEL } from './review.js'
+import Avatar from './Avatar.jsx'
+import { loadDensity, saveDensity } from './viewPref.js'
+import { dayLabel, hoursLabel, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 
 // "Maria L.", "8a", "Tue 17": short forms so a punch fits on one line.
@@ -20,6 +22,7 @@ const short = (iso) => {
   const m = d.getMinutes()
   return `${h}${m ? `:${String(m).padStart(2, '0')}` : ''}${d.getHours() < 12 ? 'a' : 'p'}`
 }
+const duration = (minutes) => `${Math.floor(minutes / 60)}h ${String(Math.round(minutes % 60)).padStart(2, '0')}m`
 const dayShort = (key) => `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)} ${fromKey(key).getDate()}`
 
 // Managers: every punch to approve (like Humanity's Manage list), one short line each so a big team
@@ -35,6 +38,15 @@ export default function ReviewList({ data }) {
   const [open, setOpen] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  // Roomy (a card per punch, Approve right under the times) or compact (one line each). Small teams
+  // (under 10 people on the clock) start roomy, bigger ones compact; the switch is remembered on this device.
+  const [savedDensity, setSavedDensity] = useState(loadDensity)
+  const teamSize = data.employees.filter((e) => e.active && !scheduleOnly(e)).length
+  const roomy = (savedDensity ?? (teamSize < 10 ? 'roomy' : 'compact')) === 'roomy'
+  const setDensity = (value) => {
+    saveDensity(value)
+    setSavedDensity(value)
+  }
   const [groupBy, setGroupBy] = useState(null) // 'group' (staff group), 'role', 'date' or 'none'; null = the best default
   const [undo, setUndo] = useState(null) // { ids, text } for a few seconds after approving
 
@@ -140,18 +152,52 @@ export default function ReviewList({ data }) {
   columns.sort((x, y) => (x.items.length ? order.get(x.items[0]) : Infinity) - (y.items.length ? order.get(y.items[0]) : Infinity))
   const columnLists = columns.map((c) => c.items)
 
-  const renderBucket = (bucket) => (
-            <Group key={bucket.key} header={useGroups} open={bucket.open}>
-              {useGroups && (
-                <summary className="rv-head">
-                  <i className={`rl-dot t${bucket.color}`} aria-hidden="true" />
-                  <b>{bucket.name}</b>
-                  <small>{bucket.rows.length} {bucket.rows.length === 1 ? 'punch' : 'punches'}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
-                  {bucket.pending.length > 0 && (
-                    <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>Approve {bucket.pending.length}</button>
-                  )}
-                </summary>
+  // Roomy: a card per punch, with Approve (or Clock out now) and Details right under the times.
+  const renderCards = (bucket) => (
+    <div className="rc-grid rv-cards">
+      {bucket.rows.map((p) => {
+        const person = name(p.employeeId)
+        const st = punchStatus(p)
+        const warnings = punchWarnings(p, data.shifts, data.shop, now)
+        const dayKey = dateKey(new Date(p.clockIn))
+        return (
+          <article key={p.id} className={`rc st-${st}`}>
+            <button type="button" className="rc-main" onClick={() => setOpen(p)}>
+              <span className="rc-top">
+                <Avatar employee={person} size={36} />
+                <span className="rc-who">
+                  <b>{person?.name ?? '?'}</b>
+                  <small>{mode === 'date' ? roleOf(p) || person?.position : person?.position}</small>
+                </span>
+                <span className={`rc-chip st-${st}`}>{STATUS_LABEL[st]}</span>
+              </span>
+              <span className="rc-day">{dayLabel(dayKey)}</span>
+              <span className="rc-time">
+                {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : '…'}
+                {p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <small className="tm-bad"> (next day)</small>}
+              </span>
+              <span className="rc-dur">{duration(punchMinutes(p, now))}</span>
+              {warnings.length > 0 && (
+                <span className={`rc-why ${warnings.some(isLateWarning) ? 'late' : ''}`}>
+                  {warnings.some(isLateWarning) && <span aria-hidden="true">⚠️ </span>}
+                  {warnings[0]}{warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ''}
+                </span>
               )}
+            </button>
+            <div className="rc-foot">
+              {st === 'pending' && <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>}
+              {st === 'progress' && <button type="button" className="btn btn-outline-secondary rc-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)}>Clock out now</button>}
+              {st === 'approved' && <span className="rc-done">Approved{p.approvedBy ? ` by ${p.approvedBy.split(' ')[0]}` : ''}</span>}
+              <button type="button" className="btn btn-outline-secondary rc-details" onClick={() => setOpen(p)}>Details</button>
+            </div>
+          </article>
+        )
+      })}
+    </div>
+  )
+
+  // Compact: one short line per punch.
+  const renderRows = (bucket) => (
               <div className="rv-rows" style={{ '--nw': `${Math.min(8.5, Math.max(5, ...bucket.rows.map((r) => shortName(name(r.employeeId)?.name).length)))}ch` }}>
                 {bucket.rows.map((p, i) => {
                   const person = name(p.employeeId)
@@ -182,6 +228,21 @@ export default function ReviewList({ data }) {
                   )
                 })}
               </div>
+  )
+
+  const renderBucket = (bucket) => (
+            <Group key={bucket.key} header={useGroups} open={bucket.open}>
+              {useGroups && (
+                <summary className="rv-head">
+                  <i className={`rl-dot t${bucket.color}`} aria-hidden="true" />
+                  <b>{bucket.name}</b>
+                  <small>{bucket.rows.length} {bucket.rows.length === 1 ? 'punch' : 'punches'}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
+                  {bucket.pending.length > 0 && (
+                    <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>Approve {bucket.pending.length}</button>
+                  )}
+                </summary>
+              )}
+              {roomy ? renderCards(bucket) : renderRows(bucket)}
             </Group>
   )
 
@@ -200,6 +261,10 @@ export default function ReviewList({ data }) {
           <option value="date">By date</option>
           <option value="none">One list</option>
         </select>
+        <div className="tm-seg rv-density" role="group" aria-label="Layout">
+          <button type="button" aria-pressed={roomy} onClick={() => setDensity('roomy')}>Roomy</button>
+          <button type="button" aria-pressed={!roomy} onClick={() => setDensity('compact')}>Compact</button>
+        </div>
         <button type="button" className="btn btn-outline-secondary btn-sm rv-add" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
@@ -217,11 +282,15 @@ export default function ReviewList({ data }) {
       {range === 'period' && <p className="tm-muted small mb-2">{rangeLabel(payPeriodOf(now))}</p>}
 
       {list.length ? (
-        <div ref={setBox} className={`rv ${useGroups ? 'cols' : ''}`} style={useGroups ? { gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` } : undefined}>
-          {columnLists.map((col, ci) => (
-            <div key={ci} className="rv-col">{col.map(renderBucket)}</div>
-          ))}
-        </div>
+        roomy ? (
+          <div className="rv roomy">{buckets.map(renderBucket)}</div>
+        ) : (
+          <div ref={setBox} className={`rv ${useGroups ? 'cols' : ''}`} style={useGroups ? { gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` } : undefined}>
+            {columnLists.map((col, ci) => (
+              <div key={ci} className="rv-col">{col.map(renderBucket)}</div>
+            ))}
+          </div>
+        )
       ) : (
         <p className="tm-empty">{picked.size ? `Nothing here for ${picked.size === 1 ? name([...picked][0])?.name ?? 'this person' : 'the people picked'} in these days.` : status === 'pending' ? 'Nothing is waiting for approval. 🎉' : status === 'progress' ? 'Nobody is clocked in right now.' : 'No punches in these days.'}</p>
       )}

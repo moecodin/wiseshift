@@ -3349,3 +3349,18 @@ td.sd-over { background: color-mix(in srgb, var(--navy) 22%, var(--paper)) !impo
 .sd-sum i { font-style: normal; color: var(--muted); font-size: 18px; }
 @media (max-width: 420px) { .sd-sum { grid-template-columns: 1fr; } .sd-sum i { transform: rotate(90deg); justify-self: center; } }
 @media (prefers-reduced-motion: reduce) { .sd-lifted { opacity: 0.6; } }
+
+/* ---------- Hours review, Roomy (small teams): a card per punch, Approve right under the times ---------- */
+.rv.roomy { display: flex; flex-direction: column; gap: 16px; }
+.rv.roomy .rv-group { border: 0; background: none; overflow: visible; border-radius: 0; }
+.rv.roomy .rv-head { padding: 2px 2px 8px; min-height: 0; }
+.rv-cards { margin-top: 0; }
+.rv-cards .rc-main { padding: 12px 14px 8px; gap: 1px 12px; }
+.rv-cards .rc-top { margin-bottom: 6px; }
+.rv-cards .rc-time { font-size: 18px; }
+.rv-cards .rc-why { margin-top: 6px; }
+.rv-cards .rc-foot { margin: 0 12px 12px; }
+.rv-cards .rc-done { flex: 1 1 auto; margin: 0; padding: 0; border: 0; display: inline-flex; align-items: center; justify-content: center; }
+.rv-density { width: auto; }
+.rv-density button { min-height: 36px; padding: 0 12px; font-size: 13px; }
+@media (min-width: 900px) { .rv-cards { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
