@@ -28,7 +28,7 @@ const WORDS = {
     hoursPrefix: 'Hours:', closedWord: 'closed',
     summaryTitle: 'What you chose', kioskNext: 'Next: pair the kiosk in Settings → Business → Kiosk, then give everyone a PIN in Team.', 
     readyTitle: "You're all set", readyBody: 'Next, add your team so you can build a schedule.', addTeam: 'Add your team', toToday: 'Go to Today',
-    hi: (n) => `Welcome, ${n}`, hiBody: (b) => `Here is how ${b} uses WiseShift: see your shifts, clock in and out, and ask for time off. Two quick things first.`,
+    hi: (n) => `Welcome, ${n}`, hiBody: (b) => `Here is how ${b ?? 'your team'} uses WiseShift: see your shifts, clock in and out, and ask for time off. Two quick things first.`,
     notifTitle: 'Stay in the loop', notifBody: 'Get a nudge when the schedule is published or one of your shifts changes.', notifBtn: 'Choose notifications',
     installTitle: 'Add WiseShift to your home screen', installBody: 'It opens full screen, like any other app.', installBtn: 'Install', howIos: ['Open this page in Safari.', 'Tap Share at the bottom.', 'Tap Add to Home Screen, then Add.'],
     noticeTitle: 'Please read before clocking in', readyStaffTitle: "You're ready", readyStaffBody: 'Open Today any time to clock in. Your shifts are under Schedule.',
@@ -46,7 +46,7 @@ const WORDS = {
     hoursPrefix: 'Horario:', closedWord: 'cerrado',
     summaryTitle: 'Lo que elegiste', kioskNext: 'Siguiente: vincula el quiosco en Ajustes → Negocio → Quiosco y da un PIN a cada persona en Equipo.',
     readyTitle: 'Todo listo', readyBody: 'Ahora agrega a tu equipo para armar un horario.', addTeam: 'Agregar al equipo', toToday: 'Ir a Hoy',
-    hi: (n) => `Bienvenido, ${n}`, hiBody: (b) => `Así usa ${b} WiseShift: ve tus turnos, marca entrada y salida, y pide tiempo libre. Primero dos cosas rápidas.`,
+    hi: (n) => `Bienvenido, ${n}`, hiBody: (b) => `Así usa ${b ?? "tu equipo"} WiseShift: ve tus turnos, marca entrada y salida, y pide tiempo libre. Primero dos cosas rápidas.`,
     notifTitle: 'Mantente al tanto', notifBody: 'Recibe un aviso cuando se publique el horario o cambie uno de tus turnos.', notifBtn: 'Elegir notificaciones',
     installTitle: 'Agrega WiseShift a tu pantalla de inicio', installBody: 'Se abre a pantalla completa, como cualquier app.', installBtn: 'Instalar', howIos: ['Abre esta página en Safari.', 'Toca Compartir abajo.', 'Toca Agregar a pantalla de inicio y luego Agregar.'],
     noticeTitle: 'Lee esto antes de marcar entrada', readyStaffTitle: 'Todo listo', readyStaffBody: 'Abre Hoy para marcar entrada. Tus turnos están en Horario.',
@@ -286,7 +286,7 @@ export function StaffOnboarding({ data, me, lang, businessName, onNotify, onClos
   }
 
   const steps = [
-    { title: w.hi(first), body: <p className="ob-p">{w.hiBody(businessName)}</p> },
+    { title: w.hi(first), body: <p className="ob-p">{w.hiBody(businessName && businessName.trim() && businessName.trim().toLowerCase() !== 'wiseshift' ? businessName.trim() : null)}</p> },
     {
       title: w.notifTitle,
       body: <><p className="ob-p">{w.notifBody}</p><button type="button" className="btn btn-outline-secondary" onClick={onNotify}>{w.notifBtn}</button></>,

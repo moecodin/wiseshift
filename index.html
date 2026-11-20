@@ -10,6 +10,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap" />
     <title>WiseShift</title>
+    <script>
+      // Light or dark before the first paint, so the page doesn't flash light and then fade to dark (TeamApp keeps it after).
+      try {
+        var t = localStorage.getItem('wiseshift-theme')
+        document.documentElement.dataset.bsTheme = t === 'light' || t === 'dark' ? t : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

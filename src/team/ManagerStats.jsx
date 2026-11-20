@@ -10,8 +10,8 @@ import Icon from './Icon.jsx'
 // Review list; late clock-ins counts this schedule week. Hidden on phones (the tiles do that job).
 const LATE = 15 // minutes after the shift start that a clock-in counts as late (same as Working now)
 const WORDS = {
-  en: { worked: 'Worked this pay period', overtime: 'Overtime', review: 'To review', late: 'Late clock-ins', hrs: 'hrs', vs: 'vs last period', punches: (n) => (n === 1 ? 'punch waiting' : 'punches waiting'), thisWeek: 'this week', clear: 'All caught up', none: 'None this week' },
-  es: { worked: 'Trabajado este período', overtime: 'Horas extra', review: 'Por revisar', late: 'Entradas tarde', hrs: 'hrs', vs: 'vs período anterior', punches: (n) => (n === 1 ? 'registro en espera' : 'registros en espera'), thisWeek: 'esta semana', clear: 'Todo al día', none: 'Ninguna esta semana' },
+  en: { worked: 'Worked this pay period', overtime: 'Overtime', review: 'To review', late: 'Late clock-ins', hrs: 'hrs', vs: 'vs this point last period', punches: (n) => (n === 1 ? 'punch waiting' : 'punches waiting'), thisWeek: 'this week', clear: 'All caught up', none: 'None this week' },
+  es: { worked: 'Trabajado este período', overtime: 'Horas extra', review: 'Por revisar', late: 'Entradas tarde', hrs: 'hrs', vs: 'vs el mismo punto del período anterior', punches: (n) => (n === 1 ? 'registro en espera' : 'registros en espera'), thisWeek: 'esta semana', clear: 'Todo al día', none: 'Ninguna esta semana' },
 }
 const arrow = (n) => (n > 0 ? <Icon name="up" size={12} /> : n < 0 ? <Icon name="down" size={12} /> : '–')
 
@@ -19,7 +19,10 @@ export default function ManagerStats({ data, lang, onReview }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const now = useNow(60000)
   const period = payPeriodOf(now)
-  const before = moveDays(period, -1)
+  // Compare like with like: the days so far this period against the same number of days of the last one
+  // (early in a period, a whole last period would always look like a big drop).
+  const soFar = Math.max(1, period.indexOf(dateKey(now)) + 1)
+  const before = moveDays(period, -1).slice(0, soFar)
   const staff = data.employees.filter((e) => !scheduleOnly(e) && e.active)
   const sum = (days, key) => staff.reduce((total, e) => total + periodHours(data.punches, e.id, days, now)[key], 0)
   const total = sum(period, 'total')
@@ -35,7 +38,7 @@ export default function ManagerStats({ data, lang, onReview }) {
     return shift ? new Date(p.clockIn).getHours() * 60 + new Date(p.clockIn).getMinutes() - shift.start > LATE : false
   }).length
 
-  // Percent change against the last pay period, or nothing when that period has no hours to compare.
+  // Percent change against the same point of the last pay period, or nothing when there are no hours to compare.
   const pct = prevTotal > 0 ? Math.round(((total - prevTotal) / prevTotal) * 100) : null
   const otDiff = prevTotal > 0 || prevOvertime > 0 ? overtime - prevOvertime : null
 

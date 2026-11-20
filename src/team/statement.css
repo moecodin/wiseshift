@@ -773,7 +773,7 @@ html[data-bs-theme="dark"] body .modal-content, html[data-bs-theme="dark"] body 
 /* My profile: the card at the top of More is a button; the note under the header */
 html[data-bs-theme] body .tm .mo-me-btn { width: 100%; text-align: left; color: inherit; cursor: pointer; }
 html[data-bs-theme] body .tm .mo-me-btn .mo-go { margin-left: auto; }
-html[data-bs-theme] body .tm .mo-me-btn .mo-prof { color: var(--navy); font-weight: 600; margin-top: 2px; }
+html[data-bs-theme] body .tm .mo-me-btn .mo-prof { display: block; color: var(--navy); font-weight: 600; margin-top: 2px; }
 html[data-bs-theme] body .tm .pf-note { margin: -4px 0 14px; font-size: 14px; }
 
 /* Person page: private notes */
@@ -895,3 +895,26 @@ html[data-bs-theme] body .tm .rp .tm-sheet .ts-group th { border-left: 0 !import
   .pw-day div + b, .pw-day b:only-child { margin-left: 4px; }
   .rp-report-head p { font-size: 7.5pt; }
 }
+
+/* Dark mode, computer: Settings, More and Tasks are flat pages with hairlines (like light mode), not glass cards with no inner room */
+@media (min-width: 900px) {
+  html[data-bs-theme="dark"] body .tm :is(.st-page .st-section, .mo .mo-card, .tq .tm-card) { background: transparent !important; background-image: none !important; box-shadow: none !important; border-color: var(--line) !important; border-radius: 0 !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+/* Phone: Settings sections are cards with room inside (they were edge-to-edge text on a tinted block) */
+@media (max-width: 899px) {
+  html[data-bs-theme] body .tm .st-page .st-section { padding: 14px 16px !important; margin: 0 0 12px !important; border: 1px solid var(--line) !important; border-radius: 6px !important; background-color: var(--paper); }
+}
+
+/* Phone: the sticky greeting bar is solid, so the page doesn't show through it while scrolling */
+@media (max-width: 899px) {
+  html[data-bs-theme] body .tm .tm-head { background-color: var(--desk) !important; }
+}
+
+/* Dark mode: "Needs your attention" cards look like light mode's (a quiet card with amber details), not a solid brown block */
+html[data-bs-theme="dark"] body .tm .mt-alert { background-color: rgba(30, 30, 29, 0.72) !important; background-image: none !important; border: 1px solid var(--line) !important; color: var(--ink) !important; }
+html[data-bs-theme="dark"] body .tm .mt-alert small { color: #e9b960 !important; }
+
+/* Pick-one switches (Whole team / My shifts, Roomy / Compact, Me / Business…): the same height and corners as the buttons next to them */
+html[data-bs-theme] body .tm .tm-seg { border-radius: 6px !important; padding: 2px; min-height: 36px; align-items: stretch; }
+html[data-bs-theme] body .tm .tm-seg button { border-radius: 4px !important; padding-left: 12px; padding-right: 12px; }
+html[data-bs-theme] body .tm .tm-seg > .seg-ind { border-radius: 4px !important; }

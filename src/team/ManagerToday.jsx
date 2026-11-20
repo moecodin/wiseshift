@@ -16,6 +16,7 @@ import { OvertimeWatch, PayrollReadiness, ScheduleStatus, TodayShifts } from './
 import ClockCard from './ClockCard.jsx'
 import { StaffNotes, missingPunch } from './PunchNotes.jsx'
 import Icon from './Icon.jsx'
+import Modal from '../components/Modal.jsx'
 
 const LATE = 15 // minutes after the shift start that "On time" turns into "Late"
 const MISSING_AFTER = 10 // minutes after a shift starts before "hasn't clocked in" shows
@@ -37,6 +38,7 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
   // A request or draft card plays a short fold-away (a check mark, then the gap closes)
   // before the change is saved. leaving: id -> 'approved' | 'declined' | 'published'.
   const [leaving, setLeaving] = useState({})
+  const [asking, setAsking] = useState(null) // a time-off request waiting for "Approve X for these dates?" (same as Time off)
   const timers = useRef([])
   const leave = (id, result, save) => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return save()
@@ -123,12 +125,27 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
             <p className="mt-sub">{others.length ? w.alsoOff(others.join(', ')) : w.nobodyElse}</p>
             <div className="to-actions">
               <button type="button" className="to-btn" disabled={Boolean(leaving[t.id])} onClick={() => leave(t.id, 'declined', () => data.actions.decideTimeOff(t.id, 'declined'))}>{w.decline}</button>
-              <button type="button" className="to-btn yes" disabled={Boolean(leaving[t.id])} onClick={() => leave(t.id, 'approved', () => data.actions.decideTimeOff(t.id, 'approved'))}>{w.approve}</button>
+              <button type="button" className="to-btn yes" disabled={Boolean(leaving[t.id])} onClick={() => setAsking(t)}>{w.approve}</button>
             </div>
           </section>
           </div></div>
         )
       })}
+
+      {asking && (
+        <Modal
+          title={w.approve}
+          onClose={() => setAsking(null)}
+          footer={
+            <>
+              <button type="button" className="btn btn-outline-secondary" onClick={() => setAsking(null)}>{lang === 'es' ? 'Cancelar' : 'Cancel'}</button>
+              <button type="button" className="btn btn-brand" onClick={() => { const t = asking; setAsking(null); leave(t.id, 'approved', () => data.actions.decideTimeOff(t.id, 'approved')) }}>{w.approve}</button>
+            </>
+          }
+        >
+          <p className="mb-0">{lang === 'es' ? `¿Aprobar a ${name(asking.employeeId)} para ${datesLabel(asking.start, asking.end)}?` : `Approve ${name(asking.employeeId)} for ${datesLabel(asking.start, asking.end)}?`}</p>
+        </Modal>
+      )}
 
       {covers.map((c) => {
         const s = data.shifts.find((x) => x.id === c.shiftId)
