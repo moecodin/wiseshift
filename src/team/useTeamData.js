@@ -93,6 +93,8 @@ const noteFromRow = (r) => ({
   id: r.id, kind: r.kind, text: r.text, color: r.color, dueDate: r.due_date ?? '', assignees: r.assignees ?? [], notify: r.notify, sendText: r.send_text,
   done: r.done, doneBy: r.done_by ?? '', doneAt: r.done_at, createdBy: r.created_by ?? '', createdAt: r.created_at,
 })
+const personNoteFromRow = (r) => ({ id: r.id, employeeId: r.employee_id, body: r.body, authorId: r.author_id, createdAt: r.created_at }) // update 034
+const payHistoryFromRow = (r) => ({ id: r.id, employeeId: r.employee_id, rate: Number(r.hourly_rate), previous: r.previous_rate === null ? null : Number(r.previous_rate), changedBy: r.changed_by, changedAt: r.changed_at })
 const punchNoteFromRow = (r) => ({ id: r.id, employeeId: r.employee_id, date: r.date, tag: r.tag, text: r.text, createdAt: r.created_at, ackAt: r.ack_at, ackBy: r.ack_by ?? '' })
 // A manager's note changes, in the table's column names.
 const noteChangesToRow = (c) => {
@@ -201,6 +203,11 @@ async function loadLive(email, week, period, today) {
   ])
   for (const result of [pay, timeOff, teamOff, open, ...rest]) if (result.error) throw result.error
   const [coverRows, noteRows, punchNoteRows, taskRows] = await extras
+  // Update 034 (empty, not a failure, before it is run). Notes come back only for managers; pay history is your own, or everyone's for a manager.
+  const [personNoteRows, payHistoryRows] = await Promise.all([
+    supabase.from('employee_notes').select('*').order('created_at', { ascending: false }),
+    supabase.from('pay_history').select('*').order('changed_at', { ascending: false }),
+  ])
   const rows = (result, from) => (result.error ? [] : result.data.map(from))
 
   const unique = (rows) => [...new Map(rows.map((r) => [r.id, r])).values()]
@@ -218,6 +225,8 @@ async function loadLive(email, week, period, today) {
     cover: rows(coverRows, coverFromRow),
     notes: rows(noteRows, noteFromRow),
     punchNotes: rows(punchNoteRows, punchNoteFromRow),
+    personNotes: rows(personNoteRows, personNoteFromRow),
+    payHistory: rows(payHistoryRows, payHistoryFromRow),
     tasks: rows(taskRows, taskFromRow),
     shop: settings.error ? null : shopFromRow(settings.data),
     settings: settings.error ? DEFAULT_SETTINGS : settingsFromRow(settings.data),
@@ -271,6 +280,9 @@ function sampleView(state, viewAs) {
     cover: state.cover ?? [],
     // Notes staff leave about a day's punches. Managers see all of them; staff see only their own.
     punchNotes: (state.punchNotes ?? []).filter((n) => boss || n.employeeId === viewAs),
+    // Private manager notes about a person: managers only. Pay history: your own, or everyone's for a manager.
+    personNotes: boss ? state.personNotes ?? [] : [],
+    payHistory: (state.payHistory ?? []).filter((h) => boss || h.employeeId === viewAs),
     // Tasks are for the whole team: everyone sees who has what.
     tasks: state.tasks ?? [],
     // Sticky notes and tasks are for managers only; staff never get them at all.
@@ -326,7 +338,7 @@ const newId = (prefix) => `${prefix}${++sampleIds}`
 
 // ---------- The hook ----------
 
-const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], notes: [], punchNotes: [], tasks: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
+const EMPTY = { me: null, employees: [], payById: {}, shifts: [], punches: [], timeOff: [], teamOff: [], cover: [], notes: [], punchNotes: [], personNotes: [], payHistory: [], tasks: [], shop: null, settings: DEFAULT_SETTINGS, privateById: {}, settingsReady: false, seenById: null, theme: 'classic', sounds: false, pushOff: [], lang: 'en', totalMinutes: null }
 
 export function useTeamData({ signedIn, email, week, period }) {
   const today = useMemo(() => startOfToday(), [])
@@ -832,6 +844,19 @@ export function useTeamData({ signedIn, email, week, period }) {
       if (!view.me?.isManager) return 'Only managers can delete notes.'
       return change((s) => ({ ...s, notes: (s.notes ?? []).filter((x) => x.id !== id) }))
     },
+    // Private notes a manager keeps about a person (update 034). Staff never see them.
+    addPersonNote: async (employeeId, body) => {
+      const text = body.trim()
+      if (!text) return 'Type the note first.'
+      if (usingSupabase) return run(supabase.from('employee_notes').insert({ employee_id: employeeId, body: text }))
+      if (!view.me?.isManager) return 'Only managers can add notes.'
+      return change((s) => ({ ...s, personNotes: [{ id: newId('pnt'), employeeId, body: text, authorId: viewAs, createdAt: new Date().toISOString() }, ...(s.personNotes ?? [])] }))
+    },
+    deletePersonNote: async (id) => {
+      if (usingSupabase) return run(supabase.from('employee_notes').delete().eq('id', id))
+      if (!view.me?.isManager) return 'Only managers can delete notes.'
+      return change((s) => ({ ...s, personNotes: (s.personNotes ?? []).filter((n) => n.id !== id) }))
+    },
     // Team tasks (update 029). Managers add and delete; staff take, give back and finish their own.
     addTask: async ({ title, note = '', date, time = null, assigneeId = '' }) => {
       if (!title.trim()) return 'Type the task first.'
@@ -959,7 +984,12 @@ export function useTeamData({ signedIn, email, week, period }) {
           if (i >= 0) s.employees[i] = { ...employee, ...(none ? { email: '', isManager: false } : {}) }
           else s.employees.push({ ...employee, ...(none ? { email: '', isManager: false } : {}), id })
           if (none) delete s.pay[id]
-          else s.pay[id] = { ...pay, employeeId: id }
+          else {
+            // Pay history: one row whenever the hourly rate is first set or changes (the database does this itself with a trigger).
+            const before = s.pay[id]?.hourlyRate
+            if (before !== pay.hourlyRate) s.payHistory = [{ id: newId('ph'), employeeId: id, rate: pay.hourlyRate || 0, previous: before ?? null, changedBy: viewAs, changedAt: new Date().toISOString() }, ...(s.payHistory ?? [])]
+            s.pay[id] = { ...pay, employeeId: id }
+          }
           return s
         })
       }

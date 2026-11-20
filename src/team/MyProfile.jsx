@@ -4,6 +4,7 @@ import { dayLabel, money, rangeLabel, scheduleOnly, shiftTimes } from './format.
 import { useFeatures } from './features.js'
 import { MyColor, MyContact } from './SettingsPanel.jsx'
 import Avatar from './Avatar.jsx'
+import { PayHistory } from './PersonExtras.jsx'
 
 // "My profile", for everyone: who you are as the team sees you, your own numbers for this pay period, this week's shifts,
 // your badge color and your phone and emergency contact (the two things you can change). Name, position and pay are set by a manager.
@@ -47,6 +48,7 @@ export default function MyProfile({ data, me, onSettings }) {
         ) : <p className="tm-muted">{es ? 'Sin turnos esta semana.' : 'No shifts this week.'}</p>}
       </section>
 
+      {!none && <PayHistory person={mine} data={data} />}
       <MyColor data={data} me={me} />
       <MyContact data={data} me={me} />
       <button type="button" className="tm-link small" onClick={onSettings}>{es ? 'Ajustes: idioma, avisos, contraseña' : 'Settings: language, notifications, password'}</button>

@@ -775,3 +775,12 @@ html[data-bs-theme] body .tm .mo-me-btn { width: 100%; text-align: left; color: 
 html[data-bs-theme] body .tm .mo-me-btn .mo-go { margin-left: auto; }
 html[data-bs-theme] body .tm .mo-me-btn .mo-prof { color: var(--navy); font-weight: 600; margin-top: 2px; }
 html[data-bs-theme] body .tm .pf-note { margin: -4px 0 14px; font-size: 14px; }
+
+/* Person page: private notes */
+html[data-bs-theme] body .tm .pf-lock { margin: -4px 0 8px; font-size: 13px; }
+html[data-bs-theme] body .tm .pf-note-form { display: grid; gap: 8px; justify-items: start; margin-bottom: 10px; }
+html[data-bs-theme] body .tm .pf-note-form textarea { width: 100%; resize: vertical; }
+html[data-bs-theme] body .tm .pf-notes-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+html[data-bs-theme] body .tm .pf-notes-list li { padding: 10px 0; border-top: 1px solid var(--line); }
+html[data-bs-theme] body .tm .pf-notes-list p { margin: 0 0 4px; white-space: pre-wrap; }
+html[data-bs-theme] body .tm .pf-notes-list small { color: var(--muted); }

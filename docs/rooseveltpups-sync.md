@@ -76,3 +76,6 @@ Newest first. When a change is copied over, fill in the last column and note it 
 Backlog lives in the artifact https://claude.ai/artifact/E9FzR3siUUgTWQtMnpqZbm.
 
 **2026-11-19 port status:** bundles A (payroll fixes), B (phone timesheet cards) and D (Today screens) are ported to Roosevelt Pups on branch `port-wiseshift-nov19` (from `e422940`), not pushed yet. Not ported: Tasks tab, staff groups (030), schedule tools, dock and picker polish, time-off privacy (028).
+
+## Person page, My profile, notes and pay history (Nov 20)
+Port later, with `supabase/legacy/updates/034-notes-and-pay-history.sql` (applied to wiseshift-dev only): `PersonPage.jsx`, `MyProfile.jsx`, `PersonExtras.jsx`, the `personNotes`/`payHistory` loading and `addPersonNote`/`deletePersonNote` in `useTeamData.js`, PeopleTab opening the page, the More top card, and Settings → Me linking to My profile.

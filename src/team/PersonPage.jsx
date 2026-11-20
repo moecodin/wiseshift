@@ -7,6 +7,7 @@ import { kioskPinOwners } from './kioskApi.js'
 import { useFeatures } from './features.js'
 import Avatar from './Avatar.jsx'
 import Icon from './Icon.jsx'
+import { PayHistory, PersonNotes } from './PersonExtras.jsx'
 
 // One person, for managers: who they are, this pay period in numbers, this week's shifts, recent punches, contact details
 // and time off. Edit opens the edit form (where a person can also be made inactive).
@@ -109,6 +110,9 @@ export default function PersonPage({ person, data, onBack, onEdit, onPunches, on
           ) : <p className="tm-muted">No time-off requests.</p>}
         </section>
       )}
+
+      {!none && <PayHistory person={person} data={data} />}
+      <PersonNotes person={person} data={data} />
     </div>
   )
 }
