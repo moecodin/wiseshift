@@ -784,3 +784,7 @@ html[data-bs-theme] body .tm .pf-notes-list { list-style: none; margin: 0; paddi
 html[data-bs-theme] body .tm .pf-notes-list li { padding: 10px 0; border-top: 1px solid var(--line); }
 html[data-bs-theme] body .tm .pf-notes-list p { margin: 0 0 4px; white-space: pre-wrap; }
 html[data-bs-theme] body .tm .pf-notes-list small { color: var(--muted); }
+
+/* The schedule rows on a phone are div buttons now (a seen-tick button sits inside them) */
+html[data-bs-theme] body .tm .wk-row[role="button"] { cursor: pointer; text-align: left; }
+html[data-bs-theme] body .tm .wk-row[role="button"]:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }

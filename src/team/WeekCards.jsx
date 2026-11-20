@@ -37,11 +37,11 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
           : null
             const renderRow = (s) => {
               const p = person(s.employeeId)
-              const Row = editable ? 'button' : 'div'
+              const Row = 'div'
               const tint = s.title ? tagClass(s.title, data.settings?.shiftPresets).match(/t\d/)?.[0] : ''
               const theirs = shifts.filter((x) => x.employeeId === s.employeeId)
               return (
-                <Row key={s.id} type={editable ? 'button' : undefined} className={`wk-row ${tint ?? ''} ${s.published ? '' : 'draft'} ${flash.has(s.id) ? 'flash' : ''} ${s.employeeId === me.id ? 'me' : ''}`} onClick={editable ? () => onEdit(s) : undefined}>
+                <Row key={s.id} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} onKeyDown={editable ? (e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onEdit(s) } } : undefined} className={`wk-row ${tint ?? ''} ${s.published ? '' : 'draft'} ${flash.has(s.id) ? 'flash' : ''} ${s.employeeId === me.id ? 'me' : ''}`} onClick={editable ? () => onEdit(s) : undefined}>
                   <Avatar employee={p} size={30} />
                   <span className="wk-who">
                     <b>

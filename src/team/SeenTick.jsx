@@ -12,7 +12,7 @@ export default function SeenTick({ shifts, seenAt, ready }) {
   const label = seen ? `Seen: logged in since shift was posted` : 'Posted, not logged in since'
   return (
     <>
-      <button type="button" className={`rp-seen ${seen ? 'seen' : ''}`} aria-label={label} title={label} aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button type="button" className={`rp-seen ${seen ? 'seen' : ''}`} aria-label={label} title={label} aria-expanded={open} onClick={(e) => { e.stopPropagation(); setOpen(!open) }}>
         <svg viewBox="0 0 18 12" aria-hidden="true">
           {seen && <path d="M1 6.5l3 3L10.5 3" />}
           <path d={seen ? 'M6.5 8.5l1 1L14 3' : 'M4 6.5l3 3L13.5 3'} />
