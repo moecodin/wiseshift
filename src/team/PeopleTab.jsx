@@ -384,7 +384,7 @@ function Contact({ priv, settings }) {
         Location notice:{' '}
         {acked ? <span className="tm-chip approved">Read {dayLabel(dateKey(new Date(priv.noticeAckAt)))}</span> : <span className="tm-chip pending">Not read yet</span>}
       </div>
-      <p className="tm-muted small mb-0">They add these themselves in ⚙️ Settings.</p>
+      <p className="tm-muted small mb-0">They add their phone and emergency contact themselves, on More → My profile.</p>
     </div>
   )
 }

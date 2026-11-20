@@ -75,7 +75,8 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
               </div>
               <div className="sc-mine-r">
                 <h2 className="sc-h">{w.comingUp}</h2>
-                {week.map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} on={d === selected} onPick={() => { setPicked(d); changeSpan('day') }} />)}
+                {/* Today and the days ahead first; days already gone at the bottom, dimmed (same as the team's week) */}
+                {(week.includes(today) ? [...week.filter((d) => d >= today), ...week.filter((d) => d < today)] : week).map((d) => <Row key={d} data={data} me={me} date={d} w={w} lang={lang} past={d < today} on={d === selected} onPick={() => { setPicked(d); changeSpan('day') }} />)}
               </div>
             </div>
           ) : (
@@ -170,14 +171,14 @@ function Hero({ data, me, date, today, w, lang }) {
 }
 
 // One day of my week, as a row.
-function Row({ data, me, date, w, lang, on, onPick }) {
+function Row({ data, me, date, w, lang, on, onPick, past = false }) {
   const f = useFeatures()
   const mine = data.shifts.filter((s) => s.date === date && s.employeeId === me.id).sort((a, b) => a.start - b.start)
   const off = offOn(data.teamOff, me.id, date)
   const d = fromKey(date)
   const kind = off ? 'off' : mine.length ? '' : 'free'
   return (
-    <div className={`sc-row ${kind} ${on ? 'on' : ''} ${onPick ? 'pick' : ''}`} onClick={onPick} role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined} onKeyDown={onPick ? (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onPick()) : undefined}>
+    <div className={`sc-row ${kind} ${on ? 'on' : ''} ${onPick ? 'pick' : ''} ${past ? 'past' : ''}`} onClick={onPick} role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined} onKeyDown={onPick ? (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onPick()) : undefined}>
       <div className="sc-date">
         <small>{d.toLocaleDateString(locale(lang), { weekday: 'short' }).replace('.', '').toUpperCase()}</small>
         <b>{d.getDate()}</b>
