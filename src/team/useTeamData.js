@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { dateKey, fromKey, startOfToday } from '../lib/dates.js'
 import { supabase, usingSupabase } from '../lib/supabase.js'
+import { setUiLang } from './i18n.js'
 import { minutesBetween, payPeriodOf, scheduleWeekOf, setPayPeriodConfig } from './paycheck.js'
 import { createSampleTeam } from './sampleTeam.js'
 import { createRestaurantSample } from './sampleRestaurant.js'
@@ -1014,6 +1015,8 @@ export function useTeamData({ signedIn, email, week, period }) {
     },
   }
 
+  // Every screen asks tr()/dayLabel() for words and dates in the person's language.
+  setUiLang(view.lang)
   // Every screen asks payPeriodOf(date); it answers from this business's pay period setting.
   setPayPeriodConfig(view.settings?.payPeriod)
 

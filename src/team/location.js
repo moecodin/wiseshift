@@ -1,3 +1,4 @@
+import { tr } from './i18n.js'
 // Where someone clocked in or out (supabase/updates/014-clock-location.sql).
 // The phone's location is asked for only at the moment of clocking in or out.
 
@@ -71,12 +72,12 @@ export const mapUrl = (spot) => `https://www.google.com/maps?q=${spot.lat},${spo
 // How a punch's place reads on the page: "At the shop", "2.3 mi away", or
 // "No location". `far` marks anything outside the shop's circle.
 export function describeSpot(spot, shop) {
-  if (!spot) return { label: 'No location', far: true, missing: true }
-  if (!shop) return { label: 'Location saved', far: false }
+  if (!spot) return { label: tr('No location', 'Sin ubicación'), far: true, missing: true }
+  if (!shop) return { label: tr('Location saved', 'Ubicación guardada'), far: false }
   const meters = metersBetween(spot, shop)
   // A phone that isn't sure where it is still counts as at the shop if its
   // circle of uncertainty reaches the shop's circle.
-  if (meters <= shop.radius + Math.min(spot.accuracy ?? 0, 300)) return { label: 'At the shop', far: false }
+  if (meters <= shop.radius + Math.min(spot.accuracy ?? 0, 300)) return { label: tr('At the shop', 'En el negocio'), far: false }
   const miles = meters / 1609.344
-  return { label: miles < 0.1 ? `${Math.round(meters * 3.281)} ft away` : `${miles < 10 ? miles.toFixed(1) : Math.round(miles)} mi away`, far: true }
+  return { label: miles < 0.1 ? tr(`${Math.round(meters * 3.281)} ft away`, `a ${Math.round(meters * 3.281)} pies`) : tr(`${miles < 10 ? miles.toFixed(1) : Math.round(miles)} mi away`, `a ${miles < 10 ? miles.toFixed(1) : Math.round(miles)} mi`), far: true }
 }

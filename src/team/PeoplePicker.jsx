@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { autoFocusOnDesktop } from '../lib/focus.js'
+import { tr } from './i18n.js'
 
 // Choose which employees to look at: "All employees" until you tick some. A search box narrows
 // the list (name, position or group), each group has a tick to take its whole crew, and the button
@@ -48,7 +49,7 @@ export default function PeoplePicker({ people, groups = [], picked, onChange }) 
     }
     onChange(next)
   }
-  const label = picked.size === 0 ? 'All employees' : picked.size <= 2 ? [...picked].map((id) => shortName(people.find((e) => e.id === id)?.name)).join(', ') : `${picked.size} employees`
+  const label = picked.size === 0 ? tr('All employees', 'Todos los empleados') : picked.size <= 2 ? [...picked].map((id) => shortName(people.find((e) => e.id === id)?.name)).join(', ') : tr(`${picked.size} employees`, `${picked.size} empleados`)
 
   return (
     <div className="pp" ref={box}>
@@ -58,12 +59,12 @@ export default function PeoplePicker({ people, groups = [], picked, onChange }) 
         <svg className="pp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {open && (
-        <div className="pp-panel" role="group" aria-label="Choose employees">
-          <input type="search" className="form-control form-control-sm" placeholder="Search name, position or group" aria-label="Search employees" autoFocus={autoFocusOnDesktop()} value={query} onChange={(e) => setQuery(e.target.value)} />
+        <div className="pp-panel" role="group" aria-label={tr('Choose employees', 'Elegir empleados')}>
+          <input type="search" className="form-control form-control-sm" placeholder={tr('Search name, position or group', 'Buscar nombre, puesto o grupo')} aria-label={tr('Search employees', 'Buscar empleados')} autoFocus={autoFocusOnDesktop()} value={query} onChange={(e) => setQuery(e.target.value)} />
           <div className="pp-acts">
             <span>{picked.size ? `${picked.size} picked` : 'Everyone'}</span>
             <button type="button" className="tm-link small" onClick={() => toggle(shown.map((e) => e.id), true)}>Select {q ? 'these' : 'all'}</button>
-            <button type="button" className="tm-link small" disabled={!picked.size} onClick={() => onChange(new Set())}>Clear</button>
+            <button type="button" className="tm-link small" disabled={!picked.size} onClick={() => onChange(new Set())}>{tr("Clear", "Limpiar")}</button>
           </div>
           <div className="pp-list">
             {sections.length === 0 && <p className="pp-none">No one matches “{query}”.</p>}

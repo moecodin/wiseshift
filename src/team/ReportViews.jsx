@@ -5,6 +5,7 @@ import { shiftFor } from './review.js'
 import { useFeatures } from './features.js'
 import PrintWeeks, { shortMinutes } from './PrintWeeks.jsx'
 import { DEFAULT_FILTERS, downloadCsv, groupOf, groupRows, inDept, reportRows } from './reportFilters.js'
+import { tr } from './i18n.js'
 
 // The other Reports (managers): Scheduled hours, Scheduled vs worked, and By role. They use the same filter bar as the
 // Timesheet. Only published shifts count as scheduled (drafts are still being worked on).
@@ -27,7 +28,7 @@ function scheduleRows(data, days, filters) {
 }
 
 function CsvButton({ name, rows }) {
-  return <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={() => downloadCsv(name, rows)}>Download CSV</button>
+  return <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={() => downloadCsv(name, rows)}>{tr("Download CSV", "Descargar CSV")}</button>
 }
 
 // Hours scheduled: one line per person, each day's shifts, and the totals.
@@ -42,18 +43,18 @@ export function ScheduledReport({ data, days, filters }) {
   ]
   return (
     <div className="rp-report">
-      <div className="ts-print-head"><b>Hours scheduled</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
+      <div className="ts-print-head"><b>{tr("Hours scheduled", "Horas programadas")}</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
       <PrintWeeks days={days} sections={sections} staffNo={staffNo}
         day={(r, i) => ({ lines: hoursOnly ? [] : r.byDay[i].map((s) => `${shortMinutes(s.start)}–${shortMinutes(s.end)}`), minutes: sumOf(r.byDay[i], shiftMinutes) })} />
-      <div className="rp-report-head"><p className="tm-muted mb-0">Published shifts only. {rows.length} {rows.length === 1 ? 'person' : 'people'} · {formatHours(sumOf(rows, (r) => r.minutes))} hrs scheduled</p><CsvButton name={`wiseshift-scheduled-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
+      <div className="rp-report-head"><p className="tm-muted mb-0">{tr('Published shifts only.', 'Solo turnos publicados.')} {rows.length} {rows.length === 1 ? tr('person', 'persona') : tr('people', 'personas')} · {formatHours(sumOf(rows, (r) => r.minutes))} {tr('hrs scheduled', 'hrs programadas')}</p><CsvButton name={`wiseshift-scheduled-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
       <div className="tm-gridwrap ts-table screen-only">
         <table className={`tm-sheet ${hoursOnly ? 'ts-hours-only' : ''}`}>
           <thead>
             <tr>
-              <th scope="col">Name</th>
-              {staffNo && <th scope="col">No.</th>}
-              <th scope="col">Shifts</th>
-              <th scope="col">Hours</th>
+              <th scope="col">{tr("Name", "Nombre")}</th>
+              {staffNo && <th scope="col">{tr("No.", "N.º")}</th>}
+              <th scope="col">{tr("Shifts", "Turnos")}</th>
+              <th scope="col">{tr("Hours", "Horas")}</th>
               {days.map((d) => <th key={d} scope="col">{dayLabel(d)}</th>)}
             </tr>
           </thead>
@@ -76,7 +77,7 @@ export function ScheduledReport({ data, days, filters }) {
               ))}
               {sec.name && (
                 <tr className="ts-subtotal">
-                  <th scope="row">Subtotal</th>
+                  <th scope="row">{tr("Subtotal", "Subtotal")}</th>
                   {staffNo && <td />}
                   <td>{sumOf(sec.rows, (r) => r.shifts.length)}</td>
                   <td><b>{formatHours(sumOf(sec.rows, (r) => r.minutes))}</b></td>
@@ -87,7 +88,7 @@ export function ScheduledReport({ data, days, filters }) {
           ))}
           <tfoot>
             <tr>
-              <th scope="row">Total</th>
+              <th scope="row">{tr("Total", "Total")}</th>
               {staffNo && <td />}
               <td>{sumOf(rows, (r) => r.shifts.length)}</td>
               <td><b>{formatHours(sumOf(rows, (r) => r.minutes))}</b></td>
@@ -96,7 +97,7 @@ export function ScheduledReport({ data, days, filters }) {
           </tfoot>
         </table>
       </div>
-      {rows.length === 0 && <p className="tm-muted mt-2">Nobody matches these filters.</p>}
+      {rows.length === 0 && <p className="tm-muted mt-2">{tr("Nobody matches these filters.", "Nadie coincide con estos filtros.")}</p>}
     </div>
   )
 }
@@ -129,26 +130,26 @@ export function VarianceReport({ data, days, now, filters }) {
   }
   return (
     <div className="rp-report">
-      <div className="ts-print-head"><b>Scheduled vs worked</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
-      <div className="rp-report-head"><p className="tm-muted mb-0">Worked hours follow "Approved only". Differences of an hour or more are colored.</p><CsvButton name={`wiseshift-scheduled-vs-worked-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
+      <div className="ts-print-head"><b>{tr("Scheduled vs worked", "Programado vs trabajado")}</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
+      <div className="rp-report-head"><p className="tm-muted mb-0">{tr("Worked hours follow \"Approved only\". Differences of an hour or more are colored.", "Las horas trabajadas siguen \"Solo aprobados\". Las diferencias de una hora o más tienen color.")}</p><CsvButton name={`wiseshift-scheduled-vs-worked-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
       <div className="tm-gridwrap ts-table rp-narrow">
         <table className="tm-sheet">
-          <thead><tr><th scope="col">Name</th>{staffNo && <th scope="col">No.</th>}<th scope="col">Scheduled</th><th scope="col">Worked</th><th scope="col">Difference</th></tr></thead>
+          <thead><tr><th scope="col">{tr("Name", "Nombre")}</th>{staffNo && <th scope="col">{tr("No.", "N.º")}</th>}<th scope="col">{tr("Scheduled", "Programado")}</th><th scope="col">{tr("Worked", "Trabajado")}</th><th scope="col">{tr("Difference", "Diferencia")}</th></tr></thead>
           {sections.map((sec) => (
             <tbody key={sec.name || 'all'}>
               {sec.name && <tr className="ts-group"><th scope="rowgroup" colSpan={span}>{sec.name}</th></tr>}
               {sec.rows.map(line)}
               {sec.name && (
-                <tr className="ts-subtotal"><th scope="row">Subtotal</th>{staffNo && <td />}<td>{formatHours(sumOf(sec.rows, (r) => r.minutes))}</td><td>{formatHours(sumOf(sec.rows, (r) => r.worked))}</td><td>{signed(sumOf(sec.rows, (r) => r.worked - r.minutes))}</td></tr>
+                <tr className="ts-subtotal"><th scope="row">{tr("Subtotal", "Subtotal")}</th>{staffNo && <td />}<td>{formatHours(sumOf(sec.rows, (r) => r.minutes))}</td><td>{formatHours(sumOf(sec.rows, (r) => r.worked))}</td><td>{signed(sumOf(sec.rows, (r) => r.worked - r.minutes))}</td></tr>
               )}
             </tbody>
           ))}
           <tfoot>
-            <tr><th scope="row">Total</th>{staffNo && <td />}<td>{formatHours(sumOf(rows, (r) => r.minutes))}</td><td><b>{formatHours(sumOf(rows, (r) => r.worked))}</b></td><td>{signed(sumOf(rows, (r) => r.worked - r.minutes))}</td></tr>
+            <tr><th scope="row">{tr("Total", "Total")}</th>{staffNo && <td />}<td>{formatHours(sumOf(rows, (r) => r.minutes))}</td><td><b>{formatHours(sumOf(rows, (r) => r.worked))}</b></td><td>{signed(sumOf(rows, (r) => r.worked - r.minutes))}</td></tr>
           </tfoot>
         </table>
       </div>
-      {rows.length === 0 && <p className="tm-muted mt-2">Nobody matches these filters.</p>}
+      {rows.length === 0 && <p className="tm-muted mt-2">{tr("Nobody matches these filters.", "Nadie coincide con estos filtros.")}</p>}
     </div>
   )
 }
@@ -173,7 +174,7 @@ export function RoleReport({ data, days, now, filters }) {
       const sh = shifts.filter((s) => (s.role || '') === name)
       const pu = punches.filter((p) => (shiftFor(p, data.shifts)?.role || '') === name)
       const worked = sumOf(pu, (p) => punchMinutes(p, now))
-      return { name: name || 'No role', shifts: sh.length, scheduled: sumOf(sh, shiftMinutes), worked, people: new Set([...sh, ...pu].map((x) => x.employeeId)).size, cost: sumOf(pu, (p) => (punchMinutes(p, now) / 60) * rateOf(p.employeeId)) }
+      return { name: name || tr('No role', 'Sin rol'), shifts: sh.length, scheduled: sumOf(sh, shiftMinutes), worked, people: new Set([...sh, ...pu].map((x) => x.employeeId)).size, cost: sumOf(pu, (p) => (punchMinutes(p, now) / 60) * rateOf(p.employeeId)) }
     })
     .filter((r) => r.shifts || r.worked)
   const csv = [
@@ -182,11 +183,11 @@ export function RoleReport({ data, days, now, filters }) {
   ]
   return (
     <div className="rp-report">
-      <div className="ts-print-head"><b>Hours by role</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
-      <div className="rp-report-head"><p className="tm-muted mb-0">A punch counts toward the role of the shift it matches. {pay ? 'Labor cost is worked hours × each person’s rate, without the overtime premium.' : 'Turn on Pay rates to see labor cost.'}</p><CsvButton name={`wiseshift-by-role-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
+      <div className="ts-print-head"><b>{tr("Hours by role", "Horas por rol")}</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
+      <div className="rp-report-head"><p className="tm-muted mb-0">{tr('A punch counts toward the role of the shift it matches.', 'Un registro cuenta para el rol del turno con el que coincide.')} {pay ? tr('Labor cost is worked hours × each person’s rate, without the overtime premium.', 'El costo laboral es horas trabajadas × la tarifa de cada persona, sin el extra de horas extra.') : tr('Turn on Pay rates to see labor cost.', 'Activa Tarifas para ver el costo laboral.')}</p><CsvButton name={`wiseshift-by-role-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
       <div className="tm-gridwrap ts-table rp-narrow">
         <table className="tm-sheet">
-          <thead><tr><th scope="col">Role</th><th scope="col">People</th><th scope="col">Shifts</th><th scope="col">Scheduled</th><th scope="col">Worked</th><th scope="col">Difference</th>{pay && <th scope="col">Labor cost (est.)</th>}</tr></thead>
+          <thead><tr><th scope="col">{tr("Role", "Rol")}</th><th scope="col">{tr("People", "Personas")}</th><th scope="col">{tr("Shifts", "Turnos")}</th><th scope="col">{tr("Scheduled", "Programado")}</th><th scope="col">{tr("Worked", "Trabajado")}</th><th scope="col">{tr("Difference", "Diferencia")}</th>{pay && <th scope="col">{tr("Labor cost (est.)", "Costo laboral (est.)")}</th>}</tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.name}>
@@ -201,11 +202,11 @@ export function RoleReport({ data, days, now, filters }) {
             ))}
           </tbody>
           <tfoot>
-            <tr><th scope="row">Total</th><td /><td>{sumOf(rows, (r) => r.shifts)}</td><td>{formatHours(sumOf(rows, (r) => r.scheduled))}</td><td><b>{formatHours(sumOf(rows, (r) => r.worked))}</b></td><td>{signed(sumOf(rows, (r) => r.worked - r.scheduled))}</td>{pay && <td>{money(sumOf(rows, (r) => r.cost))}</td>}</tr>
+            <tr><th scope="row">{tr("Total", "Total")}</th><td /><td>{sumOf(rows, (r) => r.shifts)}</td><td>{formatHours(sumOf(rows, (r) => r.scheduled))}</td><td><b>{formatHours(sumOf(rows, (r) => r.worked))}</b></td><td>{signed(sumOf(rows, (r) => r.worked - r.scheduled))}</td>{pay && <td>{money(sumOf(rows, (r) => r.cost))}</td>}</tr>
           </tfoot>
         </table>
       </div>
-      {rows.length === 0 && <p className="tm-muted mt-2">No shifts or punches in these dates.</p>}
+      {rows.length === 0 && <p className="tm-muted mt-2">{tr("No shifts or punches in these dates.", "Sin turnos ni registros en estas fechas.")}</p>}
     </div>
   )
 }

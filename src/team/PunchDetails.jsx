@@ -1,25 +1,26 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import Modal from '../components/Modal.jsx'
-import { dateKey, DAY_NAMES, formatClock, fromKey } from '../lib/dates.js'
+import { dateKey, formatClock, fromKey } from '../lib/dates.js'
 import Avatar from './Avatar.jsx'
 import { PunchEditor } from './HoursTab.jsx'
 import { punchMinutes } from './paycheck.js'
 import { isLateWarning, punchStatus, punchWarnings, shiftFor, STATUS_LABEL } from './review.js'
-import { shiftTimes, useNow } from './format.js'
+import { dayLabel, shiftTimes, useNow } from './format.js'
 import { streetAddress } from './location.js'
 import SpotTag from './SpotTag.jsx'
 import Icon from './Icon.jsx'
+import { tr, uiLocale } from './i18n.js'
 
 // The map library is only downloaded when someone opens a punch.
 const PunchMap = lazy(() => import('./PunchMap.jsx'))
 
 const EVENT = {
-  in: { dot: 'in', text: () => 'Clocked in' },
-  out: { dot: 'out', text: () => 'Clocked out' },
-  added: { dot: 'edit', text: (e) => `Added by ${e.by || 'a manager'}${e.detail ? `: ${e.detail}` : ''}` },
-  changed: { dot: 'edit', text: (e) => `Times changed by ${e.by || 'a manager'}${e.detail ? `: ${e.detail}` : ''}` },
-  approved: { dot: 'ok', text: (e) => `Approved${e.by ? ` by ${e.by}` : ''}` },
-  unapproved: { dot: 'edit', text: (e) => `Unapproved${e.by ? ` by ${e.by}` : ''}` },
+  in: { dot: 'in', text: () => tr('Clocked in', 'Marcó entrada') },
+  out: { dot: 'out', text: () => tr('Clocked out', 'Marcó salida') },
+  added: { dot: 'edit', text: (e) => tr(`Added by ${e.by || 'a manager'}`, `Agregado por ${e.by || 'un gerente'}`) + (e.detail ? `: ${e.detail}` : '') },
+  changed: { dot: 'edit', text: (e) => tr(`Times changed by ${e.by || 'a manager'}`, `Horas cambiadas por ${e.by || 'un gerente'}`) + (e.detail ? `: ${e.detail}` : '') },
+  approved: { dot: 'ok', text: (e) => tr('Approved', 'Aprobado') + (e.by ? tr(` by ${e.by}`, ` por ${e.by}`) : '') },
+  unapproved: { dot: 'edit', text: (e) => tr('Unapproved', 'Aprobación quitada') + (e.by ? tr(` by ${e.by}`, ` por ${e.by}`) : '') },
 }
 
 // "5h 52m"
@@ -109,38 +110,38 @@ export default function PunchDetails({ punch: start, data, onClose, stepper, onP
 
   return (
     <Modal
-      title={stepper ? 'Review punches' : 'Punch details'}
+      title={stepper ? tr('Review punches', 'Revisar registros') : tr('Punch details', 'Detalles del registro')}
       size="lg"
       onClose={onClose}
       footer={
         <>
           {confirmDelete ? (
             <>
-              <span className="me-auto small pd-confirm" role="alert">Delete this time card? This can't be undone.</span>
-              <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={() => setConfirmDelete(false)}>Keep it</button>
-              <button type="button" className="btn btn-danger" disabled={busy} onClick={remove}>Delete</button>
+              <span className="me-auto small pd-confirm" role="alert">{tr("Delete this time card? This can't be undone.", "¿Borrar este registro? No se puede deshacer.")}</span>
+              <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={() => setConfirmDelete(false)}>{tr("Keep it", "Mantenerlo")}</button>
+              <button type="button" className="btn btn-danger" disabled={busy} onClick={remove}>{tr("Delete", "Borrar")}</button>
             </>
           ) : (
           <>
           <span className="me-auto d-flex gap-2 flex-wrap">
-            <button type="button" className="btn btn-outline-secondary" onClick={() => setEditing(true)}>Edit times</button>
-            <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={() => setConfirmDelete(true)}>Delete time card</button>
+            <button type="button" className="btn btn-outline-secondary" onClick={() => setEditing(true)}>{tr("Edit times", "Editar horas")}</button>
+            <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={() => setConfirmDelete(true)}>{tr("Delete time card", "Borrar registro")}</button>
           </span>
           {stepper ? (
             <>
-              <button type="button" className="btn btn-outline-secondary" disabled={!stepper.canBack} onClick={stepper.onBack}><Icon name="left" /> Back</button>
-              <button type="button" className="btn btn-outline-secondary" onClick={stepper.onSkip}>{status === 'approved' ? <>Next <Icon name="right" /></> : 'Skip'}</button>
+              <button type="button" className="btn btn-outline-secondary" disabled={!stepper.canBack} onClick={stepper.onBack}><Icon name="left" /> {tr("Back", "Atrás")}</button>
+              <button type="button" className="btn btn-outline-secondary" onClick={stepper.onSkip}>{status === 'approved' ? <>{tr("Next", "Siguiente")} <Icon name="right" /></> : tr('Skip', 'Saltar')}</button>
               {status !== 'approved' && (
                 <button type="button" className="btn btn-success pd-ok" disabled={busy || status === 'progress'} onClick={() => approve(true)}>
-                  {status === 'progress' ? 'Still clocked in' : 'Approve and next'}
+                  {status === 'progress' ? tr('Still clocked in', 'Sigue con entrada marcada') : tr('Approve and next', 'Aprobar y siguiente')}
                 </button>
               )}
             </>
           ) : status === 'approved' ? (
-            <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={() => approve(false)}>Unapprove</button>
+            <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={() => approve(false)}>{tr("Unapprove", "Quitar aprobación")}</button>
           ) : (
             <button type="button" className="btn btn-success" disabled={busy || status === 'progress'} onClick={() => approve(true)}>
-              {status === 'progress' ? 'Still clocked in' : 'Approve'}
+              {status === 'progress' ? tr('Still clocked in', 'Sigue con entrada marcada') : tr('Approve', 'Aprobar')}
             </button>
           )}
           </>
@@ -151,7 +152,7 @@ export default function PunchDetails({ punch: start, data, onClose, stepper, onP
       {stepper && (
         <div className="pd-step">
           <div className="pd-step-bar"><i style={{ width: `${(stepper.index / stepper.total) * 100}%` }} /></div>
-          <small>{stepper.index + 1} of {stepper.total} · {stepper.approved} approved · {stepper.skipped} skipped<span className="pd-keys"> · A approve, S skip, ← back, E edit</span></small>
+          <small>{stepper.index + 1} of {stepper.total} · {stepper.approved} approved · {stepper.skipped} skipped<span className="pd-keys"> {tr("· A approve, S skip, ← back, E edit", "· A aprobar, S saltar, ← atrás, E editar")}</span></small>
         </div>
       )}
       <div className="pd-top">
@@ -159,9 +160,9 @@ export default function PunchDetails({ punch: start, data, onClose, stepper, onP
         <div className="pd-who">
           <b>{onProfile && person ? <button type="button" className="name-link" onClick={() => onProfile(person.id)}>{person.name}</button> : person?.name}</b>
           <small>
-            {person?.position ? `${person.position} · ` : ''}{DAY_NAMES[day.getDay()].slice(0, 3)}, {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {person?.position ? `${person.position} · ` : ''}{dayLabel(dateKey(day))}
           </small>
-          <small>{shift ? `${shift.title ? `${shift.title} · ` : ''}${shiftTimes(shift)} scheduled` : 'No shift scheduled that day'}</small>
+          <small>{shift ? `${shift.title ? `${shift.title} · ` : ''}${shiftTimes(shift)} ${tr('scheduled', 'programado')}` : tr('No shift scheduled that day', 'Sin turno programado ese día')}</small>
         </div>
         <div className="pd-dur">
           <b>{duration(punchMinutes(punch, now))}</b>
@@ -177,14 +178,14 @@ export default function PunchDetails({ punch: start, data, onClose, stepper, onP
 
       <div className="pd-grid">
         <div className="pd-times">
-          <Side label="Clock in" at={punch.clockIn} actual={punch.actualIn} spot={punch.inSpot} address={punch.inAddress} shop={data.shop} typed={punch.editedBy && !punch.inSpot} kiosk={punch.inKiosk} />
-          <Side label="Clock out" at={punch.clockOut} actual={punch.actualOut} spot={punch.outSpot} address={punch.outAddress} shop={data.shop} typed={punch.editedBy && !punch.outSpot} kiosk={punch.outKiosk} />
+          <Side label={tr('Clock in', 'Entrada')} at={punch.clockIn} actual={punch.actualIn} spot={punch.inSpot} address={punch.inAddress} shop={data.shop} typed={punch.editedBy && !punch.inSpot} kiosk={punch.inKiosk} />
+          <Side label={tr('Clock out', 'Salida')} at={punch.clockOut} actual={punch.actualOut} spot={punch.outSpot} address={punch.outAddress} shop={data.shop} typed={punch.editedBy && !punch.outSpot} kiosk={punch.outKiosk} />
         </div>
         {hasSpot && (
           <div className="pd-map">
             <button type="button" className="pd-mapbtn" aria-expanded={showMap} onClick={() => setShowMap(!showMap)}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.4" /></svg>
-              {showMap ? 'Hide map' : 'Show map'}
+              {showMap ? tr('Hide map', 'Ocultar mapa') : tr('Show map', 'Ver mapa')}
             </button>
             {showMap && (
               <Suspense fallback={<div className="tm-map" />}>
@@ -195,12 +196,12 @@ export default function PunchDetails({ punch: start, data, onClose, stepper, onP
         )}
       </div>
 
-      {punch.note && <p className="tm-muted small">Note: {punch.note}</p>}
+      {punch.note && <p className="tm-muted small">{tr('Note', 'Nota')}: {punch.note}</p>}
 
       <div className="pd-history">
-        <h3 className="tm-h3">History</h3>
+        <h3 className="tm-h3">{tr("History", "Historial")}</h3>
         {events === null ? (
-          <p className="tm-muted small">Loading…</p>
+          <p className="tm-muted small">{tr("Loading…", "Cargando…")}</p>
         ) : events.length ? (
           <>
             <ol className="tm-timeline">
@@ -212,10 +213,10 @@ export default function PunchDetails({ punch: start, data, onClose, stepper, onP
                 </li>
               ))}
             </ol>
-            {events.length > 3 && <button type="button" className="tm-link small" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show less' : `Show all (${events.length})`}</button>}
+            {events.length > 3 && <button type="button" className="tm-link small" onClick={() => setShowAll(!showAll)}>{showAll ? tr('Show less', 'Ver menos') : tr(`Show all (${events.length})`, `Ver todo (${events.length})`)}</button>}
           </>
         ) : (
-          <p className="tm-muted small">No history saved for this punch (from before update 015).</p>
+          <p className="tm-muted small">{tr("No history saved for this punch (from before update 015).", "No hay historial guardado para este registro (es anterior a la actualización 015).")}</p>
         )}
       </div>
       {error && <p className="tm-error" role="alert">{error}</p>}
@@ -242,19 +243,19 @@ function Side({ label, at, actual, spot, address, shop, typed, kiosk }) {
       {at ? (
         <>
           <b className="tm-pd-time">{formatClock(at)}</b>
-          {actual && actual !== at && <div className="tm-muted small">Rounded from {formatClock(actual)}</div>}
-          <div>{new Date(at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          {actual && actual !== at && <div className="tm-muted small">{tr('Rounded from', 'Redondeado de')} {formatClock(actual)}</div>}
+          <div>{new Date(at).toLocaleDateString(uiLocale(), { month: 'short', day: 'numeric', year: 'numeric' })}</div>
           {spot ? (
             <>
-              {(address || found !== '') && <div className="tm-pd-addr">{address || found || 'Looking up the street…'}</div>}
+              {(address || found !== '') && <div className="tm-pd-addr">{address || found || tr('Looking up the street…', 'Buscando la calle…')}</div>}
               <SpotTag spot={spot} shop={shop} />
             </>
           ) : (
-            <div className="tm-muted small">{kiosk ? 'Store kiosk' : typed ? 'Typed in by a manager' : 'No location'}</div>
+            <div className="tm-muted small">{kiosk ? tr('Store kiosk', 'Quiosco del negocio') : typed ? tr('Typed in by a manager', 'Escrito por un gerente') : tr('No location', 'Sin ubicación')}</div>
           )}
         </>
       ) : (
-        <b className="tm-pd-time tm-muted">Still in</b>
+        <b className="tm-pd-time tm-muted">{tr("Still in", "Sigue dentro")}</b>
       )}
     </div>
   )

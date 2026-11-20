@@ -13,6 +13,7 @@ import { dayLabel, hoursLabel, rangeLabel, scheduleOnly, timeInputToIso, useNow 
 import { REVIEW_DAYS } from './useTeamData.js'
 import Icon from './Icon.jsx'
 import Seg from './Seg.jsx'
+import { tr } from './i18n.js'
 
 // "Maria L.", "8a", "Tue 17": short forms so a punch fits on one line.
 const shortName = (full = '') => {
@@ -112,13 +113,13 @@ export default function ReviewList({ data, focus, onProfile }) {
   const roleOf = (p) => shiftFor(p, data.shifts)?.role ?? ''
   let buckets
   if (mode === 'group') {
-    buckets = [...groups.map((g) => ({ key: g.name, name: g.name, color: g.color ?? 7, rows: list.filter((p) => groupOf(p) === g.name) })), { key: '', name: 'No group', color: 7, rows: list.filter((p) => groupOf(p) === '') }]
+    buckets = [...groups.map((g) => ({ key: g.name, name: g.name, color: g.color ?? 7, rows: list.filter((p) => groupOf(p) === g.name) })), { key: '', name: tr('No group', 'Sin grupo'), color: 7, rows: list.filter((p) => groupOf(p) === '') }]
   } else if (mode === 'role') {
     const extra = [...new Set(list.map(roleOf).filter((r) => r && !roles.some((x) => x.name === r)))]
-    buckets = [...roles.map((r) => ({ key: r.name, name: r.name, color: r.color ?? 7, rows: list.filter((p) => roleOf(p) === r.name) })), ...extra.map((r) => ({ key: r, name: r, color: 7, rows: list.filter((p) => roleOf(p) === r) })), { key: '', name: 'No role', color: 7, rows: list.filter((p) => !roleOf(p)) }]
+    buckets = [...roles.map((r) => ({ key: r.name, name: r.name, color: r.color ?? 7, rows: list.filter((p) => roleOf(p) === r.name) })), ...extra.map((r) => ({ key: r, name: r, color: 7, rows: list.filter((p) => roleOf(p) === r) })), { key: '', name: tr('No role', 'Sin rol'), color: 7, rows: list.filter((p) => !roleOf(p)) }]
   } else if (mode === 'date') {
     const days = [...new Set(list.map((p) => dateKey(new Date(p.clockIn))))].sort() // earliest day first
-    buckets = days.map((d) => ({ key: d, name: d === today ? 'Today' : `${dayShort(d)}`, color: d === today ? 0 : 7, rows: list.filter((p) => dateKey(new Date(p.clockIn)) === d) }))
+    buckets = days.map((d) => ({ key: d, name: d === today ? tr('Today', 'Hoy') : `${dayShort(d)}`, color: d === today ? 0 : 7, rows: list.filter((p) => dateKey(new Date(p.clockIn)) === d) }))
   } else {
     buckets = [{ key: 'all', name: '', color: 7, rows: list }]
   }
@@ -142,7 +143,7 @@ export default function ReviewList({ data, focus, onProfile }) {
     setLeaving([])
     setBusy(false)
     if (problem) setError(problem)
-    else setUndo({ ids, text: `Approved ${ids.length} ${ids.length === 1 ? 'punch' : 'punches'}` })
+    else setUndo({ ids, text: tr(`Approved ${ids.length} ${ids.length === 1 ? 'punch' : 'punches'}`, `${ids.length} ${ids.length === 1 ? 'registro aprobado' : 'registros aprobados'}`) })
   }
   const undoApprove = async () => {
     const ids = undo.ids
@@ -212,7 +213,7 @@ export default function ReviewList({ data, focus, onProfile }) {
               <span className="rc-day">{dayLabel(dayKey)}</span>
               <span className="rc-time">
                 {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : '…'}
-                {p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <small className="tm-bad"> (next day)</small>}
+                {p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <small className="tm-bad"> {tr("(next day)", "(día siguiente)")}</small>}
               </span>
               <span className="rc-dur">{duration(punchMinutes(p, now))}</span>
               {warnings.length > 0 && (
@@ -224,9 +225,9 @@ export default function ReviewList({ data, focus, onProfile }) {
             </button>
             <div className="rc-foot">
               {st === 'pending' && <button type="button" className="btn btn-success rc-ok" disabled={busy} onClick={() => approve([p.id])}>Approve {hoursLabel(punchMinutes(p, now))}</button>}
-              {st === 'progress' && <button type="button" className="btn btn-outline-secondary rc-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)}>Clock out now</button>}
+              {st === 'progress' && <button type="button" className="btn btn-outline-secondary rc-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)}>{tr("Clock out now", "Marcar salida ahora")}</button>}
               {st === 'approved' && <span className="rc-done">Approved{p.approvedBy ? ` by ${p.approvedBy.split(' ')[0]}` : ''}</span>}
-              <button type="button" className="btn btn-outline-secondary rc-details" onClick={() => setOpen(p)}>Details</button>
+              <button type="button" className="btn btn-outline-secondary rc-details" onClick={() => setOpen(p)}>{tr("Details", "Detalles")}</button>
             </div>
           </article>
         )
@@ -250,7 +251,7 @@ export default function ReviewList({ data, focus, onProfile }) {
                   const roleColor = roles.find((r) => r.name === role)?.color
                   return (
                     <div key={p.id} className={`rv-row st-${st} ${again ? 'again' : ''} ${leaving.includes(p.id) ? 'leaving' : ''}`} style={leaving.includes(p.id) ? { '--i': Math.min(leaving.indexOf(p.id), 5) } : undefined}>
-                      <button type="button" className={`rv-main ${mode === 'date' ? 'with-role' : ''}`} onClick={() => setOpen(p)} title={`${person?.name ?? '?'} · ${formatClock(p.clockIn)} – ${p.clockOut ? formatClock(p.clockOut) : 'still in'}`}>
+                      <button type="button" className={`rv-main ${mode === 'date' ? 'with-role' : ''}`} onClick={() => setOpen(p)} title={`${person?.name ?? '?'} · ${formatClock(p.clockIn)} – ${p.clockOut ? formatClock(p.clockOut) : tr('still in', 'sigue dentro')}`}>
                         <span className="rv-name">{again ? '' : shortName(person?.name)}</span>
                         {mode === 'date' && <span className="rv-role" title={role}>{roleColor !== undefined && <i className={`rl-dot t${roleColor}`} aria-hidden="true" />}<span>{role}</span></span>}
                         {mode !== 'date' && <span className="rv-day">{dayShort(dayKey)}</span>}
@@ -260,7 +261,7 @@ export default function ReviewList({ data, focus, onProfile }) {
                       </button>
                       <button type="button" className="rv-more" onClick={() => setOpen(p)} aria-label={`Details for ${person?.name ?? 'this punch'}`} title="Details">⋯</button>
                       {st === 'pending' && <button type="button" className="rv-ok" disabled={busy} onClick={() => approve([p.id])} aria-label={`Approve ${hoursLabel(punchMinutes(p, now))} for ${person?.name ?? 'this person'}`} title={`Approve ${hoursLabel(punchMinutes(p, now))}`}>✓</button>}
-                      {st === 'progress' && <button type="button" className="rv-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)} title="Clock out now">Out</button>}
+                      {st === 'progress' && <button type="button" className="rv-out" disabled={busy} onClick={() => window.confirm(`Clock ${person?.name ?? 'this person'} out now (${formatClock(new Date().toISOString())})?`) && clockOut(p)} title="Clock out now">{tr("Out", "Salida")}</button>}
                       {st === 'approved' && <span className="rv-done" title="Approved" aria-label="Approved"><Icon name="check" size={14} /></span>}
                     </div>
                   )
@@ -274,12 +275,12 @@ export default function ReviewList({ data, focus, onProfile }) {
                 <summary className="rv-head">
                   <i className={`rl-dot t${bucket.color}`} aria-hidden="true" />
                   <b>{bucket.name}</b>
-                  <small>{bucket.rows.length} {bucket.rows.length === 1 ? 'punch' : 'punches'}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
+                  <small>{bucket.rows.length} {bucket.rows.length === 1 ? tr('punch', 'registro') : tr('punches', 'registros')}{bucket.pending.length > 0 && ` · ${formatHours(bucket.pending.reduce((sum, p) => sum + punchMinutes(p, now), 0))} hrs`}</small>
                   {bucket.pending.length > 0 && mode === 'date' && (
-                    <button type="button" className="rv-step" onClick={(e) => { e.preventDefault(); startReview(bucket.pending) }} title="Go through this day's punches one by one">Review</button>
+                    <button type="button" className="rv-step" onClick={(e) => { e.preventDefault(); startReview(bucket.pending) }} title={tr("Go through this day's punches one by one", 'Revisar los registros de este día uno por uno')}>{tr("Review", "Revisar")}</button>
                   )}
                   {bucket.pending.length > 0 && (
-                    <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>Approve {bucket.pending.length}</button>
+                    <button type="button" className="rv-all" disabled={busy} onClick={(e) => { e.preventDefault(); approve(bucket.pending.map((p) => p.id)) }}>{tr('Approve', 'Aprobar')} {bucket.pending.length}</button>
                   )}
                 </summary>
               )}
@@ -291,31 +292,31 @@ export default function ReviewList({ data, focus, onProfile }) {
     <div>
       <div className="tm-filters rv-filters">
         <PeoplePicker people={people} groups={groups} picked={picked} onChange={setPicked} />
-        <select className="form-select form-select-sm rv-period" aria-label="Which days" value={range} onChange={(e) => setRange(e.target.value)}>
-          <option value="week">Past {REVIEW_DAYS} days</option>
-          <option value="period">This pay period</option>
-          <option value="last">Last pay period</option>
+        <select className="form-select form-select-sm rv-period" aria-label={tr('Which days', 'Qué días')} value={range} onChange={(e) => setRange(e.target.value)}>
+          <option value="week">{tr(`Past ${REVIEW_DAYS} days`, `Últimos ${REVIEW_DAYS} días`)}</option>
+          <option value="period">{tr("This pay period", "Este período de pago")}</option>
+          <option value="last">{tr("Last pay period", "Período anterior")}</option>
         </select>
-        <select className="form-select form-select-sm rv-period rv-groupby" aria-label="Group by" value={mode} onChange={(e) => setGroupBy(e.target.value)}>
-          {groups.length > 0 && <option value="group">By staff group</option>}
-          {roles.length > 0 && <option value="role">By role</option>}
-          <option value="date">By date</option>
-          <option value="none">One list</option>
+        <select className="form-select form-select-sm rv-period rv-groupby" aria-label={tr('Group by', 'Agrupar por')} value={mode} onChange={(e) => setGroupBy(e.target.value)}>
+          {groups.length > 0 && <option value="group">{tr("By staff group", "Por grupo")}</option>}
+          {roles.length > 0 && <option value="role">{tr("By role", "Por rol")}</option>}
+          <option value="date">{tr("By date", "Por fecha")}</option>
+          <option value="none">{tr("One list", "Una lista")}</option>
         </select>
-        <Seg className="tm-seg rv-density" role="group" aria-label="Layout">
-          <button type="button" aria-pressed={roomy} onClick={() => setDensity('roomy')}>Roomy</button>
-          <button type="button" aria-pressed={!roomy} onClick={() => setDensity('compact')}>Compact</button>
+        <Seg className="tm-seg rv-density" role="group" aria-label={tr('Layout', 'Vista')}>
+          <button type="button" aria-pressed={roomy} onClick={() => setDensity('roomy')}>{tr("Roomy", "Amplio")}</button>
+          <button type="button" aria-pressed={!roomy} onClick={() => setDensity('compact')}>{tr("Compact", "Compacto")}</button>
         </Seg>
-        <button type="button" className="btn btn-outline-secondary btn-sm rv-add" data-search="add-punch" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
-        {pending.length > 0 && <button type="button" className="btn btn-outline-secondary btn-sm rv-add rv-review" onClick={() => startReview(pending)} title="Go through the punches waiting for approval one at a time">Review one by one</button>}
+        <button type="button" className="btn btn-outline-secondary btn-sm rv-add" data-search="add-punch" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>{tr("+ Add punch", "+ Agregar registro")}</button>
+        {pending.length > 0 && <button type="button" className="btn btn-outline-secondary btn-sm rv-add rv-review" onClick={() => startReview(pending)} title={tr('Go through the punches waiting for approval one at a time', 'Revisar uno por uno los registros que esperan aprobación')}>{tr("Review one by one", "Revisar uno por uno")}</button>}
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
-            Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
+            {tr('Approve all', 'Aprobar todo')} ({pending.length}) · {hoursLabel(pendingMinutes)}
           </button>
         )}
       </div>
-      <Seg className="tm-seg rc-status" role="group" aria-label="Status">
-        {[['pending', 'Pending'], ['progress', 'In progress'], ['approved', 'Approved'], ['all', 'All']].map(([id, label]) => (
+      <Seg className="tm-seg rc-status" role="group" aria-label={tr('Status', 'Estado')}>
+        {[['pending', tr('Pending', 'Pendientes')], ['progress', tr('In progress', 'En curso')], ['approved', tr('Approved', 'Aprobados')], ['all', tr('All', 'Todos')]].map(([id, label]) => (
           <button key={id} type="button" aria-pressed={status === id} onClick={() => setStatus(id)}>
             {label}{id !== 'all' && <span className="rc-n">{countOf(id)}</span>}
           </button>
@@ -334,29 +335,29 @@ export default function ReviewList({ data, focus, onProfile }) {
           </div>
         )
       ) : (
-        <p className="tm-empty">{picked.size ? `Nothing here for ${picked.size === 1 ? name([...picked][0])?.name ?? 'this person' : 'the people picked'} in these days.` : status === 'pending' ? 'Nothing is waiting for approval. 🎉' : status === 'progress' ? 'Nobody is clocked in right now.' : 'No punches in these days.'}</p>
+        <p className="tm-empty">{picked.size ? tr(`Nothing here for ${picked.size === 1 ? name([...picked][0])?.name ?? 'this person' : 'the people picked'} in these days.`, `No hay nada para ${picked.size === 1 ? name([...picked][0])?.name ?? 'esta persona' : 'las personas elegidas'} en estos días.`) : status === 'pending' ? tr('Nothing is waiting for approval. 🎉', 'No hay nada esperando aprobación. 🎉') : status === 'progress' ? tr('Nobody is clocked in right now.', 'Nadie tiene entrada marcada ahora.') : tr('No punches in these days.', 'Sin registros en estos días.')}</p>
       )}
       {error && <p className="tm-error" role="alert">{error}</p>}
 
       {pending.length > 0 && (
         <div className="tm-approve-bar">
           <button type="button" className="btn btn-success w-100" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>
-            Approve all ({pending.length}) · {hoursLabel(pendingMinutes)}
+            {tr('Approve all', 'Aprobar todo')} ({pending.length}) · {hoursLabel(pendingMinutes)}
           </button>
           {pending.some((p) => punchWarnings(p, data.shifts, data.shop, now).some(isLateWarning)) && (
-            <small>Includes late punches (⚠️). Tap one first to check it.</small>
+            <small>{tr("Includes late punches (⚠️). Tap one first to check it.", "Incluye registros tarde (⚠️). Toca uno primero para revisarlo.")}</small>
           )}
         </div>
       )}
       {list.some((p) => !p.clockOut && dateKey(new Date(p.clockIn)) === today) && (
-        <p className="tm-muted small text-center mt-2">People still clocked in can be approved after they clock out.</p>
+        <p className="tm-muted small text-center mt-2">{tr("People still clocked in can be approved after they clock out.", "Quienes siguen con entrada marcada se pueden aprobar cuando marquen salida.")}</p>
       )}
 
       {/* In the page body, not here: the page slides in with a transform, which would pin this to the wrong box. */}
       {undo && createPortal(
         <div className="rv-toast" role="status">
           <span>{undo.text}</span>
-          <button type="button" onClick={undoApprove}>Undo</button>
+          <button type="button" onClick={undoApprove}>{tr("Undo", "Deshacer")}</button>
         </div>,
         document.body,
       )}

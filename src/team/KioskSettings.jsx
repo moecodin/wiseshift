@@ -2,6 +2,7 @@
 // how its screen looks, and remove it. The computer types the code once at <site>/kiosk.
 import { useCallback, useEffect, useState } from 'react'
 import { kioskAddress, listKioskDevices, newKioskPairing, repairKioskDevice, revokeKioskDevice, setKioskTheme } from './kioskApi.js'
+import { tr } from './i18n.js'
 
 const when = (iso) => (iso ? new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'never used')
 const clockOf = (iso) => new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -64,7 +65,7 @@ export default function KioskSettings() {
 
   return (
     <section className="st-section">
-      <h3 className="tm-h3">Kiosk</h3>
+      <h3 className="tm-h3">{tr("Kiosk", "Quiosco")}</h3>
       <p className="tm-muted small">
         A shared store computer or tablet where people clock in with their PIN. Tap Pair a computer, then open the kiosk address on that computer and type the code once. Set each person's PIN in Team. Clocking in uses the same early window as the phone.
       </p>
@@ -75,20 +76,20 @@ export default function KioskSettings() {
               <span className="me-auto"><b>{d.name}</b> <small className="tm-muted">· {status(d)}</small></span>
               <label className="visually-hidden" htmlFor={`ks-theme-${d.id}`}>Look of {d.name}</label>
               <select id={`ks-theme-${d.id}`} className="form-select form-select-sm" style={{ width: 'auto' }} value={d.theme} onChange={(e) => changeTheme(d.id, e.target.value)}>
-                <option value="auto">Auto (follows the computer)</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="auto">{tr("Auto (follows the computer)", "Automático (igual que la computadora)")}</option>
+                <option value="light">{tr("Light", "Claro")}</option>
+                <option value="dark">{tr("Dark", "Oscuro")}</option>
               </select>
               {revoking === d.id ? (
                 <>
-                  <small>Stop this computer?</small>
-                  <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setRevoking(null)}>Keep</button>
-                  <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => revoke(d.id)}>Remove</button>
+                  <small>{tr("Stop this computer?", "¿Desactivar esta computadora?")}</small>
+                  <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setRevoking(null)}>{tr("Keep", "Mantener")}</button>
+                  <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => revoke(d.id)}>{tr("Remove", "Quitar")}</button>
                 </>
               ) : (
                 <>
-                  <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy} onClick={() => again(d)}>New code</button>
-                  <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setRevoking(d.id)}>Remove</button>
+                  <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy} onClick={() => again(d)}>{tr("New code", "Código nuevo")}</button>
+                  <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setRevoking(d.id)}>{tr("Remove", "Quitar")}</button>
                 </>
               )}
             </li>
@@ -96,14 +97,14 @@ export default function KioskSettings() {
         </ul>
       )}
       <div className="d-flex gap-2 flex-wrap">
-        <label className="visually-hidden" htmlFor="ks-name">Computer name</label>
+        <label className="visually-hidden" htmlFor="ks-name">{tr("Computer name", "Nombre de la computadora")}</label>
         <input id="ks-name" className="form-control" style={{ maxWidth: 260 }} placeholder="Front counter" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
-        <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={add}>Pair a computer</button>
+        <button type="button" className="btn btn-brand btn-sm" disabled={busy} onClick={add}>{tr("Pair a computer", "Vincular una computadora")}</button>
       </div>
       {pairing && (
         <div className="mt-2" role="status">
           <p className="small mb-1">
-            On <b>{pairing.name}</b>, open <b>{kioskAddress()}</b> and type this code. It is shown only once and works until {clockOf(pairing.expiresAt)}.
+            On <b>{pairing.name}</b>{tr(", open", ", abre")} <b>{kioskAddress()}</b> and type this code. It is shown only once and works until {clockOf(pairing.expiresAt)}.
           </p>
           <p className="mb-0" style={{ fontSize: 28, fontWeight: 700, letterSpacing: '0.12em' }}>{pairing.code}</p>
         </div>

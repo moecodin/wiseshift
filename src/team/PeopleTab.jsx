@@ -9,6 +9,7 @@ import { noticeAcked } from './settings.js'
 import Avatar from './Avatar.jsx'
 import { useFeatures } from './features.js'
 import { clearKioskPin, kioskPinOwners, setKioskPin } from './kioskApi.js'
+import { tr } from './i18n.js'
 
 // A yes / no choice as a rounded button (the same look as the role and day pickers) instead of a
 // small browser tick box. Used for Active, Manager and the pay questions.
@@ -52,24 +53,24 @@ export default function PeopleTab({ data, me, focus, personId, onPerson, onJump 
   return (
     <div className="tm-narrow desk">
       <div className="pt-head">
-        <h2 className="sc-h">Team <small className="mg-sum">{people.filter((e) => e.active).length} active</small></h2>
-        <button type="button" className="btn btn-brand btn-sm" data-search="add-person" onClick={() => setEditing({ name: '', email: '', position: '', isManager: false, payType: 'hourly', active: true })}>+ Add person</button>
+        <h2 className="sc-h">{tr("Team", "Equipo")} <small className="mg-sum">{people.filter((e) => e.active).length} active</small></h2>
+        <button type="button" className="btn btn-brand btn-sm" data-search="add-person" onClick={() => setEditing({ name: '', email: '', position: '', isManager: false, payType: 'hourly', active: true })}>{tr("+ Add person", "+ Agregar persona")}</button>
       </div>
       <div className="pt-list">
       {people.map((e) => {
         const pay = data.payById[e.id]
-        const rate = scheduleOnly(e) ? 'Schedule only' : !f.payRates ? '' : e.payType === 'commission' ? 'Commission' : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : 'No rate'
+        const rate = scheduleOnly(e) ? tr('Schedule only', 'Solo horario') : !f.payRates ? '' : e.payType === 'commission' ? tr('Commission', 'Comisión') : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : tr('No rate', 'Sin tarifa')
         return (
           <button key={e.id} type="button" className={`sc-row person pt-person ${e.active ? '' : 'inactive'}`} onClick={() => onPerson(e.id)}>
             <Avatar employee={e} size={44} />
             <span className="sc-body">
               <b>
                 {e.name}
-                {e.isManager && <span className="pt-chip">Manager</span>}
-                {!e.active && <span className="pt-chip off">Not active</span>}
+                {e.isManager && <span className="pt-chip">{tr("Manager", "Gerente")}</span>}
+                {!e.active && <span className="pt-chip off">{tr("Not active", "Inactivo")}</span>}
               </b>
-              <small>{e.position || 'No position'}</small>
-              <small>{scheduleOnly(e) ? 'No login' : e.email}</small>
+              <small>{e.position || tr('No position', 'Sin puesto')}</small>
+              <small>{scheduleOnly(e) ? tr('No login', 'Sin acceso') : e.email}</small>
             </span>
             <span className="sc-hrs">{rate}</span>
           </button>
@@ -77,19 +78,18 @@ export default function PeopleTab({ data, me, focus, personId, onPerson, onJump 
       })}
       </div>
       <details className="pt-help">
-        <summary>How to give someone a login</summary>
+        <summary>{tr("How to give someone a login", "Cómo darle acceso a alguien")}</summary>
         <ol>
-          <li>Add them here with the email they'll sign in with.</li>
+          <li>{tr("Add them here with the email they'll sign in with.", "Agrégalos aquí con el correo con el que entrarán.")}</li>
           <li>
-            Send them your WiseShift link. They tap <b>First time here, or forgot your password?</b>, type that email, enter
-            the code we email them, and choose their own password. Their login only opens their own WiseShift pages.
+            {tr('Send them your WiseShift link. They tap', 'Mándales tu enlace de WiseShift. Tocan')} <b>{tr("First time here, or forgot your password?", "¿Primera vez aquí, u olvidaste tu contraseña?")}</b>{tr(', type that email, enter the code we email them, and choose their own password. Their login only opens their own WiseShift pages.', ', escriben ese correo, ponen el código que les enviamos y eligen su propia contraseña. Su acceso solo abre sus propias páginas de WiseShift.')}
           </li>
         </ol>
         <p className="tm-muted small">
-          Clocking in or out saves the phone's location. Everyone is asked to read the location notice in the app and tap
-          <b> I've read this</b> (New York law); see who has in ⚙️ Settings → Business. Also post it where staff can see it.
+          {tr("Clocking in or out saves the phone's location. Everyone is asked to read the location notice in the app and tap", 'Marcar entrada o salida guarda la ubicación del teléfono. Se le pide a todos leer el aviso de ubicación en la app y tocar')}
+          <b> {tr("I've read this", "Ya lo leí")}</b> {tr('(New York law); see who has in ⚙️ Settings → Business. Also post it where staff can see it.', '(ley de Nueva York); mira quién ya lo hizo en ⚙️ Ajustes → Negocio. También ponlo donde el personal lo vea.')}
         </p>
-        <p className="tm-muted small mb-0">Someone who leaves: open them and press <b>Remove from team…</b>.</p>
+        <p className="tm-muted small mb-0">{tr("Someone who leaves: open them and press", "Si alguien se va: ábrelo y presiona")} <b>{tr("Remove from team…", "Quitar del equipo…")}</b>.</p>
       </details>
       {editing && <PersonEditor employee={editing} pay={data.payById[editing.id] ?? NEW_PAY} data={data} me={me} onClose={() => setEditing(null)} />}
     </div>
@@ -108,9 +108,9 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
   const [removing, setRemoving] = useState(false)
 
   const save = async () => {
-    if (!e.name.trim()) return setError('Type their name.')
+    if (!e.name.trim()) return setError(tr('Type their name.', 'Escribe su nombre.'))
     const none = e.payType === 'none'
-    if (!none && !/^\S+@\S+\.\S+$/.test(e.email.trim())) return setError('Type the email they sign in with.')
+    if (!none && !/^\S+@\S+\.\S+$/.test(e.email.trim())) return setError(tr('Type the email they sign in with.', 'Escribe el correo con el que entra.'))
     const numbers = Object.fromEntries(
       ['hourlyRate', 'dependents', 'otherIncome', 'deductions', 'extraWithholding', 'pretax', 'nyAllowances', 'nyExtra'].map((k) => [k, Number(pay[k]) || 0]),
     )
@@ -128,109 +128,109 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
   if (removing) return <RemovePerson employee={employee} data={data} onCancel={() => setRemoving(false)} onDone={onClose} />
   return (
     <Modal
-      title={employee.id ? employee.name : 'Add person'}
+      title={employee.id ? employee.name : tr('Add person', 'Agregar persona')}
       size="lg"
       onClose={onClose}
       footer={
         <>
           {employee.id && !self && (
-            <button type="button" className="btn btn-outline-danger me-auto pe-remove" onClick={() => setRemoving(true)}>Remove from team…</button>
+            <button type="button" className="btn btn-outline-danger me-auto pe-remove" onClick={() => setRemoving(true)}>{tr("Remove from team…", "Quitar del equipo…")}</button>
           )}
-          <button type="button" className="btn btn-outline-secondary pe-foot" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-brand pe-foot" disabled={busy} onClick={save}>Save</button>
+          <button type="button" className="btn btn-outline-secondary pe-foot" onClick={onClose}>{tr("Cancel", "Cancelar")}</button>
+          <button type="button" className="btn btn-brand pe-foot" disabled={busy} onClick={save}>{tr("Save", "Guardar")}</button>
         </>
       }
     >
       <div className="row g-2">
         <div className="col-sm-6">
-          <label className="form-label" htmlFor="pe-name">Full name</label>
+          <label className="form-label" htmlFor="pe-name">{tr("Full name", "Nombre completo")}</label>
           <input id="pe-name" className="form-control" value={e.name} onChange={setField('name')} />
         </div>
         {!none && (
           <div className="col-sm-6">
-            <label className="form-label" htmlFor="pe-email">Sign-in email</label>
+            <label className="form-label" htmlFor="pe-email">{tr("Sign-in email", "Correo para entrar")}</label>
             <input id="pe-email" type="email" className="form-control" value={e.email} onChange={setField('email')} />
           </div>
         )}
         <div className="col-sm-6">
-          <label className="form-label" htmlFor="pe-pos">Position</label>
+          <label className="form-label" htmlFor="pe-pos">{tr("Position", "Puesto")}</label>
           <input id="pe-pos" className="form-control" list="pe-positions" value={e.position} onChange={setField('position')} />
           <datalist id="pe-positions">{data.settings.positions.map((p) => <option key={p} value={p} />)}</datalist>
         </div>
         {(data.settings.groups ?? []).length > 0 && (
           <div className="col-sm-6">
-            <label className="form-label" htmlFor="pe-group">Group</label>
+            <label className="form-label" htmlFor="pe-group">{tr("Group", "Grupo")}</label>
             <select id="pe-group" className="form-select" value={e.group ?? ''} onChange={(ev) => setE({ ...e, group: ev.target.value || null })}>
-              <option value="">No group</option>
+              <option value="">{tr("No group", "Sin grupo")}</option>
               {data.settings.groups.map((g) => <option key={g.name} value={g.name}>{g.name}</option>)}
               {e.group && !data.settings.groups.some((g) => g.name === e.group) && <option value={e.group}>{e.group}</option>}
             </select>
           </div>
         )}
         <div className="col-sm-6">
-          <label className="form-label" htmlFor="pe-start">Start date</label>
+          <label className="form-label" htmlFor="pe-start">{tr("Start date", "Fecha de inicio")}</label>
           <input id="pe-start" type="date" className="form-control" value={e.startedOn ?? ''} onChange={setField('startedOn')} />
         </div>
         {!none && data.settings.payrollReady && (
           <div className="col-sm-6">
-            <label className="form-label" htmlFor="pe-payroll">Payroll ID</label>
-            <input id="pe-payroll" className="form-control" maxLength={40} placeholder="Their ID in your payroll service" value={pay.payrollId ?? ''} onChange={setPayField('payrollId')} />
+            <label className="form-label" htmlFor="pe-payroll">{tr("Payroll ID", "ID de nómina")}</label>
+            <input id="pe-payroll" className="form-control" maxLength={40} placeholder={tr('Their ID in your payroll service', 'Su ID en tu servicio de nómina')} value={pay.payrollId ?? ''} onChange={setPayField('payrollId')} />
           </div>
         )}
         <div className="col-sm-6 d-flex align-items-end gap-3 flex-wrap">
-          <PillToggle checked={e.active} disabled={self} onChange={(on) => setE({ ...e, active: on })}>Active</PillToggle>
+          <PillToggle checked={e.active} disabled={self} onChange={(on) => setE({ ...e, active: on })}>{tr("Active", "Activo")}</PillToggle>
           {!none && (
-            <PillToggle checked={e.isManager} disabled={self} onChange={(on) => setE({ ...e, isManager: on })}>Manager</PillToggle>
+            <PillToggle checked={e.isManager} disabled={self} onChange={(on) => setE({ ...e, isManager: on })}>{tr("Manager", "Gerente")}</PillToggle>
           )}
         </div>
-        {self && <p className="tm-muted small mb-0">You can't remove your own manager access or deactivate yourself.</p>}
+        {self && <p className="tm-muted small mb-0">{tr("You can't remove your own manager access or deactivate yourself.", "No puedes quitarte tu acceso de gerente ni desactivarte.")}</p>}
       </div>
       {employee.id && !none && <Contact priv={data.privateById[employee.id]} settings={data.settings} />}
       {employee.id && !none && f.timeClock && f.kioskClock && <KioskPin employee={employee} />}
 
       {f.payRates && (
       <>
-      <h3 className="tm-h3">Pay</h3>
+      <h3 className="tm-h3">{tr("Pay", "Pago")}</h3>
       <div className="row g-2">
         <div className="col-sm-6">
-          <label className="form-label" htmlFor="pe-type">Paid by</label>
+          <label className="form-label" htmlFor="pe-type">{tr("Paid by", "Pago por")}</label>
           <select id="pe-type" className="form-select" value={e.payType} onChange={setField('payType')}>
-            <option value="hourly">The hour</option>
-            <option value="commission">Commission</option>
-            {!self && <option value="none">Not paid here: schedule only</option>}
+            <option value="hourly">{tr("The hour", "La hora")}</option>
+            <option value="commission">{tr("Commission", "Comisión")}</option>
+            {!self && <option value="none">{tr("Not paid here: schedule only", "Sin pago aquí: solo horario")}</option>}
           </select>
-          {none && <div className="form-text">Shows on the schedule so everyone sees their days. No email, login, clock or pay.</div>}
+          {none && <div className="form-text">{tr("Shows on the schedule so everyone sees their days. No email, login, clock or pay.", "Aparece en el horario para que todos vean sus días. Sin correo, acceso, reloj ni pago.")}</div>}
         </div>
         {e.payType === 'hourly' && (
           <div className="col-sm-6">
-            <label className="form-label" htmlFor="pe-rate">Hourly rate ($)</label>
+            <label className="form-label" htmlFor="pe-rate">{tr("Hourly rate ($)", "Tarifa por hora ($)")}</label>
             <input id="pe-rate" type="number" min="0" step="0.25" className="form-control" value={pay.hourlyRate} onChange={setPayField('hourlyRate')} />
             {rate > 0 && rate < NY_MIN_WAGE && <div className="tm-warn small mt-1">Below the New York minimum wage ({money(NY_MIN_WAGE)}/hr).</div>}
           </div>
         )}
         {!none && (
           <div className="col-sm-6">
-            <label className="form-label" htmlFor="pe-pretax">Pre-tax deductions per paycheck ($)</label>
+            <label className="form-label" htmlFor="pe-pretax">{tr("Pre-tax deductions per paycheck ($)", "Deducciones antes de impuestos por cheque ($)")}</label>
             <input id="pe-pretax" type="number" min="0" step="1" className="form-control" value={pay.pretax} onChange={setPayField('pretax')} />
-            <div className="form-text">401(k) and similar. Lowers income tax only.</div>
+            <div className="form-text">{tr("401(k) and similar. Lowers income tax only.", "401(k) y similares. Solo baja el impuesto sobre la renta.")}</div>
           </div>
         )}
       </div>
 
       {!none && (
         <>
-          <h3 className="tm-h3">Federal W-4</h3>
+          <h3 className="tm-h3">{tr("Federal W-4", "W-4 federal")}</h3>
           <div className="row g-2">
             <div className="col-sm-6">
-              <label className="form-label" htmlFor="pe-fs">Step 1(c) filing status</label>
+              <label className="form-label" htmlFor="pe-fs">{tr("Step 1(c) filing status", "Estado civil para impuestos (paso 1c)")}</label>
               <select id="pe-fs" className="form-select" value={pay.filingStatus} onChange={setPayField('filingStatus')}>
-                <option value="single">Single or married filing separately</option>
-                <option value="married">Married filing jointly</option>
-                <option value="head">Head of household</option>
+                <option value="single">{tr("Single or married filing separately", "Soltero o casado declarando por separado")}</option>
+                <option value="married">{tr("Married filing jointly", "Casado declarando en conjunto")}</option>
+                <option value="head">{tr("Head of household", "Cabeza de familia")}</option>
               </select>
             </div>
             <div className="col-sm-6 d-flex align-items-end">
-              <PillToggle checked={pay.step2} onChange={(on) => setPay({ ...pay, step2: on })}>Step 2 box checked (two jobs)</PillToggle>
+              <PillToggle checked={pay.step2} onChange={(on) => setPay({ ...pay, step2: on })}>{tr("Step 2 box checked (two jobs)", "Casilla del paso 2 marcada (dos trabajos)")}</PillToggle>
             </div>
             <Money id="pe-dep" label="Step 3: dependents (total $)" value={pay.dependents} onChange={setPayField('dependents')} />
             <Money id="pe-oth" label="Step 4(a): other income ($ a year)" value={pay.otherIncome} onChange={setPayField('otherIncome')} />
@@ -241,19 +241,19 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
           <h3 className="tm-h3">New York IT-2104</h3>
           <div className="row g-2">
             <div className="col-sm-6">
-              <label className="form-label" htmlFor="pe-nys">Status</label>
+              <label className="form-label" htmlFor="pe-nys">{tr("Status", "Estado")}</label>
               <select id="pe-nys" className="form-select" value={pay.nyStatus} onChange={setPayField('nyStatus')}>
-                <option value="single">Single or head of household</option>
-                <option value="married">Married</option>
+                <option value="single">{tr("Single or head of household", "Soltero o cabeza de familia")}</option>
+                <option value="married">{tr("Married", "Casado")}</option>
               </select>
             </div>
             <div className="col-sm-6">
-              <label className="form-label" htmlFor="pe-nya">Allowances (line 1)</label>
+              <label className="form-label" htmlFor="pe-nya">{tr("Allowances (line 1)", "Exenciones (línea 1)")}</label>
               <input id="pe-nya" type="number" min="0" step="1" className="form-control" value={pay.nyAllowances} onChange={setPayField('nyAllowances')} />
             </div>
             <Money id="pe-nyx" label="Extra state withholding ($ per paycheck)" value={pay.nyExtra} onChange={setPayField('nyExtra')} />
             <div className="col-sm-6 d-flex align-items-end">
-              <PillToggle checked={pay.nycResident} onChange={(on) => setPay({ ...pay, nycResident: on })}>Lives in New York City</PillToggle>
+              <PillToggle checked={pay.nycResident} onChange={(on) => setPay({ ...pay, nycResident: on })}>{tr("Lives in New York City", "Vive en la ciudad de Nueva York")}</PillToggle>
             </div>
           </div>
           <p className="tm-muted small mt-3 mb-0">
@@ -298,13 +298,13 @@ function KioskPin({ employee }) {
   }
   return (
     <>
-      <h3 className="tm-h3">Kiosk PIN</h3>
+      <h3 className="tm-h3">{tr("Kiosk PIN", "PIN del quiosco")}</h3>
       <div className="d-flex gap-2 flex-wrap align-items-center">
-        <label className="visually-hidden" htmlFor="pe-pin">New PIN</label>
-        <input id="pe-pin" className="form-control" style={{ maxWidth: 160 }} inputMode="numeric" autoComplete="off" maxLength={6} placeholder={has ? 'New PIN' : '4 to 6 digits'} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
-        <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy || pin.length < 4} onClick={save}>{has ? 'Change PIN' : 'Set PIN'}</button>
-        {has && <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy} onClick={clear}>Remove PIN</button>}
-        <small className="tm-muted">{has === null ? '' : has ? 'Has a PIN.' : 'No PIN yet.'}</small>
+        <label className="visually-hidden" htmlFor="pe-pin">{tr("New PIN", "PIN nuevo")}</label>
+        <input id="pe-pin" className="form-control" style={{ maxWidth: 160 }} inputMode="numeric" autoComplete="off" maxLength={6} placeholder={has ? tr('New PIN', 'PIN nuevo') : tr('4 to 6 digits', 'De 4 a 6 dígitos')} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
+        <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy || pin.length < 4} onClick={save}>{has ? tr('Change PIN', 'Cambiar PIN') : tr('Set PIN', 'Poner PIN')}</button>
+        {has && <button type="button" className="btn btn-outline-secondary btn-sm" disabled={busy} onClick={clear}>{tr("Remove PIN", "Quitar PIN")}</button>}
+        <small className="tm-muted">{has === null ? '' : has ? tr('Has a PIN.', 'Tiene PIN.') : tr('No PIN yet.', 'Aún sin PIN.')}</small>
       </div>
       {msg && <p className="small mb-0 mt-1" role="status">{msg}</p>}
     </>
@@ -328,25 +328,25 @@ function RemovePerson({ employee, data, onCancel, onDone }) {
   const destroy = () => finish(() => data.actions.deleteEmployee(employee.id))
 
   return (
-    <Modal title={`Remove ${employee.name}`} onClose={onCancel}>
-      <h3 className="tm-h3 mt-0 pt-0 border-0">They left (recommended)</h3>
+    <Modal title={tr(`Remove ${employee.name}`, `Quitar a ${employee.name}`)} onClose={onCancel}>
+      <h3 className="tm-h3 mt-0 pt-0 border-0">{tr("They left (recommended)", "Se fue (recomendado)")}</h3>
       <p className="small">
         They can't sign in to the team page anymore and drop off the schedule, but their hours and pay history stay for payroll
         and taxes. New York requires keeping payroll records for 6 years. You can make them active again later.
       </p>
       <button type="button" className="btn btn-brand" disabled={busy || !employee.active} onClick={deactivate}>
-        {employee.active ? 'Mark as not active' : 'Already not active'}
+        {employee.active ? tr('Mark as not active', 'Marcar como inactivo') : tr('Already not active', 'Ya está inactivo')}
       </button>
 
-      <h3 className="tm-h3">Delete for good</h3>
+      <h3 className="tm-h3">{tr("Delete for good", "Borrar para siempre")}</h3>
       <p className="small">
-        Deletes {employee.name} with <b>all</b> their shifts, clock-ins, hours, time off and pay settings. This can't be undone.
+        Deletes {employee.name} with <b>{tr("all", "todos")}</b> their shifts, clock-ins, hours, time off and pay settings. This can't be undone.
         Only for someone added by mistake, or once you have their records saved elsewhere (Hours &amp; pay → Timesheet → Download).
       </p>
-      <label className="form-label small" htmlFor="rm-name">Type their name to confirm: <b>{employee.name}</b></label>
+      <label className="form-label small" htmlFor="rm-name">{tr("Type their name to confirm:", "Escribe su nombre para confirmar:")} <b>{employee.name}</b></label>
       <input id="rm-name" className="form-control mb-2" value={typed} onChange={(e) => setTyped(e.target.value)} />
       <button type="button" className="btn btn-danger" disabled={busy || typed.trim().toLowerCase() !== employee.name.trim().toLowerCase()} onClick={destroy}>
-        Delete for good
+        {tr("Delete for good", "Borrar para siempre")}
       </button>
       {error && <p className="tm-error mt-2" role="alert">{error}</p>}
     </Modal>
@@ -368,23 +368,23 @@ function Contact({ priv, settings }) {
   const acked = noticeAcked(priv, settings)
   return (
     <div className="tm-contact">
-      <h3 className="tm-h3">Contact</h3>
-      <div>Phone: {priv?.phone ? <a href={`tel:${priv.phone}`}>{priv.phone}</a> : <span className="tm-muted">not added yet</span>}</div>
+      <h3 className="tm-h3">{tr("Contact", "Contacto")}</h3>
+      <div>{tr('Phone', 'Teléfono')}: {priv?.phone ? <a href={`tel:${priv.phone}`}>{priv.phone}</a> : <span className="tm-muted">{tr("not added yet", "aún no agregado")}</span>}</div>
       <div>
-        Emergency contact:{' '}
+        {tr('Emergency contact', 'Contacto de emergencia')}:{' '}
         {priv?.emergencyName || priv?.emergencyPhone ? (
           <>
             {priv.emergencyName} {priv.emergencyPhone && <a href={`tel:${priv.emergencyPhone}`}>{priv.emergencyPhone}</a>}
           </>
         ) : (
-          <span className="tm-muted">not added yet</span>
+          <span className="tm-muted">{tr("not added yet", "aún no agregado")}</span>
         )}
       </div>
       <div>
-        Location notice:{' '}
-        {acked ? <span className="tm-chip approved">Read {dayLabel(dateKey(new Date(priv.noticeAckAt)))}</span> : <span className="tm-chip pending">Not read yet</span>}
+        {tr('Location notice', 'Aviso de ubicación')}:{' '}
+        {acked ? <span className="tm-chip approved">Read {dayLabel(dateKey(new Date(priv.noticeAckAt)))}</span> : <span className="tm-chip pending">{tr("Not read yet", "Aún no leído")}</span>}
       </div>
-      <p className="tm-muted small mb-0">They add their phone and emergency contact themselves, on More → My profile.</p>
+      <p className="tm-muted small mb-0">{tr("They add their phone and emergency contact themselves, on More → My profile.", "Cada persona agrega su teléfono y contacto de emergencia en Más → Mi perfil.")}</p>
     </div>
   )
 }

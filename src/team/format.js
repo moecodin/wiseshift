@@ -1,6 +1,10 @@
 // Small display helpers for the team page.
 import { useEffect, useState } from 'react'
 import { DAY_NAMES, dateKey, formatShort, fromKey } from '../lib/dates.js'
+import { isEs } from './i18n.js'
+
+const esDay = (key) => fromKey(key).toLocaleDateString('es-US', { weekday: 'short', month: 'short', day: 'numeric' }).replace(/\./g, '')
+const esShort = (key) => fromKey(key).toLocaleDateString('es-US', { month: 'short', day: 'numeric' }).replace(/\./g, '')
 
 // Minutes after midnight → "8:00 AM".
 export function clockTime(minutes) {
@@ -33,9 +37,9 @@ export function timeInputToIso(dateKeyValue, value) {
 }
 
 // "Sun, Oct 25"
-export const dayLabel = (key) => `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)}, ${formatShort(fromKey(key))}`
+export const dayLabel = (key) => (isEs() ? esDay(key) : `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)}, ${formatShort(fromKey(key))}`)
 // "Oct 25 – Oct 31"
-export const rangeLabel = (days) => `${formatShort(fromKey(days[0]))} – ${formatShort(fromKey(days.at(-1)))}`
+export const rangeLabel = (days) => (isEs() ? `${esShort(days[0])} – ${esShort(days.at(-1))}` : `${formatShort(fromKey(days[0]))} – ${formatShort(fromKey(days.at(-1)))}`)
 // "Oct 25" or "Oct 25 – Oct 27"
 export const datesLabel = (start, end) => (start === end ? dayLabel(start) : `${dayLabel(start)} – ${dayLabel(end)}`)
 
@@ -48,7 +52,8 @@ export const hoursLabel = (minutes) => {
   const total = Math.round(minutes)
   const h = Math.floor(total / 60)
   const m = total % 60
-  return [h > 0 && `${h} ${h === 1 ? 'Hour' : 'Hours'}`, m > 0 && `${m} Min`].filter(Boolean).join(' ') || '0 Min'
+  const es = isEs()
+  return [h > 0 && `${h} ${h === 1 ? (es ? 'Hora' : 'Hour') : es ? 'Horas' : 'Hours'}`, m > 0 && `${m} Min`].filter(Boolean).join(' ') || '0 Min'
 }
 
 export const firstName = (name) => (name || '').split(' ')[0]

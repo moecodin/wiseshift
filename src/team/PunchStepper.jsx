@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import PunchDetails from './PunchDetails.jsx'
 import { punchStatus } from './review.js'
+import { tr } from './i18n.js'
 
 // Review one by one: a day's pending punches as full cards in the Details pop-up. Approve saves the punch and
 // moves to the next person; Skip leaves it pending and moves on; Back steps back (Edit times fixes a punch
@@ -43,14 +44,14 @@ export default function PunchStepper({ ids, data, onClose, nextDay, onNextDay })
         onClose={onClose}
         footer={
           <>
-            {approvedIds.length > 0 && <button type="button" className="btn btn-outline-secondary me-auto" disabled={busy} onClick={undoLast}>Undo last</button>}
+            {approvedIds.length > 0 && <button type="button" className="btn btn-outline-secondary me-auto" disabled={busy} onClick={undoLast}>{tr("Undo last", "Deshacer el último")}</button>}
             {left.length > 0 && <button type="button" className="btn btn-outline-secondary" onClick={() => restart(left)}>Go through the {left.length} skipped</button>}
             {nextDay && <button type="button" className="btn btn-outline-secondary" onClick={() => onNextDay(nextDay)}>Next day ({nextDay.length})</button>}
-            <button type="button" className="btn btn-brand" onClick={onClose}>Done</button>
+            <button type="button" className="btn btn-brand" onClick={onClose}>{tr("Done", "Listo")}</button>
           </>
         }
       >
-        <p className="pd-done"><b>{approved}</b> approved{left.length > 0 && <>, <b>{left.length}</b> still waiting</>}.</p>
+        <p className="pd-done"><b>{approved}</b> approved{left.length > 0 && <>, <b>{left.length}</b> {tr("still waiting", "aún esperando")}</>}.</p>
         <p className="tm-muted small mb-0">{left.length > 0 ? 'The skipped ones stay in the list as pending.' : 'Nothing else is waiting in this list.'}</p>
         {error && <p className="tm-error mt-2 mb-0" role="alert">{error}</p>}
       </Modal>

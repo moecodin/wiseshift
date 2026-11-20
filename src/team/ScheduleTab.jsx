@@ -15,6 +15,7 @@ import ShiftDropDialog from './ShiftDropDialog.jsx'
 import Icon from './Icon.jsx'
 import Seg from './Seg.jsx'
 import SlideIn from './SlideIn.jsx'
+import { tr } from './i18n.js'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -61,7 +62,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek, 
 
   const copyLastWeek = async () => {
     const { error, copied } = await data.actions.copyWeek(moveDays(week, -1), week)
-    setMessage(error || (copied ? `Copied ${copied} shift${copied === 1 ? '' : 's'} from last week as drafts.` : 'Nothing new to copy from last week.'))
+    setMessage(error || (copied ? tr(`Copied ${copied} shift${copied === 1 ? '' : 's'} from last week as drafts.`, `Se copiaron ${copied} turno${copied === 1 ? '' : 's'} de la semana pasada como borradores.`) : tr('Nothing new to copy from last week.', 'No hay nada nuevo que copiar de la semana pasada.')))
   }
   // Clear the week's drafts (published shifts stay), with a short Undo.
   const [undoClear, setUndoClear] = useState(null)
@@ -71,17 +72,17 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek, 
     return () => clearTimeout(timer)
   }, [undoClear])
   const clearDrafts = async () => {
-    if (!window.confirm(`Clear ${drafts.length} unpublished shift${drafts.length === 1 ? '' : 's'} for ${rangeLabel(week)}? Shifts you've published stay.`)) return
+    if (!window.confirm(tr(`Clear ${drafts.length} unpublished shift${drafts.length === 1 ? '' : 's'} for ${rangeLabel(week)}? Shifts you've published stay.`, `¿Quitar ${drafts.length} turno${drafts.length === 1 ? '' : 's'} sin publicar de ${rangeLabel(week)}? Los turnos publicados se quedan.`))) return
     const { error, removed } = await data.actions.clearDrafts(week)
     if (error) return setMessage(error)
-    setMessage(`Cleared ${removed.length} unpublished shift${removed.length === 1 ? '' : 's'}.`)
+    setMessage(tr(`Cleared ${removed.length} unpublished shift${removed.length === 1 ? '' : 's'}.`, `Se quitaron ${removed.length} turno${removed.length === 1 ? '' : 's'} sin publicar.`))
     setUndoClear(removed)
   }
   const restore = async () => {
     const list = undoClear
     setUndoClear(null)
     const problem = await data.actions.restoreShifts(list)
-    setMessage(problem || `Put back ${list.length} shift${list.length === 1 ? '' : 's'}.`)
+    setMessage(problem || tr(`Put back ${list.length} shift${list.length === 1 ? '' : 's'}.`, `Se devolvieron ${list.length} turno${list.length === 1 ? '' : 's'}.`))
   }
   // A shift was dragged somewhere new: ask Move or Copy (nothing if it landed where it started).
   const [dropping, setDropping] = useState(null)
@@ -101,30 +102,30 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek, 
     const problem = await data.actions.publishWeek(week)
     if (problem) return setMessage(problem)
     setMessage('')
-    setPublished(`Published ${count} shift${count === 1 ? '' : 's'}. The team can see them now.`)
+    setPublished(tr(`Published ${count} shift${count === 1 ? '' : 's'}. The team can see them now.`, `Se publicaron ${count} turno${count === 1 ? '' : 's'}. El equipo ya los puede ver.`))
   }
 
   return (
     <div>
       <div className="tm-toolbar">
         <div className="tm-weeknav nav-center">
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => { setWeekDir('prev'); onWeek(moveDays(week, -1)) }} aria-label="Week before"><Icon name="left" /></button>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => { setWeekDir('prev'); onWeek(moveDays(week, -1)) }} aria-label={tr('Week before', 'Semana anterior')}><Icon name="left" /></button>
           <b>{rangeLabel(week)}</b>
-          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => { setWeekDir('next'); onWeek(moveDays(week, 1)) }} aria-label="Week after"><Icon name="right" /></button>
-          {!thisWeek && <button type="button" className="btn btn-link btn-sm" onClick={() => onWeek(scheduleWeekOf(new Date()))}>This week</button>}
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => { setWeekDir('next'); onWeek(moveDays(week, 1)) }} aria-label={tr('Week after', 'Semana siguiente')}><Icon name="right" /></button>
+          {!thisWeek && <button type="button" className="btn btn-link btn-sm" onClick={() => onWeek(scheduleWeekOf(new Date()))}>{tr("This week", "Esta semana")}</button>}
         </div>
         {boss && (
-          <Seg className="tm-seg mg-seg" role="group" aria-label="Whose shifts">
-            <button type="button" aria-pressed={view === 'everyone'} onClick={() => setView('everyone')}>Whole team</button>
-            <button type="button" aria-pressed={view === 'mine'} onClick={() => setView('mine')}>My shifts</button>
+          <Seg className="tm-seg mg-seg" role="group" aria-label={tr('Whose shifts', 'De quién son los turnos')}>
+            <button type="button" aria-pressed={view === 'everyone'} onClick={() => setView('everyone')}>{tr("Whole team", "Todo el equipo")}</button>
+            <button type="button" aria-pressed={view === 'mine'} onClick={() => setView('mine')}>{tr("My shifts", "Mis turnos")}</button>
           </Seg>
         )}
         {boss && (
           <div className="tm-tools">
-            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="copy-week" onClick={copyLastWeek}>Copy last week</button>
-            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="batch" onClick={() => setEditing({ batch: true, employeeId: '', date: week[0], start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })} title="Add the same shift to several people and days at once">Batch Schedule</button>
-            <button type="button" className="btn btn-outline-secondary btn-sm" disabled={!drafts.length} onClick={clearDrafts} title="Remove this week's unpublished shifts (published ones stay)">Clear ({drafts.length})</button>
-            <button type="button" className="btn btn-brand btn-sm" data-search="publish" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="copy-week" onClick={copyLastWeek}>{tr("Copy last week", "Copiar la semana pasada")}</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="batch" onClick={() => setEditing({ batch: true, employeeId: '', date: week[0], start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })} title={tr('Add the same shift to several people and days at once', 'Agregar el mismo turno a varias personas y días a la vez')}>{tr("Batch Schedule", "Programar en lote")}</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm" disabled={!drafts.length} onClick={clearDrafts} title={tr("Remove this week's unpublished shifts (published ones stay)", 'Quitar los turnos sin publicar de esta semana (los publicados se quedan)')}>{tr('Clear', 'Limpiar')} ({drafts.length})</button>
+            <button type="button" className="btn btn-brand btn-sm" data-search="publish" disabled={!drafts.length} onClick={publish}>{tr('Publish', 'Publicar')} ({drafts.length})</button>
           </div>
         )}
       </div>
@@ -136,10 +137,10 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek, 
       {message && (
         <p className="tm-msg" role="status">
           {message}
-          {undoClear && undoClear.length > 0 && <> <button type="button" className="tm-link" onClick={restore}>Undo</button></>}
+          {undoClear && undoClear.length > 0 && <> <button type="button" className="tm-link" onClick={restore}>{tr("Undo", "Deshacer")}</button></>}
         </p>
       )}
-      {boss && drafts.length > 0 && <p className="tm-muted small">Dashed shifts are drafts: only managers see them until you press Publish.</p>}
+      {boss && drafts.length > 0 && <p className="tm-muted small">{tr("Dashed shifts are drafts: only managers see them until you press Publish.", "Los turnos con línea punteada son borradores: solo los gerentes los ven hasta que presionas Publicar.")}</p>}
 
       <SlideIn id={view} order={['everyone', 'mine']}>
       {!boss ? (
@@ -168,13 +169,13 @@ function ManagerDay({ span, onSpan, picked, onPick, view, onView, data, me, week
   const blank = () => ({ employeeId: me.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })
   return (
     <div className="tm-narrow mg-phone">
-      <Seg className="sc-toggle" role="group" aria-label="Whose shifts">
-        <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>My shifts</button>
-        <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>Whole team</button>
+      <Seg className="sc-toggle" role="group" aria-label={tr('Whose shifts', 'De quién son los turnos')}>
+        <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>{tr("My shifts", "Mis turnos")}</button>
+        <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>{tr("Whole team", "Todo el equipo")}</button>
       </Seg>
-      <Seg className="sc-toggle sc-span" role="group" aria-label="Show a day or the week">
-        <button type="button" aria-pressed={span === 'day'} onClick={() => onSpan('day')}>Day</button>
-        <button type="button" aria-pressed={span === 'week'} onClick={() => onSpan('week')}>Week</button>
+      <Seg className="sc-toggle sc-span" role="group" aria-label={tr('Show a day or the week', 'Mostrar un día o la semana')}>
+        <button type="button" aria-pressed={span === 'day'} onClick={() => onSpan('day')}>{tr("Day", "Día")}</button>
+        <button type="button" aria-pressed={span === 'week'} onClick={() => onSpan('week')}>{tr("Week", "Semana")}</button>
       </Seg>
       {span === 'day' && <>
       <DayStrip days={week} selected={selected} renderDay={(d) => {
@@ -246,16 +247,16 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
   const overlap = oneWho ? data.shifts.find((x) => x.id !== s.id && x.employeeId === oneWho && x.date === oneDay && x.start < s.end && s.start < x.end) : null
 
   const save = async () => {
-    if (s.start === null || s.end === null || s.end <= s.start) return setError('The end time has to be after the start time.')
+    if (s.start === null || s.end === null || s.end <= s.start) return setError(tr('The end time has to be after the start time.', 'La hora final debe ser después de la de inicio.'))
     const clean = { ...s, breakMin: Number(s.breakMin) || 0, title: s.title.trim(), role: s.role ?? '', note: s.note.trim() }
     if (adding && many) {
       const list = combos.filter(({ e, d }) => !clash(e, d)).map(({ e, d }) => ({ ...clean, employeeId: e, date: d }))
-      if (!list.length) return setError('Everyone picked already has a shift at that time.')
+      if (!list.length) return setError(tr('Everyone picked already has a shift at that time.', 'Todas las personas elegidas ya tienen un turno a esa hora.'))
       setBusy(true)
       const problem = await data.actions.saveShifts(list)
       setBusy(false)
       if (problem) return setError(problem)
-      onDone?.(`Added ${list.length} draft shift${list.length === 1 ? '' : 's'}${clashing.length ? `; skipped ${clashing.length} that overlap an existing shift` : ''}. Press Publish when you're ready.`)
+      onDone?.(tr(`Added ${list.length} draft shift${list.length === 1 ? '' : 's'}${clashing.length ? `; skipped ${clashing.length} that overlap an existing shift` : ''}. Press Publish when you're ready.`, `Se agregaron ${list.length} turno${list.length === 1 ? '' : 's'} en borrador${clashing.length ? `; se saltaron ${clashing.length} que se cruzan con un turno existente` : ''}. Presiona Publicar cuando estés listo.`))
       return onClose()
     }
     setBusy(true)
@@ -265,7 +266,7 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
     else onClose()
   }
   const remove = async () => {
-    if (!window.confirm('Delete this shift? This can’t be undone.')) return
+    if (!window.confirm(tr('Delete this shift? This can’t be undone.', '¿Borrar este turno? No se puede deshacer.'))) return
     setBusy(true)
     const problem = await data.actions.deleteShift(s.id)
     setBusy(false)
@@ -275,13 +276,13 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
 
   return (
     <Modal
-      title={s.id ? 'Change shift' : shift.batch ? 'Batch schedule' : 'Add shift'}
+      title={s.id ? tr('Change shift', 'Cambiar turno') : shift.batch ? tr('Batch schedule', 'Programar en lote') : tr('Add shift', 'Agregar turno')}
       onClose={onClose}
       footer={
         <>
-          {s.id && <button type="button" className="btn btn-outline-danger me-auto" disabled={busy} onClick={remove}>Delete</button>}
-          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-brand" disabled={busy || (adding && (!who.length || !dts.length))} onClick={save}>{adding && many ? `Add ${fresh} ${fresh === 1 ? 'shift' : 'shifts'}` : 'Save'}</button>
+          {s.id && <button type="button" className="btn btn-outline-danger me-auto" disabled={busy} onClick={remove}>{tr("Delete", "Borrar")}</button>}
+          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>{tr("Cancel", "Cancelar")}</button>
+          <button type="button" className="btn btn-brand" disabled={busy || (adding && (!who.length || !dts.length))} onClick={save}>{adding && many ? tr(`Add ${fresh} ${fresh === 1 ? 'shift' : 'shifts'}`, `Agregar ${fresh} ${fresh === 1 ? 'turno' : 'turnos'}`) : tr('Save', 'Guardar')}</button>
         </>
       }
     >
@@ -289,13 +290,13 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
         {adding ? (
           <>
             <div className="col-12">
-              <span className="form-label d-block" id="sh-who-l">Who <small className="tm-muted">(pick one or more)</small> <button type="button" className="tm-link small ms-2" onClick={() => setWho(who.length === people.length ? [] : people.map((e) => e.id))}>{who.length === people.length ? 'Clear' : 'Everyone'}</button></span>
+              <span className="form-label d-block" id="sh-who-l">{tr("Who", "Quién")} <small className="tm-muted">{tr("(pick one or more)", "(elige uno o más)")}</small> <button type="button" className="tm-link small ms-2" onClick={() => setWho(who.length === people.length ? [] : people.map((e) => e.id))}>{who.length === people.length ? tr('Clear', 'Quitar todos') : tr('Everyone', 'Todos')}</button></span>
               <div className="rl-picks" role="group" aria-labelledby="sh-who-l">
                 {people.map((e) => <button key={e.id} type="button" className="rl-pick" aria-pressed={who.includes(e.id)} onClick={() => toggle(who, setWho, e.id)}>{e.name}</button>)}
               </div>
             </div>
             <div className="col-12">
-              <span className="form-label d-block" id="sh-day-l">Days <small className="tm-muted">(pick one or more)</small> <button type="button" className="tm-link small ms-2" onClick={() => setDts(dts.length === days.length ? [] : [...days])}>{dts.length === days.length ? 'Clear' : 'Whole week'}</button></span>
+              <span className="form-label d-block" id="sh-day-l">{tr("Days", "Días")} <small className="tm-muted">{tr("(pick one or more)", "(elige uno o más)")}</small> <button type="button" className="tm-link small ms-2" onClick={() => setDts(dts.length === days.length ? [] : [...days])}>{dts.length === days.length ? tr('Clear', 'Quitar todos') : tr('Whole week', 'Toda la semana')}</button></span>
               <div className="rl-picks" role="group" aria-labelledby="sh-day-l">
                 {days.map((d) => <button key={d} type="button" className="rl-pick" aria-pressed={dts.includes(d)} onClick={() => toggle(dts, setDts, d)}>{dayLabel(d)}</button>)}
               </div>
@@ -304,13 +305,13 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
         ) : (
           <>
         <div className="col-7">
-          <label className="form-label" htmlFor="sh-who">Who</label>
+          <label className="form-label" htmlFor="sh-who">{tr("Who", "Quién")}</label>
           <select id="sh-who" className="form-select" value={s.employeeId} onChange={set('employeeId')}>
             {data.employees.filter((e) => e.active || e.id === s.employeeId).map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
         </div>
         <div className="col-5">
-          <label className="form-label" htmlFor="sh-day">Day</label>
+          <label className="form-label" htmlFor="sh-day">{tr("Day", "Día")}</label>
           <select id="sh-day" className="form-select" value={s.date} onChange={set('date')}>
             {days.map((d) => <option key={d} value={d}>{dayLabel(d)}</option>)}
           </select>
@@ -327,27 +328,27 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
           </div>
         </div>
         <div className="col-6">
-          <label className="form-label" htmlFor="sh-start">Start</label>
+          <label className="form-label" htmlFor="sh-start">{tr("Start", "Inicio")}</label>
           <input id="sh-start" type="time" step="900" className="form-control" value={s.start === null ? '' : toTimeInput(s.start)} onChange={(e) => setS({ ...s, start: fromTimeInput(e.target.value) })} />
         </div>
         <div className="col-6">
-          <label className="form-label" htmlFor="sh-end">End</label>
+          <label className="form-label" htmlFor="sh-end">{tr("End", "Fin")}</label>
           <input id="sh-end" type="time" step="900" className="form-control" value={s.end === null ? '' : toTimeInput(s.end)} onChange={(e) => setS({ ...s, end: fromTimeInput(e.target.value) })} />
         </div>
         <div className="col-7">
-          <label className="form-label" htmlFor="sh-title">Label</label>
-          <input id="sh-title" className="form-control" list="sh-titles" value={s.title} placeholder="Open, Close, All Day…" onChange={set('title')} />
+          <label className="form-label" htmlFor="sh-title">{tr("Label", "Nombre")}</label>
+          <input id="sh-title" className="form-control" list="sh-titles" value={s.title} placeholder={tr('Open, Close, All Day…', 'Apertura, Cierre, Todo el día…')} onChange={set('title')} />
           <datalist id="sh-titles">{presets.map((p) => <option key={p.title} value={p.title} />)}</datalist>
         </div>
         <div className="col-5">
-          <label className="form-label" htmlFor="sh-break">Unpaid break (min)</label>
+          <label className="form-label" htmlFor="sh-break">{tr("Unpaid break (min)", "Descanso sin pago (min)")}</label>
           <input id="sh-break" type="number" min="0" step="15" className="form-control" value={s.breakMin} onChange={set('breakMin')} />
         </div>
         {rolesOn && (
         <div className="col-12">
-          <span className="form-label d-block" id="sh-role-l">Role</span>
+          <span className="form-label d-block" id="sh-role-l">{tr("Role", "Rol")}</span>
           <div className="rl-picks" role="group" aria-labelledby="sh-role-l">
-            <button type="button" className="rl-pick" aria-pressed={!s.role} onClick={() => setS({ ...s, role: '' })}>None</button>
+            <button type="button" className="rl-pick" aria-pressed={!s.role} onClick={() => setS({ ...s, role: '' })}>{tr("None", "Ninguno")}</button>
             {roles.map((r) => (
               <button key={r.name} type="button" className="rl-pick" aria-pressed={s.role === r.name} onClick={() => setS({ ...s, role: r.name })}>
                 <i className={`rl-dot t${r.color ?? 0}`} aria-hidden="true" />{r.name}
@@ -358,7 +359,7 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
         </div>
         )}
         <div className="col-12">
-          <label className="form-label" htmlFor="sh-note">Note</label>
+          <label className="form-label" htmlFor="sh-note">{tr("Note", "Nota")}</label>
           <input id="sh-note" className="form-control" value={s.note} maxLength={200} onChange={set('note')} />
         </div>
       </div>
@@ -366,8 +367,8 @@ function ShiftEditor({ shift, data, week, onClose, onDone }) {
       {many && offList.length > 0 && <p className="tm-warn mt-3">{offList.length} of these fall on approved time off: {[...new Set(offList.map(({ e }) => data.employees.find((x) => x.id === e)?.name))].join(', ')}.</p>}
       {many && clashing.length > 0 && <p className="tm-warn mt-3">{clashing.length} already overlap an existing shift and will be skipped.</p>}
       {!many && off && <p className="tm-warn mt-3">{person?.name} has approved time off that day.</p>}
-      {!many && overlap && <p className="tm-warn mt-3">This overlaps {person?.name}'s other shift ({shiftTimes(overlap)}).</p>}
-      {!s.published && <p className="tm-muted small mt-3 mb-0">Draft until you press Publish on the schedule.</p>}
+      {!many && overlap && <p className="tm-warn mt-3">{tr(`This overlaps ${person?.name}'s other shift (${shiftTimes(overlap)}).`, `Esto se cruza con el otro turno de ${person?.name} (${shiftTimes(overlap)}).`)}</p>}
+      {!s.published && <p className="tm-muted small mt-3 mb-0">{tr("Draft until you press Publish on the schedule.", "Borrador hasta que presiones Publicar en el horario.")}</p>}
       {error && <p className="tm-error mt-2" role="alert">{error}</p>}
     </Modal>
   )

@@ -4,6 +4,7 @@ import { dayLabel, money } from './format.js'
 import { formatHours } from './paycheck.js'
 import { describeSpot } from './location.js'
 import Paycheck from './Paycheck.jsx'
+import { tr } from './i18n.js'
 
 // The timesheet on a phone: a card per person instead of the 18-column table. The card shows
 // their total (regular and overtime under it); tap to open the days they worked, with times.
@@ -12,7 +13,7 @@ export default function TimesheetCards({ rows, data, pay, total }) {
   return (
     <div className="ts-cards">
       <div className="ts-sum">
-        <span>Everyone</span>
+        <span>{tr("Everyone", "Todos")}</span>
         <b>{formatHours(total((r) => r.hours.total))} hrs</b>
         <small>
           Regular {formatHours(total((r) => r.hours.regular))}
@@ -30,10 +31,10 @@ export default function TimesheetCards({ rows, data, pay, total }) {
                 <small>
                   Regular {formatHours(hours.regular)}
                   {hours.overtime > 0 && <> · <span className="tm-ot">Overtime {formatHours(hours.overtime)}</span></>}
-                  {pay && <> · {e.payType === 'hourly' ? `${money(rate)}/hr` : 'Commission'}{gross !== null && ` · ${money(gross)}`}</>}
+                  {pay && <> · {e.payType === 'hourly' ? `${money(rate)}/hr` : tr('Commission', 'Comisión')}{gross !== null && ` · ${money(gross)}`}</>}
                 </small>
               </span>
-              <span className="ts-total">{formatHours(hours.total)}<small>hrs</small></span>
+              <span className="ts-total">{formatHours(hours.total)}<small>{tr("hrs", "hrs")}</small></span>
               <svg className="ts-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
             </summary>
             <PersonHours row={{ e, hours, rate, gross }} data={data} pay={pay} />
@@ -52,7 +53,7 @@ export function PersonHours({ row, data, pay }) {
   return (
     <>
       {days.length === 0 ? (
-        <p className="ts-none">No punches this pay period.</p>
+        <p className="ts-none">{tr("No punches this pay period.", "Sin registros en este período.")}</p>
       ) : (
         <ul className="ts-days">
           {days.map((d) => (
@@ -63,7 +64,7 @@ export function PersonHours({ row, data, pay }) {
                   const away = [p.inSpot, p.clockOut && p.outSpot].some((x) => x && describeSpot(x, data.shop).far)
                   return (
                     <span key={p.id} className={away ? 'tm-away' : ''}>
-                      {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : 'still in'}{away && <small className="ts-away"> away</small>}
+                      {formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : 'still in'}{away && <small className="ts-away"> {tr("away", "lejos")}</small>}
                     </span>
                   )
                 })}

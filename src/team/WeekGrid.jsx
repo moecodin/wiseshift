@@ -8,6 +8,7 @@ import ShiftBox from './ShiftBox.jsx'
 import { useFeatures } from './features.js'
 import WeekCards from './WeekCards.jsx'
 import { startShiftDrag, wasJustDragged } from './shiftDrag.js'
+import { tr } from './i18n.js'
 
 // The week: people down the side, days across. Managers (editable) tap a box to change
 // a shift and + to add one. Staff get a read-only copy. Tapping a day's heading calls onPickDay.
@@ -17,7 +18,7 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
   const groups = data.settings?.groups ?? []
   const known = new Set(groups.map((g) => g.name))
   const ordered = groups.length
-    ? [...groups.map((g) => ({ name: g.name, color: g.color ?? 7, members: people.filter((p) => p.group === g.name) })), { name: 'No group', color: 7, members: people.filter((p) => !known.has(p.group)) }]
+    ? [...groups.map((g) => ({ name: g.name, color: g.color ?? 7, members: people.filter((p) => p.group === g.name) })), { name: tr('No group', 'Sin grupo'), color: 7, members: people.filter((p) => !known.has(p.group)) }]
         .filter((sec) => sec.members.length > 0)
         .flatMap((sec) => [{ head: true, name: sec.name, color: sec.color, count: sec.members.length }, ...sec.members.map((person) => ({ person }))])
     : people.map((person) => ({ person }))
@@ -59,7 +60,7 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
             if (item.head) {
               return (
                 <tr key={`g-${item.name}`} className="gr-group">
-                  <th scope="colgroup" colSpan={8}><i className={`rl-dot t${item.color}`} aria-hidden="true" /><b>{item.name}</b><small>{item.count} {item.count === 1 ? 'person' : 'people'}</small></th>
+                  <th scope="colgroup" colSpan={8}><i className={`rl-dot t${item.color}`} aria-hidden="true" /><b>{item.name}</b><small>{item.count} {item.count === 1 ? tr('person', 'persona') : tr('people', 'personas')}</small></th>
                 </tr>
               )
             }
@@ -85,12 +86,12 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
                   const off = offOn(data.teamOff, person.id, d)
                   return (
                     <td key={d} className={d === today ? 'today' : ''} data-drop-person={editable && onDrop ? person.id : undefined} data-drop-date={editable && onDrop ? d : undefined}>
-                      {off && <div className="tm-off">{editable ? 'Time off' : 'Off'}</div>}
+                      {off && <div className="tm-off">{editable ? tr('Time off', 'Ausencia') : tr('Off', 'Libre')}</div>}
                       {dayShifts.map((s) => (
                         <ShiftBox key={s.id} cover={f.cover ? activeCover(data.cover, s.id) : undefined} flash={flash.has(s.id)} shift={s} roles={data.settings?.roles} presets={data.settings?.shiftPresets} onClick={editable ? () => !wasJustDragged() && onEdit(s) : undefined} onPointerDown={editable && onDrop ? (e) => startShiftDrag(e, { resolve: resolveDrag(s), onDrop: (target) => onDrop(s, target) }) : undefined} />
                       ))}
                       {editable && (
-                        <button type="button" className="tm-add" aria-label={`Add a shift for ${person.name} on ${dayLabel(d)}`} onClick={() => onEdit({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>
+                        <button type="button" className="tm-add" aria-label={tr(`Add a shift for ${person.name} on ${dayLabel(d)}`, `Agregar un turno para ${person.name} el ${dayLabel(d)}`)} onClick={() => onEdit({ employeeId: person.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>
                           +
                         </button>
                       )}
@@ -103,7 +104,7 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
         </tbody>
         <tfoot>
           <tr>
-            <th scope="row">Hours</th>
+            <th scope="row">{tr("Hours", "Horas")}</th>
             {week.map((d) => (
               <td key={d}>{formatHours(shifts.filter((s) => s.date === d).reduce((sum, s) => sum + shiftMinutes(s), 0))}</td>
             ))}

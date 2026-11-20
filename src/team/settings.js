@@ -9,6 +9,17 @@ Your location is not tracked at any other time. You can see your own clock-in an
 
 By tapping "I've read this", you acknowledge that you received this notice.`
 
+// The same default notice in Spanish. Shown to people using Spanish while the business still has the default (unchanged) notice.
+export const DEFAULT_NOTICE_ES = `Aviso de monitoreo electrónico (Ley de Derechos Civiles de Nueva York § 52-c)
+
+Tu empleador registra la ubicación de tu teléfono en el momento en que marcas entrada y en el momento en que marcas salida en la app WiseShift. Se usa para confirmar dónde empezó y terminó el trabajo (por ejemplo, en el negocio o en un lugar de trabajo) y se guarda con tus registros de horas.
+
+Tu ubicación no se rastrea en ningún otro momento. Puedes ver tus propios lugares de entrada y salida en la app, y los gerentes pueden verlos de todos.
+
+Al tocar "Ya lo leí", confirmas que recibiste este aviso.`
+// The notice as this person should read it.
+export const noticeFor = (settings, lang) => (lang === 'es' && settings.noticeText === DEFAULT_NOTICE ? DEFAULT_NOTICE_ES : settings.noticeText)
+
 import { DEFAULT_PAY_PERIOD } from './paycheck.js'
 import { DEFAULT_FEATURES } from './features.js'
 

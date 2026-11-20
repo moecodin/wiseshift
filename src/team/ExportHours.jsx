@@ -7,6 +7,7 @@ import { DEFAULT_FILTERS, daysBetween, downloadCsv, deptLabel, departments, grou
 import { dayLabel, money, scheduleOnly } from './format.js'
 import { describeSpot } from './location.js'
 import { useFeatures } from './features.js'
+import { tr } from './i18n.js'
 
 // Export hours (managers, on a computer): pick a timeline, who to include and a format, see
 // the numbers, then download a CSV. Summary is one line per person; detailed is one line per
@@ -14,11 +15,11 @@ import { useFeatures } from './features.js'
 // when Location on punches is on.
 
 const TIMELINES = [
-  { id: 'period', label: 'This pay period' },
-  { id: 'lastPeriod', label: 'Last pay period' },
-  { id: 'week', label: 'This week' },
-  { id: 'lastWeek', label: 'Last week' },
-  { id: 'custom', label: 'Custom dates' },
+  { id: 'period', get label() { return tr('This pay period', 'Este período de pago') } },
+  { id: 'lastPeriod', get label() { return tr('Last pay period', 'Período anterior') } },
+  { id: 'week', get label() { return tr('This week', 'Esta semana') } },
+  { id: 'lastWeek', get label() { return tr('Last week', 'Semana pasada') } },
+  { id: 'custom', get label() { return tr('Custom dates', 'Otras fechas') } },
 ]
 function timelineDays(id, now, start, end) {
   const period = payPeriodOf(now)
@@ -85,7 +86,7 @@ export default function ExportHours({ data, now, onClose, preset }) {
   // Both downloads first check that there is something to export and that unapproved punches are OK.
   const ready = () => {
     if (!days.length || !rows.length) return false
-    return !unapproved || window.confirm(`${unapproved} punch${unapproved === 1 ? '' : 'es'} in this range ${unapproved === 1 ? "isn't" : "aren't"} approved yet (Hours → Review). Download anyway?`)
+    return !unapproved || window.confirm(tr(`${unapproved} punch${unapproved === 1 ? '' : 'es'} in this range ${unapproved === 1 ? "isn't" : "aren't"} approved yet (Hours → Review). Download anyway?`, `${unapproved} registro${unapproved === 1 ? '' : 's'} de estas fechas sin aprobar (Horas → Revisar). ¿Descargar de todos modos?`))
   }
 
   const exportPdf = async () => {
@@ -145,7 +146,7 @@ export default function ExportHours({ data, now, onClose, preset }) {
   const exportFile = () => {
     if (!ready()) return
     if (format === 'payroll') {
-      if (missing.length && !window.confirm(`${missing.length} ${missing.length === 1 ? 'person has' : 'people have'} no ID for payroll: ${missing.join(', ')}. Download anyway?`)) return
+      if (missing.length && !window.confirm(tr(`${missing.length} ${missing.length === 1 ? 'person has' : 'people have'} no ID for payroll: ${missing.join(', ')}. Download anyway?`, `${missing.length} ${missing.length === 1 ? 'persona no tiene' : 'personas no tienen'} ID de nómina: ${missing.join(', ')}. ¿Descargar de todos modos?`))) return
       return downloadCsv(`payroll-${start}-to-${end}.csv`, payrollCsv(rows, days, data, layout))
     }
     const name = `wiseshift-hours-${format}-${start}-to-${end}.csv`
@@ -175,99 +176,99 @@ export default function ExportHours({ data, now, onClose, preset }) {
 
   return (
     <Modal
-      title="Export hours"
+      title={tr('Export hours', 'Exportar horas')}
       size="xl"
       onClose={onClose}
       footer={
         <>
-          <span className="ex-count me-auto">{rows.length} {rows.length === 1 ? 'person' : 'people'} · {formatHours(sum(rows, (r) => r.hours.total))} hrs</span>
-          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Close</button>
-          <button type="button" className="btn btn-outline-secondary" disabled={!days.length || !rows.length || making || format === 'payroll'} onClick={exportPdf}>{making ? 'Making PDF…' : 'Download PDF'}</button>
-          <button type="button" className="btn btn-brand" disabled={!days.length || !rows.length} onClick={exportFile}>Download CSV</button>
+          <span className="ex-count me-auto">{rows.length} {rows.length === 1 ? tr('person', 'persona') : tr('people', 'personas')} · {formatHours(sum(rows, (r) => r.hours.total))} hrs</span>
+          <button type="button" className="btn btn-outline-secondary" onClick={onClose}>{tr("Close", "Cerrar")}</button>
+          <button type="button" className="btn btn-outline-secondary" disabled={!days.length || !rows.length || making || format === 'payroll'} onClick={exportPdf}>{making ? tr('Making PDF…', 'Creando PDF…') : tr('Download PDF', 'Descargar PDF')}</button>
+          <button type="button" className="btn btn-brand" disabled={!days.length || !rows.length} onClick={exportFile}>{tr("Download CSV", "Descargar CSV")}</button>
         </>
       }
     >
       <div className="ex-filters">
         <div>
-          <label className="form-label" htmlFor="ex-timeline">Timeline</label>
+          <label className="form-label" htmlFor="ex-timeline">{tr("Timeline", "Fechas")}</label>
           <select id="ex-timeline" className="form-select" value={timeline} onChange={(e) => setTimeline(e.target.value)}>
             {TIMELINES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
         </div>
         <div>
-          <label className="form-label" htmlFor="ex-start">Start date</label>
+          <label className="form-label" htmlFor="ex-start">{tr("Start date", "Fecha de inicio")}</label>
           <input id="ex-start" type="date" className="form-control" value={timeline === 'custom' ? customStart : start} disabled={timeline !== 'custom'} onChange={(e) => setCustomStart(e.target.value)} />
         </div>
         <div>
-          <label className="form-label" htmlFor="ex-end">End date</label>
+          <label className="form-label" htmlFor="ex-end">{tr("End date", "Fecha final")}</label>
           <input id="ex-end" type="date" className="form-control" value={timeline === 'custom' ? customEnd : end} disabled={timeline !== 'custom'} onChange={(e) => setCustomEnd(e.target.value)} />
         </div>
         <div>
-          <label className="form-label" htmlFor="ex-position">Department</label>
+          <label className="form-label" htmlFor="ex-position">{tr("Department", "Departamento")}</label>
           <select id="ex-position" className="form-select" value={dept} onChange={(e) => setDept(e.target.value)}>
-            <option value="all">Everyone</option>
-            {groupNames.length > 0 && <optgroup label="Staff groups">{groupNames.map((g) => <option key={g} value={`g:${g}`}>{g}</option>)}</optgroup>}
-            {positions.length > 0 && <optgroup label="Positions">{positions.map((p) => <option key={p} value={`p:${p}`}>{p}</option>)}</optgroup>}
+            <option value="all">{tr("Everyone", "Todos")}</option>
+            {groupNames.length > 0 && <optgroup label={tr('Staff groups', 'Grupos')}>{groupNames.map((g) => <option key={g} value={`g:${g}`}>{g}</option>)}</optgroup>}
+            {positions.length > 0 && <optgroup label={tr('Positions', 'Puestos')}>{positions.map((p) => <option key={p} value={`p:${p}`}>{p}</option>)}</optgroup>}
           </select>
         </div>
       </div>
-      {timeline === 'custom' && days.length === 0 && <p className="tm-warn">The end date has to be on or after the start date.</p>}
-      {timeline === 'custom' && days.length > 0 && <p className="tm-muted small">Overtime counts after 40 hours in each 7 days, starting from the start date. Ranges over {MAX_DAYS} days are cut short.</p>}
+      {timeline === 'custom' && days.length === 0 && <p className="tm-warn">{tr("The end date has to be on or after the start date.", "La fecha final debe ser igual o posterior a la de inicio.")}</p>}
+      {timeline === 'custom' && days.length > 0 && <p className="tm-muted small">{tr(`Overtime counts after 40 hours in each 7 days, starting from the start date. Ranges over ${MAX_DAYS} days are cut short.`, `Las horas extra cuentan después de 40 horas en cada 7 días, desde la fecha de inicio. Los rangos de más de ${MAX_DAYS} días se recortan.`)}</p>}
 
       <div className="ex-options">
         <fieldset className="ex-people">
-          <legend>Employees</legend>
+          <legend>{tr("Employees", "Empleados")}</legend>
           <div>
-            <button type="button" className="tm-link small" onClick={() => setExcluded(new Set())}>All</button>
-            <button type="button" className="tm-link small" onClick={() => setExcluded(new Set(people.map((e) => e.id)))}>None</button>
+            <button type="button" className="tm-link small" onClick={() => setExcluded(new Set())}>{tr("All", "Todos")}</button>
+            <button type="button" className="tm-link small" onClick={() => setExcluded(new Set(people.map((e) => e.id)))}>{tr("None", "Ninguno")}</button>
           </div>
           {people.filter((e) => inDept(e, dept)).map((e) => (
             <label key={e.id} className="ex-check">
               <input type="checkbox" className="form-check-input" checked={!excluded.has(e.id)} onChange={() => toggle(e.id)} />
-              <span>{e.name}{e.active ? '' : ' (not active)'}</span>
+              <span>{e.name}{e.active ? '' : tr(' (not active)', ' (inactivo)')}</span>
             </label>
           ))}
         </fieldset>
         <div className="ex-side">
           <fieldset>
-            <legend>Format</legend>
-            <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'summary'} onChange={() => setFormat('summary')} /><span><b>Summary</b> · one line per person</span></label>
-            <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'detailed'} onChange={() => setFormat('detailed')} /><span><b>Detailed</b> · one line per punch</span></label>
-            {data.settings.payrollReady && <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'payroll'} onChange={() => setFormat('payroll')} /><span><b>Payroll CSV</b> · your saved layout (Settings → Business)</span></label>}
+            <legend>{tr("Format", "Formato")}</legend>
+            <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'summary'} onChange={() => setFormat('summary')} /><span><b>{tr("Summary", "Resumen")}</b> {tr("· one line per person", "· una línea por persona")}</span></label>
+            <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'detailed'} onChange={() => setFormat('detailed')} /><span><b>{tr("Detailed", "Detallado")}</b> {tr("· one line per punch", "· una línea por registro")}</span></label>
+            {data.settings.payrollReady && <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'payroll'} onChange={() => setFormat('payroll')} /><span><b>{tr("Payroll CSV", "CSV de nómina")}</b> {tr("· your saved layout (Settings → Business)", "· tu formato guardado (Ajustes → Negocio)")}</span></label>}
           </fieldset>
           <label className="ex-group">
-            <span>Group by</span>
+            <span>{tr("Group by", "Agrupar por")}</span>
             <select className="form-select form-select-sm" value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
-              <option value="none">Nothing</option>
-              {groupNames.length > 0 && <option value="group">Staff group</option>}
-              <option value="position">Position</option>
+              <option value="none">{tr("Nothing", "Nada")}</option>
+              {groupNames.length > 0 && <option value="group">{tr("Staff group", "Grupo")}</option>}
+              <option value="position">{tr("Position", "Puesto")}</option>
             </select>
           </label>
-          <label className="ex-check"><input type="checkbox" className="form-check-input" checked={approvedOnly} onChange={(e) => setApprovedOnly(e.target.checked)} /><span>Approved punches only</span></label>
-          <label className="ex-check"><input type="checkbox" className="form-check-input" checked={staffNo} onChange={(e) => setStaffNo(e.target.checked)} /><span>Include staff no.</span></label>
-          {f.payRates && <label className="ex-check"><input type="checkbox" className="form-check-input" checked={withPay} onChange={(e) => setWithPay(e.target.checked)} /><span>Include pay rates and gross estimate</span></label>}
+          <label className="ex-check"><input type="checkbox" className="form-check-input" checked={approvedOnly} onChange={(e) => setApprovedOnly(e.target.checked)} /><span>{tr("Approved punches only", "Solo registros aprobados")}</span></label>
+          <label className="ex-check"><input type="checkbox" className="form-check-input" checked={staffNo} onChange={(e) => setStaffNo(e.target.checked)} /><span>{tr("Include staff no.", "Incluir n.º de empleado")}</span></label>
+          {f.payRates && <label className="ex-check"><input type="checkbox" className="form-check-input" checked={withPay} onChange={(e) => setWithPay(e.target.checked)} /><span>{tr("Include pay rates and gross estimate", "Incluir tarifas y pago bruto estimado")}</span></label>}
         </div>
       </div>
 
-      {stillIn.length > 0 && <p className="tm-warn">Still clocked in: {stillIn.map((r) => r.e.name).join(', ')}. Fix any forgotten clock-outs first.</p>}
-      {missing.length > 0 && <p className="tm-warn">{missing.length} {missing.length === 1 ? 'person has' : 'people have'} no ID for payroll: {missing.slice(0, 6).join(', ')}{missing.length > 6 ? '…' : ''}. Add it on Team → their page → Edit.</p>}
-      {unapproved > 0 && <p className="tm-warn">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.</p>}
+      {stillIn.length > 0 && <p className="tm-warn">{tr(`Still clocked in: ${stillIn.map((r) => r.e.name).join(', ')}. Fix any forgotten clock-outs first.`, `Siguen con entrada marcada: ${stillIn.map((r) => r.e.name).join(', ')}. Arregla primero las salidas olvidadas.`)}</p>}
+      {missing.length > 0 && <p className="tm-warn">{tr(`${missing.length} ${missing.length === 1 ? 'person has' : 'people have'} no ID for payroll: ${missing.slice(0, 6).join(', ')}${missing.length > 6 ? '…' : ''}. Add it on Team → their page → Edit.`, `${missing.length} ${missing.length === 1 ? 'persona no tiene' : 'personas no tienen'} ID de nómina: ${missing.slice(0, 6).join(', ')}${missing.length > 6 ? '…' : ''}. Agrégalo en Equipo → su página → Editar.`)}</p>}
+      {unapproved > 0 && <p className="tm-warn">{tr(`${unapproved} punch${unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.`, `${unapproved} registro${unapproved === 1 ? '' : 's'} sin aprobar. Apruébalos en Horas → Revisar antes de la nómina.`)}</p>}
 
       <div className="tm-gridwrap ex-preview">
         <table className="tm-sheet">
           <thead>
             <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Position</th>
-              <th scope="col">Regular</th>
-              <th scope="col">Overtime</th>
-              <th scope="col">Total</th>
-              {showPay && <th scope="col">Rate</th>}
-              {showPay && <th scope="col">Gross (est.)</th>}
+              <th scope="col">{tr("Name", "Nombre")}</th>
+              <th scope="col">{tr("Position", "Puesto")}</th>
+              <th scope="col">{tr("Regular", "Normales")}</th>
+              <th scope="col">{tr("Overtime", "Horas extra")}</th>
+              <th scope="col">{tr("Total", "Total")}</th>
+              {showPay && <th scope="col">{tr("Rate", "Tarifa")}</th>}
+              {showPay && <th scope="col">{tr("Gross (est.)", "Bruto (est.)")}</th>}
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={showPay ? 7 : 5} className="tm-muted">No one matches these filters.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={showPay ? 7 : 5} className="tm-muted">{tr("No one matches these filters.", "Nadie coincide con estos filtros.")}</td></tr>}
             {groups.map((g) => (
               <PreviewGroup key={g.name || 'all'} group={g} grouped={group} showPay={showPay} sum={sum} />
             ))}
@@ -275,7 +276,7 @@ export default function ExportHours({ data, now, onClose, preset }) {
           {rows.length > 0 && (
             <tfoot>
               <tr>
-                <th scope="row">Total</th>
+                <th scope="row">{tr("Total", "Total")}</th>
                 <td />
                 <td>{formatHours(sum(rows, (r) => r.hours.regular))}</td>
                 <td>{formatHours(sum(rows, (r) => r.hours.overtime))}</td>
@@ -288,7 +289,7 @@ export default function ExportHours({ data, now, onClose, preset }) {
         </table>
       </div>
       <p className="tm-muted small mt-2">
-        {days.length > 0 ? `${dayLabel(start)} to ${dayLabel(end)}. ` : ''}Hours are exact, to the minute. Overtime is time and a half after 40 hours in each seven-day stretch.
+        {days.length > 0 ? `${dayLabel(start)} ${tr('to', 'a')} ${dayLabel(end)}. ` : ''}{tr('Hours are exact, to the minute. Overtime is time and a half after 40 hours in each seven-day stretch.', 'Las horas son exactas, al minuto. Las horas extra se pagan a tiempo y medio después de 40 horas en cada tramo de siete días.')}
       </p>
     </Modal>
   )
@@ -304,7 +305,7 @@ function PreviewGroup({ group, grouped, showPay, sum }) {
           <td>{formatHours(r.hours.regular)}</td>
           <td className={r.hours.overtime ? 'tm-ot' : ''}>{formatHours(r.hours.overtime)}</td>
           <td><b>{formatHours(r.hours.total)}</b></td>
-          {showPay && <td>{r.e.payType === 'hourly' ? money(r.rate) : 'Commission'}</td>}
+          {showPay && <td>{r.e.payType === 'hourly' ? money(r.rate) : tr('Commission', 'Comisión')}</td>}
           {showPay && <td>{r.gross === null ? '—' : money(r.gross)}</td>}
         </tr>
       ))}

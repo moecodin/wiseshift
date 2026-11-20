@@ -1,5 +1,6 @@
 import { decimalHours } from './paycheck.js'
 import { scheduleOnly } from './format.js'
+import { tr } from './i18n.js'
 
 // The payroll CSV: one row per person for the dates picked, in the layout the business saved once
 // (Settings → Business → Payroll export). Most payroll services (Gusto, QuickBooks, ADP, Paychex…) import this shape:
@@ -22,10 +23,10 @@ export const PAYROLL_COLUMNS = [
 const ON_BY_DEFAULT = ['employeeId', 'fullName', 'regular', 'overtime', 'periodStart', 'periodEnd']
 
 export const ID_SOURCES = [
-  { id: 'payrollId', label: 'Payroll ID' },
-  { id: 'staffNo', label: 'Staff no.' },
-  { id: 'email', label: 'Email' },
-  { id: 'name', label: 'Full name' },
+  { id: 'payrollId', get label() { return tr('Payroll ID', 'ID de nómina') } },
+  { id: 'staffNo', get label() { return tr('Staff no.', 'N.º de empleado') } },
+  { id: 'email', get label() { return tr('Email', 'Correo') } },
+  { id: 'name', get label() { return tr('Full name', 'Nombre completo') } },
 ]
 
 // The saved layout filled in: every known column once, saved ones first in their saved order.

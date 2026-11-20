@@ -7,6 +7,7 @@ import RoleBadge from './RoleBadge.jsx'
 import SeenTick from './SeenTick.jsx'
 import { useFeatures } from './features.js'
 import { tagClass } from './tags.js'
+import { tr, uiLocale } from './i18n.js'
 
 // The week on a phone: one card per day, newest day first being the top of the week. Each card
 // lists who works that day (name, times, type · hours, role). Managers tap a row to change a
@@ -33,7 +34,7 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
         const Head = onPickDay ? 'button' : 'div'
         // With staff groups set up (Settings → Business → Groups) the day's shifts are listed under each group.
         const sections = groups.length
-          ? [...groups.map((g) => ({ name: g.name, color: g.color ?? 7, rows: day.filter((s) => groupOf(s.employeeId) === g.name) })), { name: 'No group', color: 7, rows: day.filter((s) => groupOf(s.employeeId) === '') }].filter((sec) => sec.rows.length > 0)
+          ? [...groups.map((g) => ({ name: g.name, color: g.color ?? 7, rows: day.filter((s) => groupOf(s.employeeId) === g.name) })), { name: tr('No group', 'Sin grupo'), color: 7, rows: day.filter((s) => groupOf(s.employeeId) === '') }].filter((sec) => sec.rows.length > 0)
           : null
             const renderRow = (s) => {
               const p = person(s.employeeId)
@@ -62,16 +63,16 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
         return (
           <section key={d} className={`wk-day ${d === today ? 'today' : ''} ${d < today ? 'past' : ''} ${sections ? 'grouped' : ''}`}>
             <div className="wk-head">
-              <Head type={onPickDay ? 'button' : undefined} className="wk-date" onClick={onPickDay ? () => onPickDay(d) : undefined} aria-label={date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}>
+              <Head type={onPickDay ? 'button' : undefined} className="wk-date" onClick={onPickDay ? () => onPickDay(d) : undefined} aria-label={date.toLocaleDateString(uiLocale(), { weekday: 'long', month: 'short', day: 'numeric' })}>
                 <small>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</small>
                 <b>{date.getDate()}</b>
               </Head>
               <div className="wk-sum">
-                <b>{d === today ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'long' })}</b>
-                <small>{working ? `${working} working · ${formatHours(minutes)} hrs` : 'Nobody scheduled'}</small>
+                <b>{d === today ? tr('Today', 'Hoy') : date.toLocaleDateString(uiLocale(), { weekday: 'long' })}</b>
+                <small>{working ? tr(`${working} working · ${formatHours(minutes)} hrs`, `${working} trabajan · ${formatHours(minutes)} hrs`) : tr('Nobody scheduled', 'Nadie programado')}</small>
               </div>
               {editable && (
-                <button type="button" className="wk-add" aria-label={`Add a shift on ${date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`} onClick={() => onEdit({ employeeId: me.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>+</button>
+                <button type="button" className="wk-add" aria-label={tr('Add a shift on ', 'Agregar un turno el ') + date.toLocaleDateString(uiLocale(), { weekday: 'long', month: 'short', day: 'numeric' })} onClick={() => onEdit({ employeeId: me.id, date: d, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })}>+</button>
               )}
             </div>
             {sections ? sections.map((sec) => (
@@ -79,7 +80,7 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
                 <div className="wk-group">
                   <i className={`rl-dot t${sec.color}`} aria-hidden="true" />
                   <b>{sec.name}</b>
-                  <small>{sec.rows.length} {sec.rows.length === 1 ? 'shift' : 'shifts'} · {formatHours(sec.rows.reduce((sum, s) => sum + shiftMinutes(s), 0))} hrs</small>
+                  <small>{sec.rows.length} {sec.rows.length === 1 ? tr('shift', 'turno') : tr('shifts', 'turnos')} · {formatHours(sec.rows.reduce((sum, s) => sum + shiftMinutes(s), 0))} hrs</small>
                 </div>
                 {sec.rows.map(renderRow)}
               </div>

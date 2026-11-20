@@ -8,6 +8,7 @@ import { useFeatures } from './features.js'
 import Avatar from './Avatar.jsx'
 import Icon from './Icon.jsx'
 import { PayHistory, PersonNotes } from './PersonExtras.jsx'
+import { tr } from './i18n.js'
 
 // One person, for managers: who they are, this pay period in numbers, this week's shifts, recent punches, contact details
 // and time off. Edit opens the edit form (where a person can also be made inactive).
@@ -38,76 +39,76 @@ export default function PersonPage({ person, data, onBack, onEdit, onPunches, on
 
   return (
     <div className="tm-narrow desk pf">
-      <button type="button" className="tm-back" onClick={onBack}><Icon name="left" /> Team</button>
+      <button type="button" className="tm-back" onClick={onBack}><Icon name="left" /> {tr("Team", "Equipo")}</button>
       <header className="pf-head">
         <Avatar employee={person} size={64} />
         <div className="pf-who">
           <h2>
             {person.name}
-            {person.isManager && <span className="pt-chip">Manager</span>}
-            {!person.active && <span className="pt-chip off">Not active</span>}
+            {person.isManager && <span className="pt-chip">{tr("Manager", "Gerente")}</span>}
+            {!person.active && <span className="pt-chip off">{tr("Not active", "Inactivo")}</span>}
           </h2>
-          <p>{[person.position || 'No position', person.group, person.startedOn && `Started ${dayLabel(person.startedOn)}`, person.staffNo && `Staff no. ${person.staffNo}`, pay?.payrollId && `Payroll ID ${pay.payrollId}`].filter(Boolean).join(' · ')}</p>
+          <p>{[person.position || tr('No position', 'Sin puesto'), person.group, person.startedOn && `${tr('Started', 'Desde')} ${dayLabel(person.startedOn)}`, person.staffNo && `${tr('Staff no.', 'N.º')} ${person.staffNo}`, pay?.payrollId && `${tr('Payroll ID', 'ID de nómina')} ${pay.payrollId}`].filter(Boolean).join(' · ')}</p>
         </div>
-        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onEdit}>Edit</button>
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onEdit}>{tr("Edit", "Editar")}</button>
       </header>
 
       {f.timeClock && !none && (
-        <section className="pf-strip" aria-label="This pay period">
-          <div><small>Hours this pay period</small><b>{formatHours(hours.total)}</b><span>{rangeLabel(period)}</span></div>
-          <div><small>Overtime</small><b>{formatHours(hours.overtime)}</b><span>after 40 hours a week</span></div>
-          <div><small>To approve</small><b>{toApprove}</b><span>{toApprove === 1 ? 'punch' : 'punches'} waiting</span></div>
-          <div><small>Late clock-ins</small><b>{late}</b><span>this pay period</span></div>
-          {estimate !== null && <div><small>Paycheck estimate</small><b>{money(estimate)}</b><span>before tax</span></div>}
+        <section className="pf-strip" aria-label={tr('This pay period', 'Este período')}>
+          <div><small>{tr("Hours this pay period", "Horas este período")}</small><b>{formatHours(hours.total)}</b><span>{rangeLabel(period)}</span></div>
+          <div><small>{tr("Overtime", "Horas extra")}</small><b>{formatHours(hours.overtime)}</b><span>{tr("after 40 hours a week", "después de 40 horas por semana")}</span></div>
+          <div><small>{tr("To approve", "Por aprobar")}</small><b>{toApprove}</b><span>{toApprove === 1 ? tr('punch waiting', 'registro en espera') : tr('punches waiting', 'registros en espera')}</span></div>
+          <div><small>{tr("Late clock-ins", "Entradas tarde")}</small><b>{late}</b><span>{tr("this pay period", "este período de pago")}</span></div>
+          {estimate !== null && <div><small>{tr("Paycheck estimate", "Pago estimado")}</small><b>{money(estimate)}</b><span>{tr("before tax", "antes de impuestos")}</span></div>}
         </section>
       )}
 
       <section className="pf-sec">
-        <h3 className="tm-h3">This week</h3>
+        <h3 className="tm-h3">{tr("This week", "Esta semana")}</h3>
         {shifts.length ? (
           <ul className="pf-list">
             {shifts.map((s) => <li key={s.id}><span>{dayLabel(s.date)}</span><b>{shiftTimes(s)}</b><small>{[s.title, f.roles && s.role].filter(Boolean).join(' · ')}</small></li>)}
           </ul>
-        ) : <p className="tm-muted">No shifts this week.</p>}
-        <button type="button" className="tm-link small" onClick={onSchedule}>Open the schedule</button>
+        ) : <p className="tm-muted">{tr("No shifts this week.", "Sin turnos esta semana.")}</p>}
+        <button type="button" className="tm-link small" onClick={onSchedule}>{tr("Open the schedule", "Abrir el horario")}</button>
       </section>
 
       {f.timeClock && !none && (
         <section className="pf-sec">
-          <h3 className="tm-h3">Recent punches</h3>
+          <h3 className="tm-h3">{tr("Recent punches", "Registros recientes")}</h3>
           {recent.length ? (
             <ul className="pf-list">
               {recent.map((p) => (
                 <li key={p.id}>
                   <span>{dayLabel(dateKey(new Date(p.clockIn)))}</span>
-                  <b>{formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : 'still in'}</b>
+                  <b>{formatClock(p.clockIn)} – {p.clockOut ? formatClock(p.clockOut) : tr('still in', 'sigue dentro')}</b>
                   <small>{formatHours(punchMinutes(p, now))} hrs · {STATUS_LABEL[punchStatus(p)]}</small>
                 </li>
               ))}
             </ul>
-          ) : <p className="tm-muted">No punches in the loaded period.</p>}
-          <button type="button" className="tm-link small" onClick={onPunches}>All their punches in Hours</button>
+          ) : <p className="tm-muted">{tr("No punches in the loaded period.", "Sin registros en el período cargado.")}</p>}
+          <button type="button" className="tm-link small" onClick={onPunches}>{tr("All their punches in Hours", "Todos sus registros en Horas")}</button>
         </section>
       )}
 
       <section className="pf-sec">
-        <h3 className="tm-h3">Contact</h3>
+        <h3 className="tm-h3">{tr("Contact", "Contacto")}</h3>
         <dl className="pf-dl">
-          <dt>Sign-in email</dt><dd>{none ? 'No login (schedule only)' : person.email || '—'}</dd>
-          <dt>Phone</dt><dd>{priv?.phone ? <a href={`tel:${priv.phone}`}>{priv.phone}</a> : '—'}</dd>
-          <dt>Emergency contact</dt><dd>{priv?.emergencyName || priv?.emergencyPhone ? <>{priv.emergencyName}{priv.emergencyPhone && <> · <a href={`tel:${priv.emergencyPhone}`}>{priv.emergencyPhone}</a></>}</> : '—'}</dd>
-          {f.kioskClock && !none && <><dt>Kiosk PIN</dt><dd>{pinSet === null ? '…' : pinSet ? 'Set' : 'Not set'}</dd></>}
+          <dt>{tr("Sign-in email", "Correo para entrar")}</dt><dd>{none ? tr('No login (schedule only)', 'Sin acceso (solo horario)') : person.email || '—'}</dd>
+          <dt>{tr("Phone", "Teléfono")}</dt><dd>{priv?.phone ? <a href={`tel:${priv.phone}`}>{priv.phone}</a> : '—'}</dd>
+          <dt>{tr("Emergency contact", "Contacto de emergencia")}</dt><dd>{priv?.emergencyName || priv?.emergencyPhone ? <>{priv.emergencyName}{priv.emergencyPhone && <> · <a href={`tel:${priv.emergencyPhone}`}>{priv.emergencyPhone}</a></>}</> : '—'}</dd>
+          {f.kioskClock && !none && <><dt>{tr("Kiosk PIN", "PIN del quiosco")}</dt><dd>{pinSet === null ? '…' : pinSet ? tr('Set', 'Configurado') : tr('Not set', 'Sin configurar')}</dd></>}
         </dl>
       </section>
 
       {f.timeOff && (
         <section className="pf-sec">
-          <h3 className="tm-h3">Time off</h3>
+          <h3 className="tm-h3">{tr("Time off", "Ausencias")}</h3>
           {off.length ? (
             <ul className="pf-list">
-              {off.map((t) => <li key={t.id}><span>{datesLabel(t.start, t.end)}</span><b>{t.status === 'approved' ? 'Approved' : t.status === 'declined' ? 'Declined' : 'Pending'}</b><small>{t.reason}</small></li>)}
+              {off.map((t) => <li key={t.id}><span>{datesLabel(t.start, t.end)}</span><b>{t.status === 'approved' ? tr('Approved', 'Aprobada') : t.status === 'declined' ? tr('Declined', 'Rechazada') : tr('Pending', 'Pendiente')}</b><small>{t.reason}</small></li>)}
             </ul>
-          ) : <p className="tm-muted">No time-off requests.</p>}
+          ) : <p className="tm-muted">{tr("No time-off requests.", "Sin solicitudes de ausencia.")}</p>}
         </section>
       )}
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { currentSpot, findAddress, mapUrl, streetAddress } from './location.js'
+import { tr } from './i18n.js'
 
 // Where the shop is, so punches can say "At the shop" or how far away they were.
 // Type the address, or stand in the shop and use the phone's location.
@@ -53,7 +54,7 @@ export default function ShopLocation({ data }) {
 
   return (
     <section className="st-section">
-      <h3 className="tm-h3">Shop location</h3>
+      <h3 className="tm-h3">{tr("Shop location", "Ubicación del negocio")}</h3>
       {shop ? (
         <p className="mb-2">
           {shop.address && (
@@ -62,11 +63,11 @@ export default function ShopLocation({ data }) {
               <br />
             </>
           )}
-          Punches within <b>{Math.round(shop.radius * 3.281)} ft</b> show as “At the shop”.{' '}
-          <a href={mapUrl(shop)} target="_blank" rel="noreferrer">Check the pin on the map</a>
+          {tr('Punches within', 'Los registros a menos de')} <b>{Math.round(shop.radius * 3.281)} {tr('ft', 'pies')}</b> {tr('show as “At the shop”.', 'aparecen como “En el negocio”.')}{' '}
+          <a href={mapUrl(shop)} target="_blank" rel="noreferrer">{tr("Check the pin on the map", "Revisa el punto en el mapa")}</a>
         </p>
       ) : (
-        <p className="tm-muted mb-2">Not set yet. Type the shop's address, or stand in the shop and use your phone's location.</p>
+        <p className="tm-muted mb-2">{tr("Not set yet. Type the shop's address, or stand in the shop and use your phone's location.", "Aún no está configurado. Escribe la dirección del negocio o párate en el negocio y usa la ubicación de tu teléfono.")}</p>
       )}
       <form className="d-flex gap-2 mb-2" onSubmit={find}>
         <input className="form-control form-control-sm" aria-label="Shop address" placeholder="e.g. 100 Main St, Springfield…" value={typed} onChange={(e) => setTyped(e.target.value)} />
@@ -74,11 +75,11 @@ export default function ShopLocation({ data }) {
       </form>
       {found && (
         <div className="st-found" role="listbox" aria-label="Pick the shop">
-          <small className="tm-muted">Pick the right one:</small>
+          <small className="tm-muted">{tr("Pick the right one:", "Elige la correcta:")}</small>
           {found.map((p) => (
             <button key={`${p.lat},${p.lng}`} type="button" className="st-found-opt" onClick={() => pick(p)}>{p.label}</button>
           ))}
-          <button type="button" className="tm-link small" onClick={() => setFound(null)}>None of these</button>
+          <button type="button" className="tm-link small" onClick={() => setFound(null)}>{tr("None of these", "Ninguna de estas")}</button>
         </div>
       )}
       <div className="d-flex flex-wrap align-items-end gap-2">
@@ -86,7 +87,7 @@ export default function ShopLocation({ data }) {
           {busy === 'here' ? 'Finding you…' : 'Or use where I am now'}
         </button>
         <label className="small">
-          “At the shop” within (ft)
+          {tr('“At the shop” within (ft)', '“En el negocio” a menos de (pies)')}
           <input
             type="number"
             min="80"
@@ -98,7 +99,7 @@ export default function ShopLocation({ data }) {
           />
         </label>
       </div>
-      <p className="tm-muted small mt-2 mb-0">A typed address puts the pin on the street, which can be off by a few houses. Check the pin, and if it’s off, use “where I am now” from inside the shop.</p>
+      <p className="tm-muted small mt-2 mb-0">{tr("A typed address puts the pin on the street, which can be off by a few houses. Check the pin, and if it’s off, use “where I am now” from inside the shop.", "Una dirección escrita pone el punto en la calle, que puede quedar a unas casas. Revisa el punto y, si está mal, usa “donde estoy ahora” desde dentro del negocio.")}</p>
       {message && <p className="tm-msg small mt-2 mb-0" role="status">{message}</p>}
       {error && <p className="tm-error small mt-2 mb-0" role="alert">{error}</p>}
     </section>

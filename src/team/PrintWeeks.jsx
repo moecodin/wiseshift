@@ -1,5 +1,6 @@
 import { formatHours } from './paycheck.js'
 import { dayLabel } from './format.js'
+import { tr } from './i18n.js'
 
 // The printed version of a Reports table: one table per week (a two-week pay period prints as two tables), so seven day
 // columns fit the page and times stay on one line ("10:28a–4p"). Only shown when printing; the screen keeps one wide table.
@@ -36,11 +37,11 @@ export default function PrintWeeks({ days, sections, day, staffNo = false, overt
           <caption>{weeks.length > 1 ? `Week ${w + 1}: ` : ''}{dayLabel(week[0].d)} to {dayLabel(week.at(-1).d)}</caption>
           <thead>
             <tr>
-              <th scope="col" className="pw-name">Name</th>
-              {staffNo && <th scope="col" className="pw-num">No.</th>}
-              <th scope="col" className="pw-num">Total</th>
-              {overtime && <th scope="col" className="pw-num">Regular</th>}
-              {overtime && <th scope="col" className="pw-num">Overtime</th>}
+              <th scope="col" className="pw-name">{tr("Name", "Nombre")}</th>
+              {staffNo && <th scope="col" className="pw-num">{tr("No.", "N.º")}</th>}
+              <th scope="col" className="pw-num">{tr("Total", "Total")}</th>
+              {overtime && <th scope="col" className="pw-num">{tr("Regular", "Normales")}</th>}
+              {overtime && <th scope="col" className="pw-num">{tr("Overtime", "Horas extra")}</th>}
               {week.map(({ d }) => <th key={d} scope="col">{dayLabel(d)}</th>)}
             </tr>
           </thead>
@@ -73,7 +74,7 @@ export default function PrintWeeks({ days, sections, day, staffNo = false, overt
           ))}
           <tfoot>
             <tr>
-              <th scope="row">Total</th>
+              <th scope="row">{tr("Total", "Total")}</th>
               {staffNo && <td />}
               <td className="pw-num"><b>{formatHours(sum(all, (r) => weekMinutes(r, week)))}</b></td>
               {overtime && <td className="pw-num">{formatHours(sum(all, (r) => split(weekMinutes(r, week)).regular))}</td>}
