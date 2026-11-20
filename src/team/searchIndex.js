@@ -89,8 +89,8 @@ export function searchPlaces(query, { boss, features, lang, phone }) {
   return scored.sort((a, b) => b[0] - a[0]).slice(0, 8).map(([, p]) => shaped(p))
 }
 
-// People (managers only): matched on name and position. Each result's main action opens their punches
-// (Hours review, this pay period); the others open their schedule row, their hours in Reports, or the edit pop-up.
+// People (managers only): matched on name and position. Each result's main action opens their profile page;
+// the others open their punches (Hours review, this pay period), their schedule row, or their hours in Reports.
 export function searchPeople(query, { boss, features, lang, phone }, employees) {
   if (!boss) return []
   const tokens = fold(query).split(/\s+/).filter(Boolean)
@@ -112,10 +112,10 @@ export function searchPeople(query, { boss, features, lang, phone }, employees) 
   return scored.sort((a, b) => b[0] - a[0]).slice(0, 5).map(([, e]) => {
     const clocks = e.payType !== 'none' // schedule-only people have no punches or hours
     const actions = [
+      { key: 'profile', label: es ? 'Perfil' : 'Profile', tab: 'people', focus: { id: e.id } },
       features.timeClock && clocks && { key: 'punches', label: es ? 'Registros' : 'Punches', tab: 'hours', focus: { id: e.id } },
       { key: 'schedule', label: es ? 'Horario' : 'Schedule', tab: 'schedule', sel: `[data-person="${e.id}"]` },
       features.timeClock && clocks && features.timesheets && !phone && { key: 'hours', label: es ? 'Horas' : 'Hours', tab: 'reports', focus: { id: e.id } },
-      { key: 'edit', label: es ? 'Editar persona' : 'Edit person', tab: 'people', focus: { id: e.id } },
     ].filter(Boolean)
     return { id: `p:${e.id}`, kind: 'person', title: e.name, path: `${e.position || (es ? 'Equipo' : 'Team')}${e.active ? '' : es ? ' · No activo' : ' · Not active'}`, actions, ...actions[0] }
   })

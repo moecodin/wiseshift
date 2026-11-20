@@ -126,13 +126,16 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     const wanted = new URLSearchParams(window.location.search).get('tab')
     return PAGES.includes(wanted) ? wanted : 'clock'
   })
+  const [personId, setPersonId] = useState(() => new URLSearchParams(window.location.search).get('person')) // the person page open under Team
   // Keep the address in step with the tab, so a refresh or a shared link comes back to the same tab.
   useEffect(() => {
     const url = new URL(window.location.href)
     if (tab === 'clock') url.searchParams.delete('tab')
     else url.searchParams.set('tab', tab)
+    if (tab === 'people' && personId) url.searchParams.set('person', personId)
+    else url.searchParams.delete('person')
     window.history.replaceState(window.history.state, '', url)
-  }, [tab])
+  }, [tab, personId])
   // The pay period is a setting: when it loads or changes, go back to the current period under the new rule.
   const payKey = `${data.settings.payPeriod?.days}-${data.settings.payPeriod?.anchor}`
   useEffect(() => {
@@ -152,6 +155,12 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [settingsStart, setSettingsStart] = useState('me')
   const [hit, setHit] = useState(null)
+  // From a person's page: their punches (Hours review) or their row on the schedule.
+  const jumpToPerson = (tab, id) => {
+    go(tab)
+    if (tab === 'hours') setPersonFocus({ id, tab, n: Date.now() })
+    else setHit({ sel: `[data-person="${id}"]`, n: Date.now() })
+  }
   useEffect(() => {
     const keys = (e) => {
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) || e.target?.isContentEditable
@@ -190,6 +199,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   const rank = (id) => (TABS.includes(id) ? TABS.indexOf(id) : TABS.indexOf('more') + 0.5)
   const go = (id) => {
     setPersonFocus(null)
+    setPersonId(null)
     if (id !== page) setDir(rank(id) >= rank(page) ? 'r' : 'l')
     setTab(id)
   }
@@ -291,7 +301,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     const tabNames = lang === 'es' ? TABS_ES : look.tabs
     body = (
       <>
-        {inMore && (
+        {inMore && !(page === 'people' && personId) && (
           <button type="button" className="tm-back" onClick={() => go('more')}><Icon name="left" /> {tabNames.more}</button>
         )}
         {needsNotice && page === 'clock' && (
@@ -306,7 +316,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} focus={personFocus} />}
         {page === 'reports' && (phone ? <DesktopOnly name={tabNames.reports} lang={lang} /> : <ReportsTab data={data} period={period} onPeriod={setPeriod} focus={personFocus} />)}
         {page === 'off' && <TimeOffTab {...shared} />}
-        {page === 'people' && boss && <PeopleTab {...shared} focus={personFocus} />}
+        {page === 'people' && boss && <PeopleTab {...shared} focus={personFocus} personId={personId} onPerson={setPersonId} onJump={jumpToPerson} />}
         {page === 'settings' && <SettingsPanel key={settingsStart} start={settingsStart} asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
         {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSignOut={usingSupabase ? onSignOut : null} />}
       </>

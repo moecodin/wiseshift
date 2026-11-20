@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Modal from '../components/Modal.jsx'
+import PersonPage from './PersonPage.jsx'
 import { money, scheduleOnly } from './format.js'
 import { NY_MIN_WAGE } from './taxRates.js'
 import { dateKey } from '../lib/dates.js'
@@ -26,18 +27,27 @@ const NEW_PAY = {
 }
 
 // Managers: who's on the team, their position, pay rate and tax settings.
-export default function PeopleTab({ data, me, focus }) {
+export default function PeopleTab({ data, me, focus, personId, onPerson, onJump }) {
   const f = useFeatures()
   const [editing, setEditing] = useState(null)
   const focusedPerson = useRef(0)
   useEffect(() => {
     if (focus?.tab === 'people' && focus.n !== focusedPerson.current) {
       focusedPerson.current = focus.n
-      const found = data.employees.find((x) => x.id === focus.id)
-      if (found) setEditing(found)
+      if (data.employees.some((x) => x.id === focus.id)) onPerson(focus.id)
     }
-  }, [focus, data.employees])
+  }, [focus, data.employees, onPerson])
   const people = [...data.employees].sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name))
+
+  const person = personId ? data.employees.find((x) => x.id === personId) : null
+  if (person) {
+    return (
+      <>
+        <PersonPage person={person} data={data} onBack={() => onPerson(null)} onEdit={() => setEditing(person)} onPunches={() => onJump('hours', person.id)} onSchedule={() => onJump('schedule', person.id)} />
+        {editing && <PersonEditor employee={editing} pay={data.payById[editing.id] ?? NEW_PAY} data={data} me={me} onClose={() => setEditing(null)} />}
+      </>
+    )
+  }
 
   return (
     <div className="tm-narrow desk">
@@ -50,7 +60,7 @@ export default function PeopleTab({ data, me, focus }) {
         const pay = data.payById[e.id]
         const rate = scheduleOnly(e) ? 'Schedule only' : !f.payRates ? '' : e.payType === 'commission' ? 'Commission' : pay?.hourlyRate ? `${money(pay.hourlyRate)}/hr` : 'No rate'
         return (
-          <button key={e.id} type="button" className={`sc-row person pt-person ${e.active ? '' : 'inactive'}`} onClick={() => setEditing(e)}>
+          <button key={e.id} type="button" className={`sc-row person pt-person ${e.active ? '' : 'inactive'}`} onClick={() => onPerson(e.id)}>
             <Avatar employee={e} size={44} />
             <span className="sc-body">
               <b>

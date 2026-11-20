@@ -657,3 +657,27 @@ html[data-bs-theme] body .sr-card { width: min(560px, 100%); max-height: 76vh; d
 html[data-bs-theme] body .sr-acts button { min-height: 26px; padding: 0 9px; border: 1px solid var(--line); border-radius: var(--r-xs); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; }
 html[data-bs-theme] body .sr-acts button:hover { border-color: var(--ink); color: var(--ink); }
 @media (max-width: 899px) { .sr-item { flex-wrap: wrap; } }
+
+/* Person page (PersonPage.jsx): header, a figure strip, then hairline sections like Settings */
+@media (min-width: 900px) { html[data-bs-theme] body .tm .tm-narrow.pf { max-width: 900px; margin: 0; } }
+.pf-head { display: flex; align-items: center; gap: 16px; padding: 10px 0 18px; border-bottom: 1px solid var(--line); }
+.pf-who { flex: 1; min-width: 0; }
+.pf-who h2 { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 26px; font-weight: 700; color: var(--ink); }
+.pf-who p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.pf-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-bottom: 1px solid var(--line); }
+.pf-strip > div { padding: 14px 18px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.pf-strip > div:first-child { border-left: 0; padding-left: 0; }
+.pf-strip small { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pf-strip b { font-size: 30px; font-weight: 700; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pf-strip span { font-size: 13px; color: var(--muted); }
+.pf-sec { padding: 18px 0 16px; border-bottom: 1px solid var(--line); }
+.pf-sec:last-child { border-bottom: 0; }
+.pf-list { list-style: none; margin: 0 0 8px; padding: 0; }
+.pf-list li { display: grid; grid-template-columns: 110px 190px 1fr; gap: 12px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.pf-list li:first-child { border-top: 0; }
+.pf-list b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pf-list span, .pf-list small { color: var(--muted); font-size: 14px; }
+.pf-dl { display: grid; grid-template-columns: 160px 1fr; gap: 8px 12px; margin: 0; font-size: 15px; }
+.pf-dl dt { font-weight: 400; color: var(--muted); }
+.pf-dl dd { margin: 0; color: var(--ink); }
+@media (max-width: 899px) { .pf-list li { grid-template-columns: 1fr; gap: 0; } .pf-dl { grid-template-columns: 1fr; gap: 0 12px; } .pf-dl dd { margin-bottom: 8px; } .pf-who h2 { font-size: 22px; } }
