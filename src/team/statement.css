@@ -878,12 +878,12 @@ html[data-bs-theme] body .tm .rp .tm-sheet .ts-group th { border-left: 0 !import
   .screen-only, .rp-types, .rp-report-head .btn, .rp-actions, .ts-away, .ts-cards { display: none !important; }
   .print-only { display: block !important; }
   .tm-away { font-weight: inherit !important; }
-  .pw-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 7.5pt; margin: 0 0 10px; }
+  .pw-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 7.5pt; margin: 0 0 10px; border-right: 1.2pt solid #7f7468; border-bottom: 1pt solid #7f7468; }
   .pw-table + .pw-table { break-before: page; }
   .pw-table caption { caption-side: top; text-align: left; font-weight: 700; font-size: 9pt; padding: 2px 0 4px; color: #1f1a16; }
-  .pw-table th, .pw-table td { border: 1px solid #cfc6bb; padding: 2px 4px; vertical-align: top; color: #1f1a16; }
+  .pw-table th, .pw-table td { border: 0; border-left: 1.2pt solid #7f7468; border-top: 1pt solid #7f7468; background-clip: padding-box; padding: 2px 4px; vertical-align: top; color: #1f1a16; }
   .pw-table thead th, .pw-table tfoot th, .pw-table tfoot td, .pw-group th { background: #f2ede6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: left; font-weight: 700; }
-  .pw-table tbody tr:nth-child(even) > * { background: #faf8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pw-table tbody tr:nth-child(even) > * { background-color: #faf8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .pw-table tr { break-inside: avoid; }
   .pw-table tfoot td.pw-num { text-align: right; }
   .pw-name { width: 15%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
