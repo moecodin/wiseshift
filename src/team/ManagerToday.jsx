@@ -91,7 +91,7 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
 
       <TodayTiles data={data} me={me} lang={lang} onGoTo={onGoTo} />
 
-      {f.timeClock && <ManagerStats data={data} lang={lang} onReview={() => onView('review')} />}
+      {f.timeClock && <ManagerStats data={data} lang={lang} onReview={() => onGoTo('hours')} />}
 
       <div className="mt-left">
       <h2 className="sc-h mt-h">{w.attention} {count > 0 && <span className="mt-count">{count}</span>}</h2>
@@ -166,7 +166,7 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
         <section className="mt-card">
           <b>{w.review(toReview)}</b>
           <p className="mt-sub">{w.reviewSub}</p>
-          <button type="button" className="to-btn wide" onClick={() => onView('review')}>{w.sched}</button>
+          <button type="button" className="to-btn wide" onClick={() => onGoTo('hours')}>{w.sched}</button>
         </section>
       )}
       {f.timeClock && <WeekHoursChart data={data} lang={lang} />}
@@ -174,7 +174,7 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
       </div>
 
       <div className="mt-right">
-      {f.timeClock && <PayrollReadiness data={data} lang={lang} onReview={() => onView('review')} />}
+      {f.timeClock && <PayrollReadiness data={data} lang={lang} onReview={() => onGoTo('hours')} />}
       {f.timeClock && <OvertimeWatch data={data} lang={lang} />}
       <ScheduleStatus data={data} lang={lang} />
       {f.timeClock && (

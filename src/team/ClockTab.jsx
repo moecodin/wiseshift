@@ -9,7 +9,6 @@ import { TaggedForMe } from './ManagerNotes.jsx'
 import { Countdown, MyRequests, TodayTeam } from './TodayExtras.jsx'
 import SpotTag from './SpotTag.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
-import ReviewList from './ReviewList.jsx'
 import ClockCard from './ClockCard.jsx'
 import ManagerToday from './ManagerToday.jsx'
 import TodayTiles from './TodayTiles.jsx'
@@ -30,11 +29,7 @@ export default function ClockTab({ data, me, boss, look, lang, onGoTo }) {
       <div className="tm-narrow">
         <button type="button" className="tm-back" onClick={() => setView('today')}><Icon name="left" /> {lang === 'es' ? 'Hoy' : 'Today'}</button>
       </div>
-      {view === 'review' ? (
-        <div className="tm-narrow"><ReviewList data={data} /></div>
-      ) : (
-        <MyClock data={data} me={me} boss={boss} look={look} lang={lang} onGoTo={onGoTo} />
-      )}
+      <MyClock data={data} me={me} boss={boss} look={look} lang={lang} onGoTo={onGoTo} />
     </>
   )
 }
