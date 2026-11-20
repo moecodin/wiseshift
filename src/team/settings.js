@@ -9,6 +9,7 @@ Your location is not tracked at any other time. You can see your own clock-in an
 
 By tapping "I've read this", you acknowledge that you received this notice.`
 
+import { DEFAULT_PAY_PERIOD } from './paycheck.js'
 import { DEFAULT_FEATURES } from './features.js'
 
 export const DEFAULT_SETTINGS = {
@@ -40,6 +41,8 @@ export const DEFAULT_SETTINGS = {
   businessLogo: '', // a small image as a data URL; empty = the WiseShift mark
   setupDone: true, // false until the owner has been through the first-setup wizard (a new business)
   setupReady: false, // update 031 has been run
+  payPeriod: DEFAULT_PAY_PERIOD, // { days: 7 | 14, anchor: first day of a known period } (update 033)
+  payPeriodReady: false, // update 033 has been run
   storeHours: {}, // { open, close, closed: [0-6] } in minutes and weekday numbers (0 = Sunday); {} = not set (update 031)
 }
 
@@ -69,6 +72,8 @@ export function settingsFromRow(r) {
     businessLogo: pick(r.business_logo, d.businessLogo),
     setupDone: pick(r.setup_done, d.setupDone),
     setupReady: r.setup_done !== undefined, // update 031 has been run
+    payPeriod: r.pay_period && typeof r.pay_period === 'object' ? r.pay_period : d.payPeriod,
+    payPeriodReady: r.pay_period !== undefined, // update 033 has been run
     storeHours: r.store_hours && typeof r.store_hours === 'object' ? r.store_hours : d.storeHours,
   }
 }
@@ -91,6 +96,7 @@ export const settingsToRow = (s) => ({
   notice_text: s.noticeText,
   notice_version: s.noticeVersion,
   // Only sent once update 031 exists, so saving other settings keeps working before it.
+  ...(s.payPeriodReady ? { pay_period: s.payPeriod } : {}),
   ...(s.setupReady ? { business_name: s.businessName, business_logo: s.businessLogo, setup_done: s.setupDone, store_hours: s.storeHours ?? {} } : {}),
 })
 

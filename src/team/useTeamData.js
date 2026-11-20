@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { dateKey, fromKey, startOfToday } from '../lib/dates.js'
 import { supabase, usingSupabase } from '../lib/supabase.js'
-import { minutesBetween, payPeriodOf, scheduleWeekOf } from './paycheck.js'
+import { minutesBetween, payPeriodOf, scheduleWeekOf, setPayPeriodConfig } from './paycheck.js'
 import { createSampleTeam } from './sampleTeam.js'
 import { createRestaurantSample } from './sampleRestaurant.js'
 import { tellPush } from './app.js'
@@ -978,6 +978,9 @@ export function useTeamData({ signedIn, email, week, period }) {
       return run(supabase.from('employee_pay').upsert(payToRow(saved.data.id, pay)))
     },
   }
+
+  // Every screen asks payPeriodOf(date); it answers from this business's pay period setting.
+  setPayPeriodConfig(view.settings?.payPeriod)
 
   return {
     ...view,

@@ -40,22 +40,54 @@ export function scheduleWeekOf(date) {
   return daysFrom(start, 7)
 }
 
-// The pay period a date falls in: fourteen date keys, Friday first.
-export function payPeriodOf(date) {
+// ---------- Pay period ----------
+// A pay period is `days` long (7 or 14) and repeats from `anchor`, the first day of any known period. A business sets
+// both in Settings → Business → Pay period (update 033); until then it is every two weeks from Friday 9 Oct 2026, as before.
+export const DEFAULT_PAY_PERIOD = { days: 14, anchor: PERIOD_ANCHOR }
+let CONFIG = DEFAULT_PAY_PERIOD
+const validConfig = (c) => c && (c.days === 7 || c.days === 14) && /^\d{4}-\d{2}-\d{2}$/.test(c.anchor ?? '')
+export function setPayPeriodConfig(c) {
+  CONFIG = validConfig(c) ? { days: c.days, anchor: c.anchor } : DEFAULT_PAY_PERIOD
+}
+export const payPeriodConfig = () => CONFIG
+
+// The pay period a date falls in under a given config: `days` date keys, starting on the period's first day.
+export function payPeriodFor(date, config) {
   const day = new Date(date)
   day.setHours(0, 0, 0, 0)
-  const anchor = fromKey(PERIOD_ANCHOR)
+  const anchor = fromKey(config.anchor)
   const daysSince = Math.round((day - anchor) / 86400000)
   const start = new Date(anchor)
-  start.setDate(start.getDate() + Math.floor(daysSince / 14) * 14)
-  return daysFrom(start, 14)
+  start.setDate(start.getDate() + Math.floor(daysSince / config.days) * config.days)
+  return daysFrom(start, config.days)
+}
+export const payPeriodOf = (date) => payPeriodFor(date, CONFIG)
+
+// Is this list of days a pay period (rather than a Sunday-first schedule week)?
+const isPayPeriod = (days) => days.length === 14 || (days.length === CONFIG.days && fromKey(days[0]).getDay() === fromKey(CONFIG.anchor).getDay())
+
+// The picker's three answers → a config, and back. `weekday` is 0 (Sunday) to 6; `secondWeek` says whether today
+// falls in the second week of a two-week period. The period that contains today starts on the latest `weekday` on or before it
+// (one week earlier when today is in the second week).
+export function configFromParts({ days, weekday, secondWeek }, today = new Date()) {
+  const t = new Date(today)
+  t.setHours(0, 0, 0, 0)
+  t.setDate(t.getDate() - ((t.getDay() - weekday + 7) % 7))
+  if (days === 14 && secondWeek) t.setDate(t.getDate() - 7)
+  return { days, anchor: dateKey(t) }
+}
+export function partsOfConfig(config, today = new Date()) {
+  const c = validConfig(config) ? config : DEFAULT_PAY_PERIOD
+  const period = payPeriodFor(today, c)
+  const t = dateKey(new Date(today))
+  return { days: c.days, weekday: fromKey(c.anchor).getDay(), secondWeek: c.days === 14 && period.indexOf(t) >= 7 }
 }
 
 // The week or period before (-1) or after (+1) these days.
 export function moveDays(days, steps) {
   const d = fromKey(days[0])
   d.setDate(d.getDate() + steps * days.length)
-  return days.length === 14 ? payPeriodOf(d) : scheduleWeekOf(d)
+  return isPayPeriod(days) ? payPeriodOf(d) : scheduleWeekOf(d)
 }
 
 // ---------- Hours ----------

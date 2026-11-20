@@ -8,6 +8,7 @@ import { DAY_SHORT, defaultHours, hoursLines, hoursProblem, markSeen, normalizeH
 import { clockTime } from './format.js'
 import ShopLocation from './ShopLocation.jsx'
 import StoreHoursFields from './StoreHours.jsx'
+import PayPeriodFields from './PayPeriodFields.jsx'
 
 // First-run wizards. A new business owner sees one short wizard (welcome, the business's name and logo, done);
 // everyone else sees a short welcome once on their own device (notifications, home screen, the location notice).
@@ -21,6 +22,7 @@ const WORDS = {
     goalsTitle: 'What should WiseShift do for you?', goalsHint: 'You can turn any of it on or off later in Settings.', recommended: 'Recommended', payLabel: 'Also track hourly pay rates and paycheck estimates', payHelp: 'Only managers see pay. Off by default.',
     howTitle: 'How will your team clock in?', howPhones: 'On their own phones', howPhonesHelp: 'Each person clocks in from the app, with the shop location saved on each punch.', howKiosk: 'On a shared store computer (kiosk)', howKioskHelp: 'Everyone types a PIN on one screen at the counter. No location is saved.', howBoth: 'Both', howBothHelp: 'Phones, and a kiosk at the counter.',
     rulesTitle: 'Clocking in rules', earlyLabel: 'How early can someone clock in before their shift?', earlyOpt: (m) => (m === 0 ? 'Only at shift start' : `${m} minutes before`), anywayLabel: "Let people clock in even when they aren't on the schedule", anywayHelp: 'The punch is flagged for you to review.',
+    payTitle: 'How often do you pay your team?', payHint: 'Hours and timesheets are grouped by pay period. You can change this later in Settings.',
     hoursTitle: 'When are you open?', hoursHint: 'The schedule day view starts and ends with these times.', hoursPicks: 'Make the Open, Close and All Day quick-pick shifts from these hours',
     locTitle: 'Where is the shop?', locHint: 'Optional. It lets a punch say "At the shop". You can do this later in Settings.',
     hoursPrefix: 'Hours:', closedWord: 'closed',
@@ -38,6 +40,7 @@ const WORDS = {
     goalsTitle: '¿Qué debe hacer WiseShift por ti?', goalsHint: 'Puedes activar o desactivar cualquier parte después en Ajustes.', recommended: 'Recomendado', payLabel: 'También llevar tarifas por hora y estimados de pago', payHelp: 'Solo los gerentes ven el pago. Desactivado por defecto.',
     howTitle: '¿Cómo marcará entrada tu equipo?', howPhones: 'En su propio teléfono', howPhonesHelp: 'Cada persona marca desde la app y se guarda la ubicación en cada registro.', howKiosk: 'En una computadora compartida (quiosco)', howKioskHelp: 'Todos escriben un PIN en una pantalla del mostrador. No se guarda ubicación.', howBoth: 'Ambos', howBothHelp: 'Teléfonos y un quiosco en el mostrador.',
     rulesTitle: 'Reglas para marcar entrada', earlyLabel: '¿Con cuánta anticipación puede marcar entrada antes de su turno?', earlyOpt: (m) => (m === 0 ? 'Solo al empezar el turno' : `${m} minutos antes`), anywayLabel: 'Permitir marcar entrada aunque no esté en el horario', anywayHelp: 'El registro queda marcado para que lo revises.',
+    payTitle: '¿Cada cuánto pagas a tu equipo?', payHint: 'Las horas y hojas de tiempo se agrupan por período de pago. Puedes cambiarlo después en Ajustes.',
     hoursTitle: '¿Cuándo abren?', hoursHint: 'La vista del día en el horario empieza y termina con estas horas.', hoursPicks: 'Crear los turnos rápidos Abrir, Cerrar y Todo el día con estas horas',
     locTitle: '¿Dónde está la tienda?', locHint: 'Opcional. Permite que un registro diga "En la tienda". Puedes hacerlo después en Ajustes.',
     hoursPrefix: 'Horario:', closedWord: 'cerrado',
@@ -103,6 +106,7 @@ export function OwnerOnboarding({ data, me, lang, onTeam }) {
   const [anyway, setAnyway] = useState(data.settings.allowAnyway)
   const [hours, setHours] = useState(() => normalizeHours(data.settings.storeHours) ?? defaultHours()) // seven days, Sunday first
   const [picks, setPicks] = useState(true)
+  const [payPeriod, setPayPeriod] = useState(data.settings.payPeriod)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const file = useRef(null)
@@ -127,7 +131,7 @@ export function OwnerOnboarding({ data, me, lang, onTeam }) {
     const presets = picks && !hoursProblem(hours) ? presetsFromHours(hours) : null
     const problem = await data.actions.saveSettings({
       businessName: name.trim(), businessLogo: logo, setupDone: true, features, storeHours: { days: hours },
-      ...(clock ? { clockInEarly: early, allowAnyway: anyway } : {}),
+      ...(clock ? { clockInEarly: early, allowAnyway: anyway, payPeriod } : {}),
       ...(presets ? { shiftPresets: presets } : {}),
     })
     setBusy(false)
@@ -230,6 +234,7 @@ export function OwnerOnboarding({ data, me, lang, onTeam }) {
           },
         ]
       : []),
+    ...(clock ? [{ title: w.payTitle, body: <><p className="ob-p">{w.payHint}</p><PayPeriodFields value={payPeriod} onChange={setPayPeriod} lang={lang} /></> }] : []),
     {
       title: w.hoursTitle,
       body: (

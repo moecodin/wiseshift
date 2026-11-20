@@ -14,6 +14,7 @@ import { AVATAR_COLORS } from './avatarColors.js'
 import Avatar from './Avatar.jsx'
 import { defaultHours, hoursProblem, normalizeHours, presetsFromHours, shrinkImage } from './onboardingHelpers.js'
 import StoreHoursFields from './StoreHours.jsx'
+import PayPeriodFields from './PayPeriodFields.jsx'
 
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
@@ -266,6 +267,7 @@ function BusinessSettings({ data, onClose }) {
       )}
       <BusinessProfile data={data} onClose={onClose} />
       <StoreHoursSettings data={data} />
+      {f.timeClock && <PayPeriodSettings data={data} />}
       <Features data={data} />
       {f.location && <ShopLocation data={data} />}
       {f.timeClock && <ClockInRules data={data} />}
@@ -346,6 +348,22 @@ function StoreHoursSettings({ data }) {
         <label className="form-check-label" htmlFor="sh-picks">Also set the Open, Close and All Day quick picks from these hours</label>
       </div>
       <button type="button" className="btn btn-brand btn-sm mt-3" disabled={busy || bad} onClick={submit}>Save</button>
+      <Result result={result} />
+    </section>
+  )
+}
+
+// How long a pay period is and which day it starts. Hours, timesheets, overtime weeks and the exports all follow it.
+function PayPeriodSettings({ data }) {
+  const [value, setValue] = useState(data.settings.payPeriod)
+  const { busy, result, save } = useSave(data)
+  return (
+    <section className="st-section">
+      <h3 className="tm-h3">Pay period</h3>
+      <p className="tm-muted small mb-2">Hours, timesheets and exports are grouped by pay period. Overtime counts after 40 hours in each week of it.</p>
+      {!data.settings.payPeriodReady && <p className="tm-warn">This uses update 033. Run <code>supabase/updates/033-pay-period.sql</code> in Supabase, then reload, before saving here.</p>}
+      <PayPeriodFields value={value} onChange={setValue} lang={data.lang} />
+      <button type="button" className="btn btn-brand btn-sm mt-3" disabled={busy} onClick={() => save({ payPeriod: value }, 'Saved. Hours now follow this pay period.')}>Save</button>
       <Result result={result} />
     </section>
   )

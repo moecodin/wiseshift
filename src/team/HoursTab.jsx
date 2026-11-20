@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import Modal from '../components/Modal.jsx'
-import { dateKey, formatClock } from '../lib/dates.js'
-import { formatHours, grossPay, moveDays, payPeriodOf, periodHours } from './paycheck.js'
+import { dateKey, formatClock, fromKey } from '../lib/dates.js'
+import { formatHours, grossPay, moveDays, payPeriodConfig, payPeriodOf, periodHours } from './paycheck.js'
+import { DAY_LONG } from './onboardingHelpers.js'
 import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { describeSpot } from './location.js'
 import MyHours from './MyHours.jsx'
@@ -147,6 +148,7 @@ export function PunchEditor({ punch, data, onClose }) {
 
 // Managers: everyone's hours for the pay period, like the Humanity timesheet summary.
 function Timesheet({ data, period, now }) {
+  const weekStart = fromKey(payPeriodConfig().anchor).getDay() // overtime weeks begin on the pay period's first day
   const f = useFeatures()
   const [openRow, setOpenRow] = useState(null) // a person's days and paycheck estimate, from their name
   const pay = f.payRates // rate and gross columns only when the business uses pay rates
@@ -236,7 +238,7 @@ function Timesheet({ data, period, now }) {
       <div className="tm-tools mt-3">
         <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => window.print()}>Print</button>
       </div>
-      <p className="tm-muted small mt-2">Hours are exact, to the minute. Overtime is time and a half after 40 hours in each Friday–Thursday week.</p>
+      <p className="tm-muted small mt-2">Hours are exact, to the minute. Overtime is time and a half after 40 hours in each {DAY_LONG.en[weekStart]}–{DAY_LONG.en[(weekStart + 6) % 7]} week.</p>
     </div>
   )
 }

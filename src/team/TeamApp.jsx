@@ -129,6 +129,11 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     else url.searchParams.set('tab', tab)
     window.history.replaceState(window.history.state, '', url)
   }, [tab])
+  // The pay period is a setting: when it loads or changes, go back to the current period under the new rule.
+  const payKey = `${data.settings.payPeriod?.days}-${data.settings.payPeriod?.anchor}`
+  useEffect(() => {
+    setPeriod(payPeriodOf(new Date()))
+  }, [payKey])
   const me = data.me
   const boss = Boolean(me?.isManager)
   // The Team page is for managers only; if the person changes to an employee while
