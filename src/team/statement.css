@@ -741,4 +741,31 @@ html[data-bs-theme="dark"] body .tm.tm :is(.sc-toggle, .sc-day:not(.on), .sc-her
 }
 /* The sliding highlight must not show through the day boxes */
 html[data-bs-theme="dark"] body .tm.tm .sc-day:not(.on) { background-color: rgb(27, 28, 27) !important; }
-html[data-bs-theme="dark"] body .tm.tm .sc-ind { background: transparent !important; border: 1px solid var(--ink) !important; border-radius: 3px !important; box-sizing: border-box; z-index: 1; pointer-events: none; }
+html[data-bs-theme="dark"] body .tm.tm .sc-ind { background: transparent !important; border: 1px solid var(--ink) !important; border-radius: 6px !important; box-sizing: border-box; z-index: 1; pointer-events: none; }
+
+/* Dark mode: the clock button is a dark glass circle with a green ring and green words, not a big white disc */
+html[data-bs-theme="dark"] body .tm .tm-punch, html[data-bs-theme="dark"] body .tm .tm-punch.in, html[data-bs-theme="dark"] body .tm .tm-punch.out {
+  background-color: rgba(30, 30, 29, 0.72) !important; background-image: linear-gradient(rgba(63, 168, 120, 0.14), rgba(63, 168, 120, 0.14)) !important;
+  border: 2px solid #3fa878 !important; color: #5cc895 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 233, 196, 0.05), 0 0 0 6px rgba(63, 168, 120, 0.08) !important;
+}
+
+/* Light mode: the clock button is a white circle with a green ring, a slight green tint and green words, like dark mode */
+html[data-bs-theme="light"] body .tm .tm-punch, html[data-bs-theme="light"] body .tm .tm-punch.in, html[data-bs-theme="light"] body .tm .tm-punch.out {
+  background-color: #fff !important; background-image: linear-gradient(rgba(31, 138, 91, 0.1), rgba(31, 138, 91, 0.1)) !important;
+  border: 2px solid #1f8a5b !important; color: #17744b !important;
+  box-shadow: 0 0 0 6px rgba(31, 138, 91, 0.07) !important;
+}
+
+/* The hold-to-clock ring fills green */
+html[data-bs-theme] body .tm .tm-ring-fill { stroke: #3fa878 !important; }
+html[data-bs-theme="light"] body .tm .tm-ring-fill { stroke: #1f8a5b !important; }
+
+/* Today tiles and Next shifts cards use the same 6px corners as every other card */
+html[data-bs-theme] body .tm :is(.tt, .tn-card) { border-radius: 6px !important; }
+
+/* Schedule toggles, their sliding highlights and the date boxes use the same 6px corners as every other card */
+html[data-bs-theme] body .tm.tm :is(.sc-toggle, .seg-ind, .sc-ind, .sc-day) { border-radius: 6px !important; }
+
+/* Pop-ups and drawers sit over the page, so in dark mode they are solid, not glass */
+html[data-bs-theme="dark"] body .modal-content, html[data-bs-theme="dark"] body .pu-root .modal-content { background-color: rgb(27, 28, 27) !important; background-image: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
