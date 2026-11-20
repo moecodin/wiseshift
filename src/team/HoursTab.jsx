@@ -10,6 +10,7 @@ import { useFeatures } from './features.js'
 import TimesheetCards, { PersonHours } from './TimesheetCards.jsx'
 import ReviewList from './ReviewList.jsx'
 import Icon from './Icon.jsx'
+import PrintWeeks, { shortTime } from './PrintWeeks.jsx'
 import { DEFAULT_FILTERS, deptLabel, groupRows, reportRows, unapprovedCount } from './reportFilters.js'
 
 // Hours. A manager sees the punches (review, approve, fix, add). Everyone else sees their own hours for the pay period
@@ -161,7 +162,9 @@ export function Timesheet({ data, period, now, focus, filters = DEFAULT_FILTERS 
           <PersonHours row={rows.find((r) => r.e.id === openRow)} data={data} pay={pay} />
         </Modal>
       )}
-      <div className="tm-gridwrap ts-table">
+      <PrintWeeks days={period} sections={sections} staffNo={staffNo} overtime
+        day={(r, i) => { const d = r.hours.byDay[i]; return { lines: hoursOnly ? [] : d.punches.map((p) => `${shortTime(p.clockIn)}–${p.clockOut ? shortTime(p.clockOut) : 'in'}`), minutes: d.minutes } }} />
+      <div className="tm-gridwrap ts-table screen-only">
         <table className={`tm-sheet ${hoursOnly ? 'ts-hours-only' : ''}`}>
           <thead>
             <tr>

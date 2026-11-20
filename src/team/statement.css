@@ -845,7 +845,8 @@ html[data-bs-theme] body .tm .tm-sheet.ts-hours-only td.tm-cell b { font-weight:
 
 /* Reports: report types and the extra reports */
 html[data-bs-theme] body .tm .rp-types { display: inline-flex; margin-bottom: 12px; max-width: 100%; overflow-x: auto; }
-html[data-bs-theme] body .tm .rp-types button { white-space: nowrap; }
+html[data-bs-theme] body .tm .rp-types { gap: 4px; }
+html[data-bs-theme] body .tm .rp-types button { white-space: nowrap; flex: none; padding: 0 18px; min-height: 38px; font-size: 14px; }
 html[data-bs-theme] body .tm .rp-report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 html[data-bs-theme] body .tm .rp-narrow { max-width: 820px; }
 html[data-bs-theme] body .tm .rp-diff.over { color: var(--red); font-weight: 700; }
@@ -861,3 +862,36 @@ html[data-bs-theme] body .px-preview table { border-collapse: collapse; font-siz
 html[data-bs-theme] body .px-preview :is(th, td) { padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; text-align: left; }
 html[data-bs-theme] body .px-preview th { color: var(--muted); font-weight: 600; background: var(--head); }
 html[data-bs-theme] body .tm .rp-actions { display: inline-flex; gap: 8px; align-items: center; }
+
+/* Reports tables: the short tables' box hugs the table (no empty strip on the right), and every other row is tinted */
+html[data-bs-theme] body .tm .rp .rp-narrow { width: fit-content; max-width: 100%; }
+html[data-bs-theme] body .tm .rp .tm-sheet tbody tr:not(.ts-group):not(.ts-subtotal):nth-child(even) > :is(td, th) { background-color: color-mix(in srgb, var(--paper) 94%, var(--ink)) !important; }
+/* Reports tables: a thin line between columns and between rows */
+html[data-bs-theme] body .tm .rp .tm-sheet :is(th, td) { border-bottom: 1px solid var(--line) !important; }
+html[data-bs-theme] body .tm .rp .tm-sheet :is(th, td) + :is(th, td) { border-left: 1px solid var(--line) !important; }
+html[data-bs-theme] body .tm .rp .tm-sheet .ts-group th { border-left: 0 !important; }
+
+/* Printing Reports: the week tables replace the wide screen table; tabs, buttons and "away" tags stay off the paper */
+.print-only { display: none; }
+@media print {
+  @page { size: landscape; margin: 8mm; }
+  .screen-only, .rp-types, .rp-report-head .btn, .rp-actions, .ts-away, .ts-cards { display: none !important; }
+  .print-only { display: block !important; }
+  .tm-away { font-weight: inherit !important; }
+  .pw-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 7.5pt; margin: 0 0 10px; }
+  .pw-table + .pw-table { break-before: page; }
+  .pw-table caption { caption-side: top; text-align: left; font-weight: 700; font-size: 9pt; padding: 2px 0 4px; color: #1f1a16; }
+  .pw-table th, .pw-table td { border: 1px solid #cfc6bb; padding: 2px 4px; vertical-align: top; color: #1f1a16; }
+  .pw-table thead th, .pw-table tfoot th, .pw-table tfoot td, .pw-group th { background: #f2ede6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: left; font-weight: 700; }
+  .pw-table tbody tr:nth-child(even) > * { background: #faf8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pw-table tr { break-inside: avoid; }
+  .pw-table tfoot td.pw-num { text-align: right; }
+  .pw-name { width: 15%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+  .pw-num { width: 6.5%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pw-day { white-space: nowrap; text-align: center; }
+  .pw-day div { display: inline; line-height: 1.3; }
+  .pw-day div + div::before { content: ', '; }
+  .pw-day b { display: inline; font-size: 7pt; margin-left: 4px; }
+  .pw-day div + b, .pw-day b:only-child { margin-left: 4px; }
+  .rp-report-head p { font-size: 7.5pt; }
+}

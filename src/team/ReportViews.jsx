@@ -3,6 +3,7 @@ import { decimalHours, formatHours, punchMinutes, shiftMinutes } from './paychec
 import { dayLabel, money, shiftTimes } from './format.js'
 import { shiftFor } from './review.js'
 import { useFeatures } from './features.js'
+import PrintWeeks, { shortMinutes } from './PrintWeeks.jsx'
 import { DEFAULT_FILTERS, downloadCsv, groupOf, groupRows, inDept, reportRows } from './reportFilters.js'
 
 // The other Reports (managers): Scheduled hours, Scheduled vs worked, and By role. They use the same filter bar as the
@@ -41,8 +42,11 @@ export function ScheduledReport({ data, days, filters }) {
   ]
   return (
     <div className="rp-report">
+      <div className="ts-print-head"><b>Hours scheduled</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
+      <PrintWeeks days={days} sections={sections} staffNo={staffNo}
+        day={(r, i) => ({ lines: hoursOnly ? [] : r.byDay[i].map((s) => `${shortMinutes(s.start)}–${shortMinutes(s.end)}`), minutes: sumOf(r.byDay[i], shiftMinutes) })} />
       <div className="rp-report-head"><p className="tm-muted mb-0">Published shifts only. {rows.length} {rows.length === 1 ? 'person' : 'people'} · {formatHours(sumOf(rows, (r) => r.minutes))} hrs scheduled</p><CsvButton name={`wiseshift-scheduled-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
-      <div className="tm-gridwrap ts-table">
+      <div className="tm-gridwrap ts-table screen-only">
         <table className={`tm-sheet ${hoursOnly ? 'ts-hours-only' : ''}`}>
           <thead>
             <tr>
@@ -125,6 +129,7 @@ export function VarianceReport({ data, days, now, filters }) {
   }
   return (
     <div className="rp-report">
+      <div className="ts-print-head"><b>Scheduled vs worked</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
       <div className="rp-report-head"><p className="tm-muted mb-0">Worked hours follow "Approved only". Differences of an hour or more are colored.</p><CsvButton name={`wiseshift-scheduled-vs-worked-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
       <div className="tm-gridwrap ts-table rp-narrow">
         <table className="tm-sheet">
@@ -177,6 +182,7 @@ export function RoleReport({ data, days, now, filters }) {
   ]
   return (
     <div className="rp-report">
+      <div className="ts-print-head"><b>Hours by role</b><span>{dayLabel(days[0])} to {dayLabel(days.at(-1))}</span></div>
       <div className="rp-report-head"><p className="tm-muted mb-0">A punch counts toward the role of the shift it matches. {pay ? 'Labor cost is worked hours × each person’s rate, without the overtime premium.' : 'Turn on Pay rates to see labor cost.'}</p><CsvButton name={`wiseshift-by-role-${days[0]}-to-${days.at(-1)}.csv`} rows={csv} /></div>
       <div className="tm-gridwrap ts-table rp-narrow">
         <table className="tm-sheet">
