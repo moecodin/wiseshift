@@ -252,7 +252,7 @@ export default function ReviewList({ data, focus, onProfile }) {
                     <div key={p.id} className={`rv-row st-${st} ${again ? 'again' : ''} ${leaving.includes(p.id) ? 'leaving' : ''}`} style={leaving.includes(p.id) ? { '--i': Math.min(leaving.indexOf(p.id), 5) } : undefined}>
                       <button type="button" className={`rv-main ${mode === 'date' ? 'with-role' : ''}`} onClick={() => setOpen(p)} title={`${person?.name ?? '?'} · ${formatClock(p.clockIn)} – ${p.clockOut ? formatClock(p.clockOut) : 'still in'}`}>
                         <span className="rv-name">{again ? '' : shortName(person?.name)}</span>
-                        {mode === 'date' && <span className="rv-role">{roleColor !== undefined && <i className={`rl-dot t${roleColor}`} aria-hidden="true" />}<span>{role}</span></span>}
+                        {mode === 'date' && <span className="rv-role" title={role}>{roleColor !== undefined && <i className={`rl-dot t${roleColor}`} aria-hidden="true" />}<span>{role}</span></span>}
                         {mode !== 'date' && <span className="rv-day">{dayShort(dayKey)}</span>}
                         <span className="rv-when">{short(p.clockIn)}–{out}{p.clockOut && dateKey(new Date(p.clockOut)) !== dayKey && <em> +1</em>}</span>
                         <span className="rv-dur">{formatHours(punchMinutes(p, now))}</span>

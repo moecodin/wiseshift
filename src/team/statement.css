@@ -718,7 +718,7 @@ html[data-bs-theme] body .tm .wk-day.past { opacity: 0.55; }
 html[data-bs-theme="light"] body .tm .tn-card { background-color: #fff !important; background-image: none !important; box-shadow: none !important; }
 
 /* Dark mode: every card and the outlined buttons share the quiet glass look (5% bronze edge). Green "live" and "today" borders stay green. */
-html[data-bs-theme="dark"] body :is(.tm-card, .mt-card, .mt-stat, .rc, .hr-week, .sc-mine-r, .tl-card, .tm-gridwrap, .nt-card, .tm-summary, .tm-paycheck, .st-notice-card, .mo-card, .to-card, .st-section, .pt-person, .yd-block, .wk-day, .pf-sec, .pf-strip > div, .ms-card, .modal-content) {
+html[data-bs-theme="dark"] body :is(.tm-card, .mt-card, .mt-stat, .rc, .hr-week, .sc-mine-r, .tl-card, .tm-gridwrap, .nt-card, .tm-summary, .tm-paycheck, .st-notice-card, .mo-card, .to-card, .st-section, .pt-person, .yd-block, .wk-day, .pf-sec, .pf-strip, .ms-card, .modal-content) {
   background-color: rgba(30, 30, 29, 0.72) !important;
   background-image: linear-gradient(165deg, rgba(224, 164, 79, 0.018), rgba(224, 164, 79, 0.004) 55%) !important;
   border-color: rgba(224, 164, 79, 0.05) !important;
@@ -788,3 +788,27 @@ html[data-bs-theme] body .tm .pf-notes-list small { color: var(--muted); }
 /* The schedule rows on a phone are div buttons now (a seen-tick button sits inside them) */
 html[data-bs-theme] body .tm .wk-row[role="button"] { cursor: pointer; text-align: left; }
 html[data-bs-theme] body .tm .wk-row[role="button"]:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Hours, compact rows: the columns shrink to fit the card (the old fixed 150px columns overflowed and ran under the ⋯ and ✓ buttons),
+   with a thin divider between name | day | times | hours */
+html[data-bs-theme] body .tm .rv-main { grid-template-columns: calc(max(var(--nw, 7ch), 8.8ch) + 8px) 56px minmax(0, 1fr) 50px 18px !important; gap: 0 !important; min-width: 0; }
+html[data-bs-theme] body .tm .rv-main.with-role { grid-template-columns: calc(max(var(--nw, 7ch), 8.8ch) + 8px) minmax(0, 1fr) 86px 50px 18px !important; }
+/* Every row uses the same fixed widths, so the dividers line up from row to row; the role uses all the room that is left */
+html[data-bs-theme] body .tm .rv-main.with-role .rv-role { width: auto !important; }
+html[data-bs-theme] body .tm .rv-role .rl-dot { display: inline-block !important; flex: none; }
+html[data-bs-theme] body .tm .rv-main .rv-name { padding-right: 6px; }
+html[data-bs-theme] body .tm .rv-main .rv-role { padding-right: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-bs-theme] body .tm .rv-main > :is(.rv-day, .rv-when, .rv-dur) { align-self: stretch; display: block; line-height: 32px; padding: 0 6px !important; border-left: 1px solid var(--line) !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
+html[data-bs-theme] body .tm .rv-main .rv-when { text-align: left; }
+html[data-bs-theme] body .tm .rv-main.with-role .rv-when { text-align: right; }
+html[data-bs-theme] body .tm .rv-main .rv-dur { text-align: right; justify-self: stretch; min-width: 0; }
+
+/* Person page and My profile: the number strip and each section are cards with room inside, like the rest of the app */
+html[data-bs-theme] body .tm .pf-head { border-bottom: 0; padding-bottom: 14px; }
+html[data-bs-theme] body .tm .pf-strip { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; margin: 0 0 12px; background: var(--paper); }
+html[data-bs-theme] body .tm .pf-strip > div, html[data-bs-theme] body .tm .pf-strip > div:first-child { padding: 14px 18px; background: transparent !important; box-shadow: none !important; }
+html[data-bs-theme] body .tm .pf-strip > div:first-child { border-left: 0; }
+html[data-bs-theme] body .tm .pf-sec, html[data-bs-theme] body .tm .pf-sec:last-child { border: 1px solid var(--line); border-radius: 6px; padding: 14px 18px; margin: 0 0 12px; background: var(--paper); }
+html[data-bs-theme] body .tm .pf-sec .tm-h3 { margin-top: 0; }
+html[data-bs-theme] body .tm .pf .st-section { margin: 0 0 12px; }
+html[data-bs-theme] body .tm .pf > .tm-link { display: inline-block; margin-top: 4px; }
