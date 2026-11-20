@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { dateKey } from '../lib/dates.js'
 import { datesLabel, useNow } from './format.js'
+import Modal from '../components/Modal.jsx'
 
 const WORDS = {
   en: {
@@ -37,7 +38,7 @@ export default function TimeOffTab({ data, me, boss, lang }) {
       {boss && (
         <>
           <h2 className="sc-h">{w.waitingYou} {waitingBoss.length > 0 && <span className="tm-badge">{waitingBoss.length}</span>}</h2>
-          {waitingBoss.length ? waitingBoss.map((t) => <Decide key={t.id} request={t} who={name(t.employeeId)} data={data} w={w} />) : <p className="tm-muted">{w.none}</p>}
+          {waitingBoss.length ? waitingBoss.map((t) => <Decide key={t.id} request={t} who={name(t.employeeId)} data={data} w={w} lang={lang} />) : <p className="tm-muted">{w.none}</p>}
         </>
       )}
 
@@ -128,21 +129,38 @@ function RequestForm({ data, today, w, onDone }) {
 }
 
 // A manager's card for one waiting request.
-function Decide({ request, who, data, w }) {
+function Decide({ request, who, data, w, lang }) {
   const [busy, setBusy] = useState(false)
+  const [asking, setAsking] = useState(false)
   const decide = async (status) => {
     setBusy(true)
     await data.actions.decideTimeOff(request.id, status)
     setBusy(false)
+    setAsking(false)
   }
+  const dates = datesLabel(request.start, request.end)
   return (
     <div className="to-card">
-      <div className="to-top"><b>{who}</b><span className="to-chip pending">{datesLabel(request.start, request.end)}</span></div>
+      <div className="to-top"><b>{who}</b><span className="to-chip pending">{dates}</span></div>
       {request.reason && <small>“{request.reason}”</small>}
       <div className="to-actions">
         <button type="button" className="to-btn" disabled={busy} onClick={() => decide('declined')}>{w.decline}</button>
-        <button type="button" className="to-btn yes" disabled={busy} onClick={() => decide('approved')}>{w.approve}</button>
+        <button type="button" className="to-btn yes" disabled={busy} onClick={() => setAsking(true)}>{w.approve}</button>
       </div>
+      {asking && (
+        <Modal
+          title={w.approve}
+          onClose={() => !busy && setAsking(false)}
+          footer={
+            <>
+              <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={() => setAsking(false)}>{w.cancel}</button>
+              <button type="button" className="btn btn-brand" disabled={busy} onClick={() => decide('approved')}>{w.approve}</button>
+            </>
+          }
+        >
+          <p className="mb-0">{lang === 'es' ? `¿Aprobar a ${who} para ${dates}?` : `Approve ${who} for ${dates}?`}</p>
+        </Modal>
+      )}
     </div>
   )
 }

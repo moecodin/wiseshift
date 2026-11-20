@@ -20,9 +20,11 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
     const g = person(id)?.group
     return groups.some((x) => x.name === g) ? g : ''
   }
+  // Today and the days ahead come first; days already gone sit at the bottom, dimmed. Other weeks keep their order.
+  const ordered = week.includes(today) ? [...week.filter((d) => d >= today), ...week.filter((d) => d < today)] : week
   return (
     <div className={`wk-cards sc-up ${phone ? 'show-phone' : ''}`}>
-      {week.map((d) => {
+      {ordered.map((d) => {
         const day = shifts.filter((s) => s.date === d).sort((a, b) => a.start - b.start || (person(a.employeeId)?.name ?? '').localeCompare(person(b.employeeId)?.name ?? ''))
         const minutes = day.reduce((sum, s) => sum + shiftMinutes(s), 0)
         const working = new Set(day.map((s) => s.employeeId)).size
@@ -58,7 +60,7 @@ export default function WeekCards({ data, me, week, today, people, shifts, edita
               )
             }
         return (
-          <section key={d} className={`wk-day ${d === today ? 'today' : ''} ${sections ? 'grouped' : ''}`}>
+          <section key={d} className={`wk-day ${d === today ? 'today' : ''} ${d < today ? 'past' : ''} ${sections ? 'grouped' : ''}`}>
             <div className="wk-head">
               <Head type={onPickDay ? 'button' : undefined} className="wk-date" onClick={onPickDay ? () => onPickDay(d) : undefined} aria-label={date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}>
                 <small>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</small>

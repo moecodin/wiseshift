@@ -28,7 +28,7 @@ const duration = (minutes) => `${Math.floor(minutes / 60)}h ${String(Math.round(
 // One punch, like Humanity's Time Clock Details: how long, the shift it was for,
 // when and where they clocked in and out (street and map), its history, and
 // Approve / Edit for the manager.
-export default function PunchDetails({ punch: start, data, onClose, stepper }) {
+export default function PunchDetails({ punch: start, data, onClose, stepper, onProfile }) {
   const now = useNow()
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -157,7 +157,7 @@ export default function PunchDetails({ punch: start, data, onClose, stepper }) {
       <div className="pd-top">
         <Avatar employee={person} size={44} />
         <div className="pd-who">
-          <b>{person?.name}</b>
+          <b>{onProfile && person ? <button type="button" className="name-link" onClick={() => onProfile(person.id)}>{person.name}</button> : person?.name}</b>
           <small>
             {person?.position ? `${person.position} · ` : ''}{DAY_NAMES[day.getDay()].slice(0, 3)}, {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </small>

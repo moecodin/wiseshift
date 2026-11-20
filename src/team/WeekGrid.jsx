@@ -11,7 +11,7 @@ import { startShiftDrag, wasJustDragged } from './shiftDrag.js'
 
 // The week: people down the side, days across. Managers (editable) tap a box to change
 // a shift and + to add one. Staff get a read-only copy. Tapping a day's heading calls onPickDay.
-export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, showSeen = false, flash = new Set(), onEdit, onPickDay, onDrop, className = '' }) {
+export default function WeekGrid({ data, me, week, today, people, shifts, editable = false, onProfile, showSeen = false, flash = new Set(), onEdit, onPickDay, onDrop, className = '' }) {
   const f = useFeatures()
   // With staff groups set up, people sit under a heading row per group (the rest under "No group").
   const groups = data.settings?.groups ?? []
@@ -72,7 +72,7 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
                     <Avatar employee={person} size={34} />
                     <div>
                       <b>
-                        {person.name}
+                        {onProfile && editable ? <button type="button" className="name-link" onClick={() => onProfile(person.id)}>{person.name}</button> : person.name}
                         {showSeen && person.id !== me.id && !scheduleOnly(person) && <SeenTick shifts={theirs} seenAt={data.seenById?.[person.id]} ready={data.seenById != null} />}
                       </b>
                       <small>{person.position}</small>

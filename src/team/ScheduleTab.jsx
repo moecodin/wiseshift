@@ -19,7 +19,7 @@ import SlideIn from './SlideIn.jsx'
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
 // only managers see until Publish.
-export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }) {
+export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek, onProfile }) {
   // Employees start on their own shifts; managers on the whole-team grid.
   const [view, setView] = useState(boss ? 'everyone' : 'mine')
   const [weekDir, setWeekDir] = useState('') // which way the week was just moved, for the grid's short slide
@@ -147,7 +147,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
       ) : view === 'everyone' ? (
         <>
         <ManagerDay span={span} onSpan={changeSpan} picked={pickedDay} onPick={setPickedDay} flash={flash} view={view} onView={setView} data={data} me={me} week={week} today={today} shifts={shifts} onEdit={setEditing} onDrop={dropShift} />
-        <WeekGrid key={week[0]} className={`mg-grid ${span === 'week' ? 'show-phone' : ''} ${weekDir ? `wk-${weekDir}` : ''}`} data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable showSeen flash={flash} onEdit={setEditing} onDrop={dropShift} onPickDay={(d) => { setPickedDay(d); changeSpan('day') }} />
+        <WeekGrid key={week[0]} className={`mg-grid ${span === 'week' ? 'show-phone' : ''} ${weekDir ? `wk-${weekDir}` : ''}`} data={data} me={me} week={week} today={today} people={people} shifts={shifts} editable showSeen onProfile={onProfile} flash={flash} onEdit={setEditing} onDrop={dropShift} onPickDay={(d) => { setPickedDay(d); changeSpan('day') }} />
         </>
       ) : (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />

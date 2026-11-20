@@ -13,10 +13,10 @@ import Icon from './Icon.jsx'
 
 // Hours. A manager sees the punches (review, approve, fix, add). Everyone else sees their own hours for the pay period
 // and the paycheck estimate. Timesheets and exports live in the Reports tab.
-export default function HoursTab({ data, me, boss, lang, period, onPeriod, focus }) {
+export default function HoursTab({ data, me, boss, lang, period, onPeriod, focus, onProfile }) {
   const now = useNow()
   const current = payPeriodOf(now)[0] === period[0]
-  if (boss) return <div className="tm-narrow desk"><ReviewList data={data} focus={focus} /></div>
+  if (boss) return <div className="tm-narrow desk"><ReviewList data={data} focus={focus} onProfile={onProfile} /></div>
   return (
     <div>
       <div className="tm-toolbar">

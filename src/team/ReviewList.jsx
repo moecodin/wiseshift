@@ -32,7 +32,7 @@ const dayShort = (key) => `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)} ${fro
 // fits on a screen. With groups set up (Settings → Business → Groups) the lines sit in one column per
 // group, each with its own Approve all. ⚠ marks a punch with a warning (hover for the reason, or open
 // Details); the round ✓ approves it, and an Undo shows for a few seconds after any approval.
-export default function ReviewList({ data, focus }) {
+export default function ReviewList({ data, focus, onProfile }) {
   const now = useNow()
   const [range, setRange] = useState('week') // 'week' (past 7 days), 'period' (this pay period) or 'last' (the one before)
   const [status, setStatus] = useState('pending') // 'pending', 'progress' (still clocked in), 'approved' or 'all'
@@ -362,7 +362,7 @@ export default function ReviewList({ data, focus }) {
       )}
       {stepper && <PunchStepper key={stepper.key} ids={stepper.ids} data={data} onClose={() => setStepper(null)} nextDay={nextAfter(stepper.ids)} onNextDay={(ids) => setStepper({ ids, key: ++stepRuns.current })} />}
       {adding && <PunchEditor punch={adding} data={data} onClose={() => setAdding(null)} />}
-      {open && <PunchDetails punch={open} data={data} onClose={() => setOpen(null)} />}
+      {open && <PunchDetails punch={open} data={data} onProfile={onProfile && ((id) => { setOpen(null); onProfile(id) })} onClose={() => setOpen(null)} />}
     </div>
   )
 }

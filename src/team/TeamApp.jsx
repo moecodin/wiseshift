@@ -295,7 +295,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       </Notice>
     )
   } else {
-    const shared = { data, me, boss, look, lang }
+    const shared = { data, me, boss, look, lang, onProfile: boss ? (id) => { go('people'); setPersonId(id) } : undefined }
     // New York says to have everyone acknowledge that clocking in records their location.
     const needsNotice = features.location && data.settingsReady && !noticeAcked(data.privateById[me.id], data.settings)
     const tabNames = lang === 'es' ? TABS_ES : look.tabs
@@ -318,7 +318,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {page === 'off' && <TimeOffTab {...shared} />}
         {page === 'people' && boss && <PeopleTab {...shared} focus={personFocus} personId={personId} onPerson={setPersonId} onJump={jumpToPerson} />}
         {page === 'settings' && <SettingsPanel key={settingsStart} start={settingsStart} asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
-        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSignOut={usingSupabase ? onSignOut : null} />}
+        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSearch={() => setSearchOpen(true)} onTheme={onToggleTheme} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
     )
   }

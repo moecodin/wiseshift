@@ -681,3 +681,35 @@ html[data-bs-theme] body .sr-acts button:hover { border-color: var(--ink); color
 .pf-dl dt { font-weight: 400; color: var(--muted); }
 .pf-dl dd { margin: 0; color: var(--ink); }
 @media (max-width: 899px) { .pf-list li { grid-template-columns: 1fr; gap: 0; } .pf-dl { grid-template-columns: 1fr; gap: 0 12px; } .pf-dl dd { margin-bottom: 8px; } .pf-who h2 { font-size: 22px; } }
+
+/* A name that opens the person's page (also inside pop-ups, which sit outside .tm) */
+html[data-bs-theme] body .name-link { all: unset; display: inline; cursor: pointer; font: inherit; color: inherit; background: none !important; border: 0 !important; padding: 0 !important; box-shadow: none !important; }
+html[data-bs-theme] body .name-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+html[data-bs-theme] body .name-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
+
+/* Phone: search, light/dark and settings live in More, so the header keeps only the logo and the greeting, centered */
+@media (max-width: 899px) {
+  html[data-bs-theme] body .tm .tm-head-btns.in-side { display: none; }
+  html[data-bs-theme] body .tm .tm-head:has(.tm-head-btns.in-side) { grid-template-columns: 38px 1fr 38px; }
+}
+
+/* Dark mode: the clock button is a light circle, so its words are green, not white */
+html[data-bs-theme="dark"] body .tm .tm-punch, html[data-bs-theme="dark"] body .tm .tm-punch.in, html[data-bs-theme="dark"] body .tm .tm-punch.out { color: #1d8a58 !important; }
+
+/* Dark mode, Today tiles (Your day, Coming up, Worked, Next shifts): frosted glass with a bronze edge instead of flat grey */
+html[data-bs-theme="dark"] body .tm .tt {
+  background-color: rgba(38, 32, 24, 0.72) !important;
+  background-image: linear-gradient(165deg, rgba(224, 164, 79, 0.16), rgba(224, 164, 79, 0.03) 55%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(224, 164, 79, 0.32) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 233, 196, 0.1), 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+}
+html[data-bs-theme="dark"] body .tm .tt:hover { border-color: #e0a44f !important; }
+html[data-bs-theme="dark"] body .tm .tt-top { color: #d9b57a; }
+html[data-bs-theme="dark"] body .tm .tt-top svg { background: rgba(224, 164, 79, 0.18) !important; color: #e0a44f; }
+html[data-bs-theme="dark"] body .tm .tt-big { color: #f4ede1; }
+html[data-bs-theme="dark"] body .tm .tt-sub { color: #b9ad98; }
+html[data-bs-theme="dark"] body .tm .tt.live { border-color: var(--ok) !important; }
+
+/* Schedule on a phone: days already gone are dimmed at the bottom */
+html[data-bs-theme] body .tm .wk-day.past { opacity: 0.55; }

@@ -15,13 +15,13 @@ const Icon = ({ name }) => <svg className="mo-icon" viewBox="0 0 24 24" aria-hid
 const Chevron = () => <svg className="mo-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
 
 const WORDS = {
-  en: { off: 'Time off', people: 'Team', reports: 'Reports', reportsSub: 'Timesheets and exports. Best on a computer.', notify: 'Notifications', lang: 'Language', settings: 'Settings', out: 'Sign out', waiting: (n) => `${n} waiting`, peopleSub: 'People, pay rates, W-4', peopleOnly: 'People on your team', offSub: 'Ask for days off', signed: 'Signed in as' },
-  es: { off: 'Ausencias', people: 'Equipo', reports: 'Informes', reportsSub: 'Hojas de tiempo y exportaciones. Mejor en una computadora.', notify: 'Notificaciones', lang: 'Idioma', settings: 'Ajustes', out: 'Cerrar sesión', waiting: (n) => `${n} esperando`, peopleSub: 'Personas, pagos, W-4', peopleOnly: 'Personas en tu equipo', offSub: 'Pedir días libres', signed: 'Sesión de' },
+  en: { off: 'Time off', people: 'Team', reports: 'Reports', reportsSub: 'Timesheets and exports. Best on a computer.', notify: 'Notifications', search: 'Search', theme: 'Light or dark', lang: 'Language', settings: 'Settings', out: 'Sign out', waiting: (n) => `${n} waiting`, peopleSub: 'People, pay rates, W-4', peopleOnly: 'People on your team', offSub: 'Ask for days off', signed: 'Signed in as' },
+  es: { off: 'Ausencias', people: 'Equipo', reports: 'Informes', reportsSub: 'Hojas de tiempo y exportaciones. Mejor en una computadora.', notify: 'Notificaciones', search: 'Buscar', theme: 'Claro u oscuro', lang: 'Idioma', settings: 'Ajustes', out: 'Cerrar sesión', waiting: (n) => `${n} esperando`, peopleSub: 'Personas, pagos, W-4', peopleOnly: 'Personas en tu equipo', offSub: 'Pedir días libres', signed: 'Sesión de' },
 }
 
 // The More tab: who you are, then Time off, Team (managers), Notifications,
 // Language, Settings and Sign out.
-export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, onNotify, onSignOut }) {
+export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, onNotify, onSignOut, onSearch, onTheme }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const f = useFeatures()
   const [error, setError] = useState('')
@@ -59,6 +59,20 @@ export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, 
             <Chevron />
           </button>
         )}
+        <button type="button" className="mo-item mo-phone-only" onClick={onSearch}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="mo-icon"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+          <span><b>{w.search}</b></span>
+          <Chevron />
+        </button>
+        <button type="button" className="mo-item mo-phone-only" onClick={() => onOpen('settings')}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="mo-icon"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" /></svg>
+          <span><b>{w.settings}</b></span>
+          <Chevron />
+        </button>
+        <button type="button" className="mo-item mo-phone-only" onClick={onTheme}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="mo-icon"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></svg>
+          <span><b>{w.theme}</b></span>
+        </button>
         <button type="button" className="mo-item" onClick={onNotify}>
           <Icon name="bell" />
           <span><b>{w.notify}</b></span>
