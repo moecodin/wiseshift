@@ -15,8 +15,8 @@ const Icon = ({ name }) => <svg className="mo-icon" viewBox="0 0 24 24" aria-hid
 const Chevron = () => <svg className="mo-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
 
 const WORDS = {
-  en: { off: 'Time off', people: 'Team', reports: 'Reports', reportsSub: 'Timesheets and exports. Best on a computer.', notify: 'Notifications', search: 'Search', theme: 'Light or dark', lang: 'Language', settings: 'Settings', out: 'Sign out', waiting: (n) => `${n} waiting`, peopleSub: 'People, pay rates, W-4', peopleOnly: 'People on your team', offSub: 'Ask for days off', signed: 'Signed in as' },
-  es: { off: 'Ausencias', people: 'Equipo', reports: 'Informes', reportsSub: 'Hojas de tiempo y exportaciones. Mejor en una computadora.', notify: 'Notificaciones', search: 'Buscar', theme: 'Claro u oscuro', lang: 'Idioma', settings: 'Ajustes', out: 'Cerrar sesión', waiting: (n) => `${n} esperando`, peopleSub: 'Personas, pagos, W-4', peopleOnly: 'Personas en tu equipo', offSub: 'Pedir días libres', signed: 'Sesión de' },
+  en: { off: 'Time off', people: 'Team', reports: 'Reports', reportsSub: 'Timesheets and exports. Best on a computer.', notify: 'Notifications', profile: 'My profile', search: 'Search', theme: 'Light or dark', lang: 'Language', settings: 'Settings', out: 'Sign out', waiting: (n) => `${n} waiting`, peopleSub: 'People, pay rates, W-4', peopleOnly: 'People on your team', offSub: 'Ask for days off', signed: 'Signed in as' },
+  es: { off: 'Ausencias', people: 'Equipo', reports: 'Informes', reportsSub: 'Hojas de tiempo y exportaciones. Mejor en una computadora.', notify: 'Notificaciones', profile: 'Mi perfil', search: 'Buscar', theme: 'Claro u oscuro', lang: 'Idioma', settings: 'Ajustes', out: 'Cerrar sesión', waiting: (n) => `${n} esperando`, peopleSub: 'Personas, pagos, W-4', peopleOnly: 'Personas en tu equipo', offSub: 'Pedir días libres', signed: 'Sesión de' },
 }
 
 // The More tab: who you are, then Time off, Team (managers), Notifications,
@@ -29,13 +29,15 @@ export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, 
   return (
     <div className="tm-narrow mo">
       <h2 className="sc-h desk-title">{lang === 'es' ? 'Más' : 'More'}</h2>
-      <section className="mo-card mo-me">
+      <button type="button" className="mo-card mo-me mo-me-btn" onClick={() => onOpen('profile')}>
         <Avatar employee={me} size={56} />
         <div>
           <b>{me.name}</b>
           <small>{[me.position, email].filter(Boolean).join(' · ')}</small>
+          <small className="mo-prof">{w.profile}</small>
         </div>
-      </section>
+        <Chevron />
+      </button>
 
       <section className="mo-card">
         {f.timeOff && (

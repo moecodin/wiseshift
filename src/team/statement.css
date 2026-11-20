@@ -769,3 +769,9 @@ html[data-bs-theme] body .tm.tm :is(.sc-toggle, .seg-ind, .sc-ind, .sc-day) { bo
 
 /* Pop-ups and drawers sit over the page, so in dark mode they are solid, not glass */
 html[data-bs-theme="dark"] body .modal-content, html[data-bs-theme="dark"] body .pu-root .modal-content { background-color: rgb(27, 28, 27) !important; background-image: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* My profile: the card at the top of More is a button; the note under the header */
+html[data-bs-theme] body .tm .mo-me-btn { width: 100%; text-align: left; color: inherit; cursor: pointer; }
+html[data-bs-theme] body .tm .mo-me-btn .mo-go { margin-left: auto; }
+html[data-bs-theme] body .tm .mo-me-btn .mo-prof { color: var(--navy); font-weight: 600; margin-top: 2px; }
+html[data-bs-theme] body .tm .pf-note { margin: -4px 0 14px; font-size: 14px; }

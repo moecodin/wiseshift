@@ -21,15 +21,16 @@ export const PLACES = [
   A({ title: 'Time off', path: 'Page' }, { title: 'Ausencias', path: 'Página' }, { id: 'timeoff', tab: 'off', feature: 'timeOff', words: 'vacation request day off pto sick vacaciones permiso' }),
   A({ title: 'Team', path: 'Page' }, { title: 'Equipo', path: 'Página' }, { id: 'team', tab: 'people', boss: true, words: 'people staff employees roster personas empleados' }),
   A({ title: 'More', path: 'Page' }, { title: 'Más', path: 'Página' }, { id: 'more', tab: 'more', words: 'menu' }),
+  A({ title: 'My profile', path: 'Page' }, { title: 'Mi perfil', path: 'Página' }, { id: 'profile', tab: 'profile', words: 'me account badge color phone emergency contact perfil' }),
   A({ title: 'Settings', path: 'Page' }, { title: 'Ajustes', path: 'Página' }, { id: 'settings', tab: 'settings', settings: 'me', words: 'preferences options configuración' }),
 
   // ---- Settings → Me (everyone) ----
   A({ title: 'Change password', path: 'Settings → Me → Password' }, { title: 'Cambiar contraseña', path: 'Ajustes → Yo → Contraseña' }, { id: 'password', tab: 'settings', settings: 'me', find: 'password', words: 'login sign in security reset account contraseña' }),
   A({ title: 'Light or dark mode', path: 'Settings → Me → Appearance' }, { title: 'Modo claro u oscuro', path: 'Ajustes → Yo → Apariencia' }, { id: 'theme', tab: 'settings', settings: 'me', find: 'appearance', words: 'theme night color scheme tema' }),
   A({ title: 'Language', path: 'Settings → Me' }, { title: 'Idioma', path: 'Ajustes → Yo' }, { id: 'language', tab: 'settings', settings: 'me', find: 'language', words: 'english spanish español inglés' }),
-  A({ title: 'My badge color', path: 'Settings → Me → Your color' }, { title: 'Mi color', path: 'Ajustes → Yo → Tu color' }, { id: 'color', tab: 'settings', settings: 'me', find: 'your color', words: 'avatar initials badge picture' }),
+  A({ title: 'My badge color', path: 'My profile → Your color' }, { title: 'Mi color', path: 'Mi perfil → Tu color' }, { id: 'color', tab: 'profile', find: 'your color', words: 'avatar initials badge picture' }),
   A({ title: 'Notifications', path: 'Settings → Me' }, { title: 'Notificaciones', path: 'Ajustes → Yo' }, { id: 'notifications', tab: 'settings', settings: 'me', find: 'notifications', words: 'alerts push reminders avisos' }),
-  A({ title: 'My phone and emergency contact', path: 'Settings → Me' }, { title: 'Mi teléfono y contacto de emergencia', path: 'Ajustes → Yo' }, { id: 'contact', tab: 'settings', settings: 'me', find: 'my phone', words: 'number emergency contact teléfono' }),
+  A({ title: 'My phone and emergency contact', path: 'My profile' }, { title: 'Mi teléfono y contacto de emergencia', path: 'Mi perfil' }, { id: 'contact', tab: 'profile', find: 'my phone', words: 'number emergency contact teléfono' }),
   A({ title: 'Location notice', path: 'Settings → Me' }, { title: 'Aviso de ubicación', path: 'Ajustes → Yo' }, { id: 'locnotice', tab: 'settings', settings: 'me', find: 'location notice', feature: 'location', words: 'monitoring privacy gps' }),
 
   // ---- Settings → Business (managers) ----

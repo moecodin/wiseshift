@@ -30,6 +30,7 @@ import './team.css'
 import './statement.css'
 import './darkStyle.js'
 import Icon from './Icon.jsx'
+import MyProfile from './MyProfile.jsx'
 import Logo from './Logo.jsx'
 import { OwnerOnboarding, StaffOnboarding } from './Onboarding.jsx'
 import { welcomeSeen } from './onboardingHelpers.js'
@@ -46,7 +47,7 @@ function savedTheme() {
 // The tabs, in order. Their names come from the person's theme. Time off and Team open
 // from More.
 const TABS = ['clock', 'schedule', 'tasks', 'hours', 'reports', 'more']
-const PAGES = [...TABS, ...MORE.map((m) => m.id), 'settings']
+const PAGES = [...TABS, ...MORE.map((m) => m.id), 'settings', 'profile']
 
 // The team page (/team): time clock, schedules, hours and
 // paycheck estimates, and time off. Each person signs in with their own email.
@@ -189,7 +190,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     return () => clearInterval(timer)
   }, [hit])
   // On a phone Reports lives under More (the bottom bar keeps five tabs), so it counts as a page opened from More.
-  const inMore = MORE.some((m) => m.id === page) || (phone && page === 'reports')
+  const inMore = MORE.some((m) => m.id === page) || page === 'profile' || (phone && page === 'reports')
   // Screens slide in from the side the tab is on: toward the right for tabs further
   // along the bar (and pages opened from More), toward the left going back.
   const [dir, setDir] = useState('r')
@@ -316,8 +317,9 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} focus={personFocus} />}
         {page === 'reports' && (phone ? <DesktopOnly name={tabNames.reports} lang={lang} /> : <ReportsTab data={data} period={period} onPeriod={setPeriod} focus={personFocus} />)}
         {page === 'off' && <TimeOffTab {...shared} />}
+        {page === 'profile' && <MyProfile data={data} me={me} onSettings={() => { setSettingsStart('me'); go('settings') }} />}
         {page === 'people' && boss && <PeopleTab {...shared} focus={personFocus} personId={personId} onPerson={setPersonId} onJump={jumpToPerson} />}
-        {page === 'settings' && <SettingsPanel key={settingsStart} start={settingsStart} asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
+        {page === 'settings' && <SettingsPanel key={settingsStart} start={settingsStart} asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onProfile={() => go('profile')} onClose={() => go('clock')} />}
         {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSearch={() => setSearchOpen(true)} onTheme={onToggleTheme} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
     )

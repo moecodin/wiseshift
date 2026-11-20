@@ -23,7 +23,7 @@ import SlideIn from './SlideIn.jsx'
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
 // how the app works for the whole team.
-export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut, start = 'me', onClose, asPage = false }) {
+export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut, start = 'me', onClose, onProfile, asPage = false }) {
   const [page, setPage] = useState(boss ? start : 'me')
   const phone = useIsPhone()
   const content = (
@@ -38,7 +38,7 @@ export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut
       )}
       <SlideIn id={page} order={['me', 'business']}>
         {page === 'me' ? (
-          <MySettings data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} />
+          <MySettings data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onProfile={onProfile} />
         ) : (
           phone ? <DesktopOnly name="Business settings" lang={data.lang} /> : <BusinessSettings data={data} onClose={onClose} />
         )}
@@ -64,7 +64,7 @@ const explain = (problem) =>
     : problem
 const outcome = (problem, ok = 'Saved.') => (problem ? { error: explain(problem) } : { ok })
 
-function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
+function MySettings({ data, me, boss, onToggleTheme, onSignOut, onProfile }) {
   const f = useFeatures()
   return (
     <>
@@ -75,12 +75,15 @@ function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
         </button>
       </section>
       <Language data={data} />
-      <MyColor data={data} me={me} />
       <section className="st-section">
         <h3 className="tm-h3">Notifications</h3>
         <NotifyOptions data={data} boss={boss} />
       </section>
-      <MyContact data={data} me={me} />
+      <section className="st-section">
+        <h3 className="tm-h3">{data.lang === 'es' ? 'Mi perfil' : 'My profile'}</h3>
+        <p className="tm-muted mb-2">{data.lang === 'es' ? 'Tu color, teléfono y contacto de emergencia están en tu perfil.' : 'Your color, phone and emergency contact are on your profile.'}</p>
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onProfile}>{data.lang === 'es' ? 'Abrir mi perfil' : 'Open my profile'}</button>
+      </section>
       {f.location && (
         <section className="st-section">
           <h3 className="tm-h3">Location notice</h3>
@@ -101,7 +104,7 @@ function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
 }
 
 // The color of your badge, so the manager (and everyone) can tell you apart at a glance (update 032).
-function MyColor({ data, me }) {
+export function MyColor({ data, me }) {
   const [result, setResult] = useState(null)
   const pick = async (color) => {
     const problem = await data.actions.setMyAvatarColor(color)
@@ -147,7 +150,7 @@ function Language({ data }) {
   )
 }
 
-function MyContact({ data, me }) {
+export function MyContact({ data, me }) {
   const saved = data.privateById[me.id] ?? {}
   const [form, setForm] = useState({ phone: saved.phone ?? '', emergencyName: saved.emergencyName ?? '', emergencyPhone: saved.emergencyPhone ?? '' })
   const [busy, setBusy] = useState(false)
