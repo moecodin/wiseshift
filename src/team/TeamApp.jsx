@@ -42,7 +42,7 @@ function savedTheme() {
 // The tabs, in order. Their names come from the person's theme. Time off and Team open
 // from More.
 const TABS = ['clock', 'schedule', 'tasks', 'hours', 'more']
-const PAGES = [...TABS, ...MORE.map((m) => m.id)]
+const PAGES = [...TABS, ...MORE.map((m) => m.id), 'settings']
 
 // The team page (/team): time clock, schedules, hours and
 // paycheck estimates, and time off. Each person signs in with their own email.
@@ -209,7 +209,6 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       }
       return !v
     })
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
   const look = themeById()
   const business = data.settings.businessName || 'WiseShift'
@@ -267,7 +266,8 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
         {page === 'off' && <TimeOffTab {...shared} />}
         {page === 'people' && boss && <PeopleTab {...shared} />}
-        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSettings={() => setSettingsOpen(true)} onSignOut={usingSupabase ? onSignOut : null} />}
+        {page === 'settings' && <SettingsPanel asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
+        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSettings={() => go('settings')} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
     )
   }
@@ -284,7 +284,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
             </button>
           )}
           {me && (
-            <button type="button" className="tm-icon" onClick={() => setSettingsOpen(true)} aria-label="Settings" title="Settings">
+            <button type="button" className="tm-icon" onClick={() => go('settings')} aria-label="Settings" title="Settings">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
             </button>
           )}
@@ -336,6 +336,11 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
                 {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
               </button>
             ))}
+            {/* Computer only: Settings sits in the menu with the tabs (on a phone it stays a button in the header). */}
+            <button type="button" className="tm-tab-settings" aria-pressed={page === 'settings'} onClick={() => go('settings')}>
+              <svg className="tm-tabicon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
+              <span>{lang === 'es' ? 'Ajustes' : 'Settings'}</span>
+            </button>
           </nav>
           <div className="tm-side-btns">{iconButtons}</div>
           <div className="tm-me">
@@ -352,9 +357,6 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         <div key={page} className={`tm-page slide-${dir}`}>{body}</div>
         <p className={`tm-foot ${page === 'schedule' ? 'desk-hide' : ''}`}>{signOut}</p>
       </main>
-      {settingsOpen && (
-        <SettingsPanel data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => setSettingsOpen(false)} />
-      )}
       {notifying && <NotifySettings data={data} boss={boss} onClose={() => setNotifying(false)} />}
       {me && features.timeClock && <ClockedOutNotice data={data} me={me} lang={lang} />}
       {showOwnerTour && <OwnerOnboarding data={data} me={me} lang={lang} onTeam={() => go('people')} />}

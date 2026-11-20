@@ -33,7 +33,10 @@ body::before, body::after { display: none; }
 
 /* Header: a 2px ink rule under the title, like a statement's heading */
 @media (min-width: 900px) {
-  [data-bs-theme] .tm-head { border-bottom: 2px solid var(--ink); margin: 0 32px; padding: 24px 0 12px; }
+  /* The header is solid (page text used to show through it when scrolling). It spans the full width so the background
+     does too; the 2px rule is drawn inside it, in line with the content. */
+  [data-bs-theme] .tm-head { background: var(--desk); margin: 0; padding: 24px 32px 14px; border-bottom: 0; }
+  [data-bs-theme] .tm-head::after { content: ''; position: absolute; left: 32px; right: 32px; bottom: 0; height: 2px; background: var(--ink); }
   [data-bs-theme] .tm-hello { font-weight: 600; letter-spacing: 0; }
   [data-bs-theme] .tm-clockchip { border-radius: var(--r-sm); background: transparent; border-color: var(--ink); color: var(--ink); }
   [data-bs-theme] .tm-clockchip button { border-radius: var(--r-xs); }
@@ -541,3 +544,25 @@ html[data-bs-theme] body .tm .ob-choice[aria-pressed='true'] { border-color: var
 .sh-row.closed .sh-day span { color: var(--muted); font-weight: 400; }
 .sh-bad { grid-column: 2; font-size: 13px; }
 @media (max-width: 420px) { .sh-row { grid-template-columns: 1fr; } .sh-bad { grid-column: 1; } }
+
+/* Settings lives in the menu on a computer (below the tabs); on a phone it stays the gear in the header */
+.tm-tab-settings { display: none; }
+@media (min-width: 900px) {
+  html[data-bs-theme] body .tm .tm-tab-settings { display: flex; }
+  html[data-bs-theme] body .tm .tm-side-btns .tm-icon[aria-label='Settings'] { display: none; }
+  html[data-bs-theme] body .tm .tm-tab-settings[aria-pressed='true'] { background: var(--paper); color: var(--ink); font-weight: 700; border-left-color: var(--ink); }
+}
+
+/* Settings as a page: a readable column, sections separated by hairlines like the pop-up had */
+@media (min-width: 900px) {
+  html[data-bs-theme] body .tm .st-page { max-width: 760px; margin: 0; }
+  html[data-bs-theme] body .tm .st-page .st-section { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; padding: 18px 0 16px; margin: 0; }
+  html[data-bs-theme] body .tm .st-page .tm-switch { margin-bottom: 4px; display: flex; justify-content: flex-start; }
+}
+
+
+/* Toggle switches: a pill track with a round knob that slides. On: gray track, white knob on the right with a check.
+   Off: empty outlined track, gray knob on the left with a cross. Both are drawn in the knob image. */
+html[data-bs-theme] body .form-switch .form-check-input, html[data-bs-theme] body .tm .form-switch .form-check-input { background-image: var(--bs-form-switch-bg); width: 2.9em; height: 1.55em; background-color: transparent; border: 1.5px solid var(--faint); background-position: left center; background-size: auto 100%; transition: background-position 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, border-color 0.18s ease; --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3.2' fill='%238a8f94'/%3e%3cpath d='M-1.1 -1.1L1.1 1.1M1.1 -1.1L-1.1 1.1' fill='none' stroke='%23eceef0' stroke-width='.7' stroke-linecap='round'/%3e%3c/svg%3e"); }
+html[data-bs-theme] body .form-switch .form-check-input:checked, html[data-bs-theme] body .tm .form-switch .form-check-input:checked { background-color: #6b7078; border-color: #6b7078; background-position: right center; --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3.2' fill='%23ffffff'/%3e%3cpath d='M-1.4 .1L-.4 1.1L1.5 -1' fill='none' stroke='%233d424a' stroke-width='.75' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e"); }
+@media (prefers-reduced-motion: reduce) { html[data-bs-theme] body .form-switch .form-check-input { transition: none; } }

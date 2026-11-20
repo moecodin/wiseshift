@@ -16,10 +16,10 @@ import StoreHoursFields from './StoreHours.jsx'
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
 // how the app works for the whole team.
-export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut, start = 'me', onClose }) {
+export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut, start = 'me', onClose, asPage = false }) {
   const [page, setPage] = useState(boss ? start : 'me')
-  return (
-    <Modal title="Settings" size={page === 'business' ? 'lg' : undefined} onClose={onClose}>
+  const content = (
+    <>
       {boss && (
         <div className="tm-switch">
           <div className="tm-seg" role="group" aria-label="Settings page">
@@ -33,8 +33,11 @@ export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut
       ) : (
         <BusinessSettings data={data} onClose={onClose} />
       )}
-    </Modal>
+    </>
   )
+  // As a page it fills the content area like the other tabs; as a pop-up it is the Modal.
+  if (asPage) return <div className="tm-narrow desk st-page"><h2 className="sc-h">Settings</h2>{content}</div>
+  return <Modal title="Settings" size={page === 'business' ? 'lg' : undefined} onClose={onClose}>{content}</Modal>
 }
 
 // Shown under each Save button.
