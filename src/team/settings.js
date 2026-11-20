@@ -44,6 +44,8 @@ export const DEFAULT_SETTINGS = {
   payPeriod: DEFAULT_PAY_PERIOD, // { days: 7 | 14, anchor: first day of a known period } (update 033)
   payPeriodReady: false, // update 033 has been run
   storeHours: {}, // { open, close, closed: [0-6] } in minutes and weekday numbers (0 = Sunday); {} = not set (update 031)
+  payrollExport: null, // the saved payroll CSV layout, or null for the default one (update 035)
+  payrollReady: false, // update 035 has been run
 }
 
 // team_settings row (or nothing) → settings, falling back to the defaults.
@@ -75,6 +77,8 @@ export function settingsFromRow(r) {
     payPeriod: r.pay_period && typeof r.pay_period === 'object' ? r.pay_period : d.payPeriod,
     payPeriodReady: r.pay_period !== undefined, // update 033 has been run
     storeHours: r.store_hours && typeof r.store_hours === 'object' ? r.store_hours : d.storeHours,
+    payrollExport: r.payroll_export && typeof r.payroll_export === 'object' ? r.payroll_export : d.payrollExport,
+    payrollReady: r.payroll_export !== undefined, // update 035 has been run
   }
 }
 
@@ -97,6 +101,7 @@ export const settingsToRow = (s) => ({
   notice_version: s.noticeVersion,
   // Only sent once update 031 exists, so saving other settings keeps working before it.
   ...(s.payPeriodReady ? { pay_period: s.payPeriod } : {}),
+  ...(s.payrollReady ? { payroll_export: s.payrollExport } : {}),
   ...(s.setupReady ? { business_name: s.businessName, business_logo: s.businessLogo, setup_done: s.setupDone, store_hours: s.storeHours ?? {} } : {}),
 })
 

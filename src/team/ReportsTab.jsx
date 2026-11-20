@@ -4,7 +4,8 @@ import { isPayPeriod, moveDays, payPeriodOf, scheduleWeekOf } from './paycheck.j
 import { rangeLabel, scheduleOnly, useNow } from './format.js'
 import { Timesheet } from './HoursTab.jsx'
 import ExportHours from './ExportHours.jsx'
-import { DEFAULT_FILTERS, daysBetween, departments } from './reportFilters.js'
+import { DEFAULT_FILTERS, daysBetween, departments, downloadCsv, reportRows, unapprovedCount } from './reportFilters.js'
+import { missingIds, payrollCsv, payrollLayout } from './payroll.js'
 import Icon from './Icon.jsx'
 import Seg from './Seg.jsx'
 import { RoleReport, ScheduledReport, VarianceReport } from './ReportViews.jsx'
@@ -57,6 +58,23 @@ export default function ReportsTab({ data, period, onPeriod, focus }) {
     set('picked', next.length === people.length ? null : next)
   }
 
+  // One click, in the saved payroll layout, following the filters on the page. The same checks as Export first.
+  const payrollDownload = () => {
+    const rows = reportRows(data, period, now, filters)
+    if (!rows.length) return window.alert('Nobody matches these filters.')
+    const open = filters.approvedOnly ? [] : rows.filter((r) => r.hours.open).map((r) => r.e.name)
+    const waiting = filters.approvedOnly ? 0 : unapprovedCount(data, rows, period)
+    const layout = payrollLayout(data.settings.payrollExport)
+    const missing = missingIds(rows, data, layout)
+    const problems = [
+      open.length && `Still clocked in: ${open.join(', ')}.`,
+      waiting && `${waiting} punch${waiting === 1 ? '' : 'es'} not approved yet.`,
+      missing.length && `No ID for payroll: ${missing.join(', ')}.`,
+    ].filter(Boolean)
+    if (problems.length && !window.confirm(`${problems.join('\n')}\n\nDownload anyway?`)) return
+    downloadCsv(`payroll-${period[0]}-to-${period.at(-1)}.csv`, payrollCsv(rows, period, data, layout))
+  }
+
   return (
     <div className="rp">
       <Seg className="sc-toggle rp-types" role="group" aria-label="Report">
@@ -84,7 +102,12 @@ export default function ReportsTab({ data, period, onPeriod, focus }) {
             </>
           )}
         </div>
-        {type === 'timesheet' && <button type="button" className="btn btn-brand btn-sm ex-btn desk-only" data-search="export" onClick={() => setExporting(true)}>Export hours…</button>}
+        {type === 'timesheet' && (
+          <span className="rp-actions">
+            {data.settings.payrollExport && <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="payroll-csv" onClick={payrollDownload}>Payroll CSV</button>}
+            <button type="button" className="btn btn-brand btn-sm ex-btn desk-only" data-search="export" onClick={() => setExporting(true)}>Export hours…</button>
+          </span>
+        )}
       </div>
 
       <div className="rp-filters">

@@ -79,3 +79,6 @@ Backlog lives in the artifact https://claude.ai/artifact/E9FzR3siUUgTWQtMnpqZbm.
 
 ## Person page, My profile, notes and pay history (Nov 20)
 Port later, with `supabase/legacy/updates/034-notes-and-pay-history.sql` (applied to wiseshift-dev only): `PersonPage.jsx`, `MyProfile.jsx`, `PersonExtras.jsx`, the `personNotes`/`payHistory` loading and `addPersonNote`/`deletePersonNote` in `useTeamData.js`, PeopleTab opening the page, the More top card, and Settings → Me linking to My profile.
+
+## Reports filters, report types and Payroll CSV (Nov 20)
+Port later, with `supabase/legacy/updates/035-payroll-export.sql` (applied to wiseshift-dev only): `reportFilters.js`, `ReportViews.jsx`, `payroll.js`, the new `ReportsTab.jsx`, the `filters` prop on `Timesheet` (HoursTab), ExportHours using the shared filters and the Payroll CSV format, `PayrollExportSettings` in SettingsPanel, the Payroll ID field in PeopleTab, `payrollId`/`payrollExport` in useTeamData and settings.js, and shifts loading for the picked report dates.

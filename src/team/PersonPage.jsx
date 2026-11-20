@@ -47,7 +47,7 @@ export default function PersonPage({ person, data, onBack, onEdit, onPunches, on
             {person.isManager && <span className="pt-chip">Manager</span>}
             {!person.active && <span className="pt-chip off">Not active</span>}
           </h2>
-          <p>{[person.position || 'No position', person.group, person.startedOn && `Started ${dayLabel(person.startedOn)}`, person.staffNo && `Staff no. ${person.staffNo}`].filter(Boolean).join(' · ')}</p>
+          <p>{[person.position || 'No position', person.group, person.startedOn && `Started ${dayLabel(person.startedOn)}`, person.staffNo && `Staff no. ${person.staffNo}`, pay?.payrollId && `Payroll ID ${pay.payrollId}`].filter(Boolean).join(' · ')}</p>
         </div>
         <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onEdit}>Edit</button>
       </header>

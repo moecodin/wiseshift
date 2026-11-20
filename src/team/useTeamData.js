@@ -54,6 +54,7 @@ const payFromRow = (r) => ({
   nyAllowances: r.ny_allowances,
   nyExtra: Number(r.ny_extra),
   nycResident: r.nyc_resident,
+  payrollId: r.payroll_id === undefined ? undefined : r.payroll_id ?? '', // update 035: undefined before it is run
 })
 const payToRow = (employeeId, p) => ({
   employee_id: employeeId,
@@ -69,6 +70,7 @@ const payToRow = (employeeId, p) => ({
   ny_allowances: p.nyAllowances || 0,
   ny_extra: p.nyExtra || 0,
   nyc_resident: p.nycResident,
+  ...(p.payrollId !== undefined ? { payroll_id: String(p.payrollId).trim() || null } : {}),
   updated_at: new Date().toISOString(),
 })
 const shiftFromRow = (r) => ({
@@ -274,7 +276,8 @@ function sampleView(state, viewAs) {
   return {
     me,
     employees: withAvatarColors([...state.employees].sort((a, b) => a.name.localeCompare(b.name))),
-    payById: Object.fromEntries(Object.entries(state.pay).filter(([id]) => boss || id === viewAs)),
+    // Made-up payroll IDs (EMP-<staff no.>) for the sample, until one is typed in.
+    payById: Object.fromEntries(Object.entries(state.pay).filter(([id]) => boss || id === viewAs).map(([id, p]) => [id, { ...p, payrollId: p.payrollId ?? `EMP-${state.employees.find((e) => e.id === id)?.staffNo ?? id}` }])),
     shifts: state.shifts.filter((x) => boss || x.published),
     punches: state.punches.filter(own),
     timeOff: state.timeOff.filter(own),
@@ -293,7 +296,7 @@ function sampleView(state, viewAs) {
     teamOff: state.timeOff.filter((t) => t.status === 'approved' && own(t)).map(({ id, employeeId, start, end }) => ({ id, employeeId, start, end, status: 'approved' })),
     shop: state.shop ?? null,
     // In sample mode the first-setup wizard shows once, until it is finished or skipped.
-    settings: { ...DEFAULT_SETTINGS, setupDone: false, setupReady: true, ...state.settings },
+    settings: { ...DEFAULT_SETTINGS, setupDone: false, setupReady: true, payrollReady: true, ...state.settings },
     privateById: Object.fromEntries(Object.entries(state.private ?? {}).filter(([id]) => boss || id === viewAs)),
     settingsReady: true,
     seenById: boss ? state.seen ?? {} : {},

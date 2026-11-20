@@ -19,6 +19,9 @@ import Seg from './Seg.jsx'
 import DesktopOnly from './DesktopOnly.jsx'
 import { useIsPhone } from './useIsPhone.js'
 import SlideIn from './SlideIn.jsx'
+import { ID_SOURCES, missingIds, payrollCsv, payrollLayout } from './payroll.js'
+import { reportRows } from './reportFilters.js'
+import { payPeriodOf } from './paycheck.js'
 
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
@@ -278,6 +281,7 @@ function BusinessSettings({ data, onClose }) {
       <BusinessProfile data={data} onClose={onClose} />
       <StoreHoursSettings data={data} />
       {f.timeClock && <PayPeriodSettings data={data} />}
+      {f.timeClock && <PayrollExportSettings data={data} />}
       <Features data={data} />
       {f.location && <ShopLocation data={data} />}
       {f.timeClock && <ClockInRules data={data} />}
@@ -374,6 +378,71 @@ function PayPeriodSettings({ data }) {
       {!data.settings.payPeriodReady && <p className="tm-warn">This uses update 033. Run <code>supabase/updates/033-pay-period.sql</code> in Supabase, then reload, before saving here.</p>}
       <PayPeriodFields value={value} onChange={setValue} lang={data.lang} />
       <button type="button" className="btn btn-brand btn-sm mt-3" disabled={busy} onClick={() => save({ payPeriod: value }, 'Saved. Hours now follow this pay period.')}>Save</button>
+      <Result result={result} />
+    </section>
+  )
+}
+
+// The payroll CSV layout, set once: how people are identified, which columns (renamed, in order), hour and date formats,
+// with a preview from this pay period. Exports on Reports use it (update 035).
+function PayrollExportSettings({ data }) {
+  const [layout, setLayout] = useState(() => payrollLayout(data.settings.payrollExport))
+  const { busy, result, save } = useSave(data)
+  const setCol = (i, change) => setLayout({ ...layout, columns: layout.columns.map((c, j) => (j === i ? { ...c, ...change } : c)) })
+  const move = (i, by) => {
+    const cols = [...layout.columns]
+    const j = i + by
+    if (j < 0 || j >= cols.length) return
+    ;[cols[i], cols[j]] = [cols[j], cols[i]]
+    setLayout({ ...layout, columns: cols })
+  }
+  const [now] = useState(() => new Date())
+  const days = payPeriodOf(now)
+  const rows = reportRows(data, days, now)
+  const preview = payrollCsv(rows.slice(0, 3), days, data, layout)
+  const missing = missingIds(rows, data, layout)
+  return (
+    <section className="st-section" data-search="payroll-export">
+      <h3 className="tm-h3">Payroll export</h3>
+      <p className="tm-muted small mb-2">Set this once to match the file your payroll service imports (Gusto, QuickBooks, ADP, Paychex…). Reports → Timesheet → Payroll CSV then downloads it in one click.</p>
+      {!data.settings.payrollReady && <p className="tm-warn">This uses update 035. Run <code>supabase/updates/035-payroll-export.sql</code> in Supabase, then reload, before saving here.</p>}
+      <div className="row g-2 mb-2">
+        <div className="col-sm-4">
+          <label className="form-label" htmlFor="px-id">Identify people by</label>
+          <select id="px-id" className="form-select form-select-sm" value={layout.idBy} onChange={(e) => setLayout({ ...layout, idBy: e.target.value })}>
+            {ID_SOURCES.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+          </select>
+        </div>
+        <div className="col-sm-4">
+          <label className="form-label" htmlFor="px-hours">Hours as</label>
+          <select id="px-hours" className="form-select form-select-sm" value={layout.hours} onChange={(e) => setLayout({ ...layout, hours: e.target.value })}>
+            <option value="decimal">Decimals (8.50)</option>
+            <option value="hm">Hours and minutes (8:30)</option>
+          </select>
+        </div>
+        <div className="col-sm-4">
+          <label className="form-label" htmlFor="px-dates">Dates as</label>
+          <select id="px-dates" className="form-select form-select-sm" value={layout.dates} onChange={(e) => setLayout({ ...layout, dates: e.target.value })}>
+            <option value="us">MM/DD/YYYY</option>
+            <option value="iso">YYYY-MM-DD</option>
+          </select>
+        </div>
+      </div>
+      <p className="form-label mb-1">Columns, in order (tick the ones your payroll file has, and use its column names)</p>
+      <ul className="px-cols">
+        {layout.columns.map((c, i) => (
+          <li key={c.id} className={c.on ? '' : 'off'}>
+            <input type="checkbox" className="form-check-input" checked={c.on} aria-label={`Include ${c.label}`} onChange={(e) => setCol(i, { on: e.target.checked })} />
+            <input className="form-control form-control-sm" value={c.label} maxLength={40} aria-label="Column name" disabled={!c.on} onChange={(e) => setCol(i, { label: e.target.value })} />
+            <button type="button" className="btn btn-outline-secondary btn-sm" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm" aria-label="Move down" disabled={i === layout.columns.length - 1} onClick={() => move(i, 1)}>↓</button>
+          </li>
+        ))}
+      </ul>
+      <p className="form-label mb-1 mt-3">Preview (this pay period, first 3 people)</p>
+      <div className="px-preview"><table><tbody>{preview.map((line, i) => <tr key={i}>{line.map((v, j) => (i === 0 ? <th key={j}>{v}</th> : <td key={j}>{String(v)}</td>))}</tr>)}</tbody></table></div>
+      {missing.length > 0 && <p className="tm-warn mt-2">{missing.length} {missing.length === 1 ? 'person has' : 'people have'} no {ID_SOURCES.find((x) => x.id === layout.idBy).label}: {missing.slice(0, 6).join(', ')}{missing.length > 6 ? '…' : ''}. Add it on Team → their page → Edit.</p>}
+      <button type="button" className="btn btn-brand btn-sm mt-3" disabled={busy || !layout.columns.some((c) => c.on)} onClick={() => save({ payrollExport: layout }, 'Saved. Payroll CSV downloads use this layout.')}>Save</button>
       <Result result={result} />
     </section>
   )

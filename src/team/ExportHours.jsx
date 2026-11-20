@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, formatClock } from '../lib/dates.js'
 import { decimalHours, formatHours, moveDays, payPeriodOf, punchMinutes, scheduleWeekOf } from './paycheck.js'
+import { missingIds, payrollCsv, payrollLayout } from './payroll.js'
 import { DEFAULT_FILTERS, daysBetween, downloadCsv, deptLabel, departments, groupRows, inDept, MAX_DAYS, reportRows, unapprovedCount } from './reportFilters.js'
 import { dayLabel, money, scheduleOnly } from './format.js'
 import { describeSpot } from './location.js'
@@ -139,8 +140,14 @@ export default function ExportHours({ data, now, onClose, preset }) {
     }
   }
 
+  const layout = payrollLayout(data.settings.payrollExport)
+  const missing = format === 'payroll' ? missingIds(rows, data, layout) : []
   const exportFile = () => {
     if (!ready()) return
+    if (format === 'payroll') {
+      if (missing.length && !window.confirm(`${missing.length} ${missing.length === 1 ? 'person has' : 'people have'} no ID for payroll: ${missing.join(', ')}. Download anyway?`)) return
+      return downloadCsv(`payroll-${start}-to-${end}.csv`, payrollCsv(rows, days, data, layout))
+    }
     const name = `wiseshift-hours-${format}-${start}-to-${end}.csv`
     if (format === 'summary') {
       const header = ['Employee', ...(staffNo ? ['Staff no.'] : []), 'Position', 'Email', 'Start', 'End', 'Regular hours', 'Overtime hours', 'Total hours', ...(showPay ? ['Hourly rate', 'Gross pay (estimate)'] : [])]
@@ -175,7 +182,7 @@ export default function ExportHours({ data, now, onClose, preset }) {
         <>
           <span className="ex-count me-auto">{rows.length} {rows.length === 1 ? 'person' : 'people'} · {formatHours(sum(rows, (r) => r.hours.total))} hrs</span>
           <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Close</button>
-          <button type="button" className="btn btn-outline-secondary" disabled={!days.length || !rows.length || making} onClick={exportPdf}>{making ? 'Making PDF…' : 'Download PDF'}</button>
+          <button type="button" className="btn btn-outline-secondary" disabled={!days.length || !rows.length || making || format === 'payroll'} onClick={exportPdf}>{making ? 'Making PDF…' : 'Download PDF'}</button>
           <button type="button" className="btn btn-brand" disabled={!days.length || !rows.length} onClick={exportFile}>Download CSV</button>
         </>
       }
@@ -226,6 +233,7 @@ export default function ExportHours({ data, now, onClose, preset }) {
             <legend>Format</legend>
             <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'summary'} onChange={() => setFormat('summary')} /><span><b>Summary</b> · one line per person</span></label>
             <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'detailed'} onChange={() => setFormat('detailed')} /><span><b>Detailed</b> · one line per punch</span></label>
+            {data.settings.payrollReady && <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'payroll'} onChange={() => setFormat('payroll')} /><span><b>Payroll CSV</b> · your saved layout (Settings → Business)</span></label>}
           </fieldset>
           <label className="ex-group">
             <span>Group by</span>
@@ -242,6 +250,7 @@ export default function ExportHours({ data, now, onClose, preset }) {
       </div>
 
       {stillIn.length > 0 && <p className="tm-warn">Still clocked in: {stillIn.map((r) => r.e.name).join(', ')}. Fix any forgotten clock-outs first.</p>}
+      {missing.length > 0 && <p className="tm-warn">{missing.length} {missing.length === 1 ? 'person has' : 'people have'} no ID for payroll: {missing.slice(0, 6).join(', ')}{missing.length > 6 ? '…' : ''}. Add it on Team → their page → Edit.</p>}
       {unapproved > 0 && <p className="tm-warn">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.</p>}
 
       <div className="tm-gridwrap ex-preview">

@@ -171,6 +171,12 @@ function PersonEditor({ employee, pay: savedPay, data, me, onClose }) {
           <label className="form-label" htmlFor="pe-start">Start date</label>
           <input id="pe-start" type="date" className="form-control" value={e.startedOn ?? ''} onChange={setField('startedOn')} />
         </div>
+        {!none && data.settings.payrollReady && (
+          <div className="col-sm-6">
+            <label className="form-label" htmlFor="pe-payroll">Payroll ID</label>
+            <input id="pe-payroll" className="form-control" maxLength={40} placeholder="Their ID in your payroll service" value={pay.payrollId ?? ''} onChange={setPayField('payrollId')} />
+          </div>
+        )}
         <div className="col-sm-6 d-flex align-items-end gap-3 flex-wrap">
           <PillToggle checked={e.active} disabled={self} onChange={(on) => setE({ ...e, active: on })}>Active</PillToggle>
           {!none && (

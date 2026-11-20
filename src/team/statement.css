@@ -851,3 +851,13 @@ html[data-bs-theme] body .tm .rp-narrow { max-width: 820px; }
 html[data-bs-theme] body .tm .rp-diff.over { color: var(--red); font-weight: 700; }
 html[data-bs-theme] body .tm .rp-diff.under { color: #b7791f; font-weight: 700; }
 html[data-bs-theme="dark"] body .tm .rp-diff.under { color: #e0a44f; }
+
+/* Settings → Payroll export */
+html[data-bs-theme] body .px-cols { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-width: 520px; }
+html[data-bs-theme] body .px-cols li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+html[data-bs-theme] body .px-cols li.off .form-control { opacity: 0.55; }
+html[data-bs-theme] body .px-preview { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+html[data-bs-theme] body .px-preview table { border-collapse: collapse; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+html[data-bs-theme] body .px-preview :is(th, td) { padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; text-align: left; }
+html[data-bs-theme] body .px-preview th { color: var(--muted); font-weight: 600; background: var(--head); }
+html[data-bs-theme] body .tm .rp-actions { display: inline-flex; gap: 8px; align-items: center; }
