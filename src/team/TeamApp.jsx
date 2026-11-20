@@ -184,10 +184,12 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   // Screens slide in from the side the tab is on: toward the right for tabs further
   // along the bar (and pages opened from More), toward the left going back.
   const [dir, setDir] = useState('r')
+  const [personFocus, setPersonFocus] = useState(null) // a person picked in the search: { id, tab, n }; the page they open reads it once
   // Tapping Today in the menu always returns a manager to the Today screen, even from My clock or Review inside it.
   const [homeTick, setHomeTick] = useState(0)
   const rank = (id) => (TABS.includes(id) ? TABS.indexOf(id) : TABS.indexOf('more') + 0.5)
   const go = (id) => {
+    setPersonFocus(null)
     if (id !== page) setDir(rank(id) >= rank(page) ? 'r' : 'l')
     setTab(id)
   }
@@ -301,10 +303,10 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {page === 'clock' && <ClockTab key={homeTick} {...shared} onGoTo={go} />}
         {page === 'schedule' && <ScheduleTab {...shared} week={week} onWeek={setWeek} />}
         {page === 'tasks' && <TasksTab {...shared} />}
-        {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
-        {page === 'reports' && (phone ? <DesktopOnly name={tabNames.reports} lang={lang} /> : <ReportsTab data={data} period={period} onPeriod={setPeriod} />)}
+        {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} focus={personFocus} />}
+        {page === 'reports' && (phone ? <DesktopOnly name={tabNames.reports} lang={lang} /> : <ReportsTab data={data} period={period} onPeriod={setPeriod} focus={personFocus} />)}
         {page === 'off' && <TimeOffTab {...shared} />}
-        {page === 'people' && boss && <PeopleTab {...shared} />}
+        {page === 'people' && boss && <PeopleTab {...shared} focus={personFocus} />}
         {page === 'settings' && <SettingsPanel key={settingsStart} start={settingsStart} asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
         {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
@@ -316,6 +318,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
     setSearchOpen(false)
     if (place.settings) setSettingsStart(place.settings)
     go(place.tab)
+    if (place.focus) setPersonFocus({ ...place.focus, tab: place.tab, n: Date.now() })
     setHit(place.find || place.sel ? { find: place.find, sel: place.sel, n: Date.now() } : null)
   }
   const iconButtons = (
@@ -412,7 +415,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {data.error && me && <p className="tm-error" role="alert">Couldn't refresh: {data.error}</p>}
         <div key={page} className={`tm-page slide-${dir}`}>{body}</div>
       </main>
-      <SearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} onPick={goToPlace} ctx={{ boss, features, lang, phone }} />
+      <SearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} onPick={goToPlace} ctx={{ boss, features, lang, phone, employees: data.employees }} />
       {notifying && <NotifySettings data={data} boss={boss} onClose={() => setNotifying(false)} />}
       {me && features.timeClock && <ClockedOutNotice data={data} me={me} lang={lang} />}
       {showOwnerTour && <OwnerOnboarding data={data} me={me} lang={lang} onTeam={() => go('people')} />}

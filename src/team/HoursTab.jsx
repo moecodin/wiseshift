@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, formatClock, fromKey } from '../lib/dates.js'
 import { formatHours, grossPay, moveDays, payPeriodConfig, payPeriodOf, periodHours } from './paycheck.js'
@@ -13,10 +13,10 @@ import Icon from './Icon.jsx'
 
 // Hours. A manager sees the punches (review, approve, fix, add). Everyone else sees their own hours for the pay period
 // and the paycheck estimate. Timesheets and exports live in the Reports tab.
-export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
+export default function HoursTab({ data, me, boss, lang, period, onPeriod, focus }) {
   const now = useNow()
   const current = payPeriodOf(now)[0] === period[0]
-  if (boss) return <div className="tm-narrow desk"><ReviewList data={data} /></div>
+  if (boss) return <div className="tm-narrow desk"><ReviewList data={data} focus={focus} /></div>
   return (
     <div>
       <div className="tm-toolbar">
@@ -118,10 +118,17 @@ export function PunchEditor({ punch, data, onClose }) {
 }
 
 // Managers: everyone's hours for the pay period, like the Humanity timesheet summary.
-export function Timesheet({ data, period, now }) {
+export function Timesheet({ data, period, now, focus }) {
   const weekStart = fromKey(payPeriodConfig().anchor).getDay() // overtime weeks begin on the pay period's first day
   const f = useFeatures()
   const [openRow, setOpenRow] = useState(null) // a person's days and paycheck estimate, from their name
+  const focusedRow = useRef(0)
+  useEffect(() => {
+    if (focus?.tab === 'reports' && focus.n !== focusedRow.current) {
+      focusedRow.current = focus.n
+      setOpenRow(focus.id)
+    }
+  }, [focus])
   const pay = f.payRates // rate and gross columns only when the business uses pay rates
   const rows = data.employees
     .filter((e) => !scheduleOnly(e))

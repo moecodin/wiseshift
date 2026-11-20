@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { searchPlaces } from './searchIndex.js'
+import { searchPeople, searchPlaces } from './searchIndex.js'
 
 // The site search: type what you are looking for ("password", "store hours", "export") and pick where to go.
 // Opened from the menu's Search box, the header's magnifier on a phone, Ctrl/⌘+K, or "/" anywhere.
@@ -15,7 +15,7 @@ export default function SearchPalette({ open, onClose, onPick, ctx }) {
   const [index, setIndex] = useState(0)
   const input = useRef(null)
   const list = useRef(null)
-  const results = useMemo(() => (open ? searchPlaces(query, ctx) : []), [open, query, ctx])
+  const results = useMemo(() => (open ? [...(query.trim() ? searchPeople(query, ctx, ctx.employees ?? []) : []), ...searchPlaces(query, ctx)] : []), [open, query, ctx])
 
   useEffect(() => {
     if (open) {
@@ -47,8 +47,12 @@ export default function SearchPalette({ open, onClose, onPick, ctx }) {
           {!query.trim() && results.length > 0 && <li className="sr-head" aria-hidden="true">{w.suggested}</li>}
           {results.map((r, i) => (
             <li key={r.id} role="option" aria-selected={i === index} className="sr-item" onMouseMove={() => setIndex(i)} onMouseDown={(e) => { e.preventDefault(); onPick(r) }}>
-              <b>{r.title}</b>
-              <small>{r.path}</small>
+              <span className="sr-main"><b>{r.title}</b><small>{r.path}</small></span>
+              {r.kind === 'person' && (
+                <span className="sr-acts">
+                  {r.actions.slice(1).map((a) => <button key={a.key} type="button" tabIndex={-1} onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onPick({ ...r, ...a }) }}>{a.label}</button>)}
+                </span>
+              )}
             </li>
           ))}
           {query.trim() && results.length === 0 && <li className="sr-none">{w.none}</li>}

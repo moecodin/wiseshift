@@ -68,7 +68,7 @@ export default function WeekGrid({ data, me, week, today, people, shifts, editab
             return (
               <tr key={person.id} className={person.id === me.id ? 'me' : ''}>
                 <th scope="row">
-                  <div className="gr-person">
+                  <div className="gr-person" data-person={person.id}>
                     <Avatar employee={person} size={34} />
                     <div>
                       <b>

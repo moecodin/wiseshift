@@ -649,3 +649,11 @@ html[data-bs-theme] body .sr-card { width: min(560px, 100%); max-height: 76vh; d
 @keyframes sr-hit { 0%, 35% { background-color: var(--head); outline: 2px solid var(--ink); outline-offset: 4px; } 100% { background-color: transparent; outline: 2px solid transparent; outline-offset: 4px; } }
 .search-hit { animation: sr-hit 2.2s ease-out; border-radius: var(--r-sm); }
 @media (prefers-reduced-motion: reduce) { html[data-bs-theme] body .sr, html[data-bs-theme] body .sr-card { animation: none; } .search-hit { animation: none; outline: 2px solid var(--ink); outline-offset: 4px; } }
+
+/* People in the search: the name on the left, small buttons for the other places on the right */
+.sr-item { flex-direction: row !important; align-items: center; justify-content: space-between; gap: 12px; }
+.sr-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sr-acts { display: flex; gap: 6px; flex: none; }
+html[data-bs-theme] body .sr-acts button { min-height: 26px; padding: 0 9px; border: 1px solid var(--line); border-radius: var(--r-xs); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; }
+html[data-bs-theme] body .sr-acts button:hover { border-color: var(--ink); color: var(--ink); }
+@media (max-width: 899px) { .sr-item { flex-wrap: wrap; } }

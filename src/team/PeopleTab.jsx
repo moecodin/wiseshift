@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { money, scheduleOnly } from './format.js'
 import { NY_MIN_WAGE } from './taxRates.js'
@@ -26,9 +26,17 @@ const NEW_PAY = {
 }
 
 // Managers: who's on the team, their position, pay rate and tax settings.
-export default function PeopleTab({ data, me }) {
+export default function PeopleTab({ data, me, focus }) {
   const f = useFeatures()
   const [editing, setEditing] = useState(null)
+  const focusedPerson = useRef(0)
+  useEffect(() => {
+    if (focus?.tab === 'people' && focus.n !== focusedPerson.current) {
+      focusedPerson.current = focus.n
+      const found = data.employees.find((x) => x.id === focus.id)
+      if (found) setEditing(found)
+    }
+  }, [focus, data.employees])
   const people = [...data.employees].sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name))
 
   return (

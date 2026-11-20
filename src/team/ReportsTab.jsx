@@ -6,7 +6,7 @@ import ExportHours from './ExportHours.jsx'
 import Icon from './Icon.jsx'
 
 // Reports (managers): everyone's hours for a pay period as a timesheet, with Print and the payroll download.
-export default function ReportsTab({ data, period, onPeriod }) {
+export default function ReportsTab({ data, period, onPeriod, focus }) {
   const now = useNow()
   const [exporting, setExporting] = useState(false)
   const current = payPeriodOf(now)[0] === period[0]
@@ -21,7 +21,7 @@ export default function ReportsTab({ data, period, onPeriod }) {
         </div>
         <button type="button" className="btn btn-brand btn-sm ex-btn desk-only" data-search="export" onClick={() => setExporting(true)}>Export hours…</button>
       </div>
-      <Timesheet data={data} period={period} now={now} />
+      <Timesheet data={data} period={period} now={now} focus={focus} />
       <p className="ex-note">Exports are available on a computer.</p>
       {exporting && <ExportHours data={data} now={now} onClose={() => setExporting(false)} />}
     </div>

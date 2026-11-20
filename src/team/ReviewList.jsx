@@ -32,11 +32,21 @@ const dayShort = (key) => `${DAY_NAMES[fromKey(key).getDay()].slice(0, 3)} ${fro
 // fits on a screen. With groups set up (Settings → Business → Groups) the lines sit in one column per
 // group, each with its own Approve all. ⚠ marks a punch with a warning (hover for the reason, or open
 // Details); the round ✓ approves it, and an Undo shows for a few seconds after any approval.
-export default function ReviewList({ data }) {
+export default function ReviewList({ data, focus }) {
   const now = useNow()
   const [range, setRange] = useState('week') // 'week' (past 7 days), 'period' (this pay period) or 'last' (the one before)
   const [status, setStatus] = useState('pending') // 'pending', 'progress' (still clocked in), 'approved' or 'all'
   const [picked, setPicked] = useState(() => new Set()) // the employees ticked in the picker; none = everyone
+  // Opened from the site search on a person: show just them, this pay period, every status.
+  const focused = useRef(0)
+  useEffect(() => {
+    if (focus?.tab === 'hours' && focus.n !== focused.current) {
+      focused.current = focus.n
+      setPicked(new Set([focus.id]))
+      setRange('period')
+      setStatus('all')
+    }
+  }, [focus])
   const [stepper, setStepper] = useState(null) // Review one by one: the punch ids to step through
   const stepRuns = useRef(0) // a new key each time it starts, so the pop-up starts fresh
   const [adding, setAdding] = useState(null) // a blank punch being added from the toolbar
