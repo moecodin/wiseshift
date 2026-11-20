@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Modal from '../components/Modal.jsx'
 import { dateKey, formatClock, fromKey } from '../lib/dates.js'
-import { formatHours, grossPay, moveDays, payPeriodConfig, payPeriodOf, periodHours } from './paycheck.js'
+import { formatHours, moveDays, payPeriodConfig, payPeriodOf } from './paycheck.js'
 import { DAY_LONG } from './onboardingHelpers.js'
 import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { describeSpot } from './location.js'
@@ -10,6 +10,7 @@ import { useFeatures } from './features.js'
 import TimesheetCards, { PersonHours } from './TimesheetCards.jsx'
 import ReviewList from './ReviewList.jsx'
 import Icon from './Icon.jsx'
+import { DEFAULT_FILTERS, deptLabel, groupRows, reportRows, unapprovedCount } from './reportFilters.js'
 
 // Hours. A manager sees the punches (review, approve, fix, add). Everyone else sees their own hours for the pay period
 // and the paycheck estimate. Timesheets and exports live in the Reports tab.
@@ -118,7 +119,7 @@ export function PunchEditor({ punch, data, onClose }) {
 }
 
 // Managers: everyone's hours for the pay period, like the Humanity timesheet summary.
-export function Timesheet({ data, period, now, focus }) {
+export function Timesheet({ data, period, now, focus, filters = DEFAULT_FILTERS }) {
   const weekStart = fromKey(payPeriodConfig().anchor).getDay() // overtime weeks begin on the pay period's first day
   const f = useFeatures()
   const [openRow, setOpenRow] = useState(null) // a person's days and paycheck estimate, from their name
@@ -130,32 +131,30 @@ export function Timesheet({ data, period, now, focus }) {
     }
   }, [focus])
   const pay = f.payRates // rate and gross columns only when the business uses pay rates
-  const rows = data.employees
-    .filter((e) => !scheduleOnly(e))
-    .map((e) => {
-      const hours = periodHours(data.punches, e.id, period, now)
-      const rate = data.payById[e.id]?.hourlyRate ?? 0
-      return { e, hours, rate, gross: e.payType === 'hourly' ? grossPay(hours, rate).gross : null }
-    })
-    .filter((r) => r.e.active || r.hours.total > 0)
-  const total = (fn) => rows.reduce((sum, r) => sum + fn(r), 0)
-  const stillIn = rows.filter((r) => r.hours.open)
-  // Finished punches nobody has approved yet (Hours → Review).
-  const unapproved = rows.flatMap((r) => r.hours.byDay.flatMap((d) => d.punches)).filter((p) => p.clockOut && !p.approvedAt).length
+  const { approvedOnly, hoursOnly, staffNo, groupBy, dept } = { ...DEFAULT_FILTERS, ...filters }
+  const rows = reportRows(data, period, now, filters)
+  const sections = groupRows(rows, groupBy)
+  const sumOf = (list, fn) => list.reduce((sum, r) => sum + fn(r), 0)
+  const total = (fn) => sumOf(rows, fn)
+  const stillIn = approvedOnly ? [] : rows.filter((r) => r.hours.open)
+  // Finished punches nobody has approved yet (Hours → Review). With "Approved only" they are left out of the numbers.
+  const unapproved = unapprovedCount(data, rows, period)
+  const span = 4 + (staffNo ? 1 : 0) + period.length + (pay ? 2 : 0)
 
   return (
     <div className="ts-print">
       <div className="ts-print-head">
         <b>Timesheet</b>
-        <span>{dayLabel(period[0])} to {dayLabel(period.at(-1))}</span>
+        <span>{dayLabel(period[0])} to {dayLabel(period.at(-1))}{dept !== 'all' ? ` · ${deptLabel(dept)}` : ''}{approvedOnly ? ' · Approved punches only' : ''}</span>
         <small>Printed {now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</small>
       </div>
       {stillIn.length > 0 && (
         <p className="tm-warn no-print">Still clocked in: {stillIn.map((r) => r.e.name).join(', ')}. Fix any forgotten clock-outs before payroll.</p>
       )}
       {unapproved > 0 && (
-        <p className="tm-warn no-print">{unapproved} punch{unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.</p>
+        <p className="tm-warn no-print">{approvedOnly ? `Showing approved punches only: ${unapproved} not approved yet ${unapproved === 1 ? 'is' : 'are'} left out.` : `${unapproved} punch${unapproved === 1 ? '' : 'es'} not approved yet. Approve them on Hours → Review before payroll.`}</p>
       )}
+      {rows.length === 0 && <p className="tm-muted">Nobody matches these filters.</p>}
       <TimesheetCards rows={rows} data={data} pay={pay} total={total} />
       {openRow && rows.find((r) => r.e.id === openRow) && (
         <Modal title={`${rows.find((r) => r.e.id === openRow).e.name} · ${rangeLabel(period)}`} onClose={() => setOpenRow(null)}>
@@ -163,10 +162,11 @@ export function Timesheet({ data, period, now, focus }) {
         </Modal>
       )}
       <div className="tm-gridwrap ts-table">
-        <table className="tm-sheet">
+        <table className={`tm-sheet ${hoursOnly ? 'ts-hours-only' : ''}`}>
           <thead>
             <tr>
               <th scope="col">Name</th>
+              {staffNo && <th scope="col">No.</th>}
               <th scope="col">Total</th>
               <th scope="col">Regular</th>
               <th scope="col">Overtime</th>
@@ -175,34 +175,51 @@ export function Timesheet({ data, period, now, focus }) {
               {pay && <th scope="col">Gross (est.)</th>}
             </tr>
           </thead>
-          <tbody>
-            {rows.map(({ e, hours, rate, gross }) => (
-              <tr key={e.id}>
-                <th scope="row"><button type="button" className="ts-name" onClick={() => setOpenRow(e.id)}>{e.name}</button></th>
-                <td><b>{formatHours(hours.total)}</b></td>
-                <td>{formatHours(hours.regular)}</td>
-                <td className={hours.overtime ? 'tm-ot' : ''}>{formatHours(hours.overtime)}</td>
-                {hours.byDay.map((d) => (
-                  <td key={d.date} className="tm-cell">
-                    {d.punches.map((p) => {
-                      const away = [p.inSpot, p.clockOut && p.outSpot].some((x) => x && describeSpot(x, data.shop).far)
-                      return (
-                        <div key={p.id} className={away ? 'tm-away' : ''} title={away ? 'Clocked in or out away from the shop' : undefined}>
-                          {formatClock(p.clockIn)}–{p.clockOut ? formatClock(p.clockOut) : 'in'}{away && <small className="ts-away"> away</small>}
-                        </div>
-                      )
-                    })}
-                    {d.minutes > 0 && <b>{formatHours(d.minutes)}</b>}
-                  </td>
-                ))}
-                {pay && <td>{e.payType === 'hourly' ? money(rate) : 'Commission'}</td>}
-                {pay && <td>{gross === null ? '—' : money(gross)}</td>}
-              </tr>
-            ))}
-          </tbody>
+          {sections.map((sec) => (
+            <tbody key={sec.name || 'all'}>
+              {sec.name && <tr className="ts-group"><th scope="rowgroup" colSpan={span}>{sec.name} <small>{sec.rows.length} {sec.rows.length === 1 ? 'person' : 'people'}</small></th></tr>}
+              {sec.rows.map(({ e, hours, rate, gross }) => (
+                <tr key={e.id}>
+                  <th scope="row"><button type="button" className="ts-name" onClick={() => setOpenRow(e.id)}>{e.name}</button></th>
+                  {staffNo && <td className="ts-no">{e.staffNo ?? '—'}</td>}
+                  <td><b>{formatHours(hours.total)}</b></td>
+                  <td>{formatHours(hours.regular)}</td>
+                  <td className={hours.overtime ? 'tm-ot' : ''}>{formatHours(hours.overtime)}</td>
+                  {hours.byDay.map((d) => (
+                    <td key={d.date} className="tm-cell">
+                      {!hoursOnly && d.punches.map((p) => {
+                        const away = [p.inSpot, p.clockOut && p.outSpot].some((x) => x && describeSpot(x, data.shop).far)
+                        return (
+                          <div key={p.id} className={away ? 'tm-away' : ''} title={away ? 'Clocked in or out away from the shop' : undefined}>
+                            {formatClock(p.clockIn)}–{p.clockOut ? formatClock(p.clockOut) : 'in'}{away && <small className="ts-away"> away</small>}
+                          </div>
+                        )
+                      })}
+                      {d.minutes > 0 && <b>{formatHours(d.minutes)}</b>}
+                    </td>
+                  ))}
+                  {pay && <td>{e.payType === 'hourly' ? money(rate) : 'Commission'}</td>}
+                  {pay && <td>{gross === null ? '—' : money(gross)}</td>}
+                </tr>
+              ))}
+              {sec.name && (
+                <tr className="ts-subtotal">
+                  <th scope="row">Subtotal</th>
+                  {staffNo && <td />}
+                  <td><b>{formatHours(sumOf(sec.rows, (r) => r.hours.total))}</b></td>
+                  <td>{formatHours(sumOf(sec.rows, (r) => r.hours.regular))}</td>
+                  <td>{formatHours(sumOf(sec.rows, (r) => r.hours.overtime))}</td>
+                  {period.map((d, i) => <td key={d}>{formatHours(sumOf(sec.rows, (r) => r.hours.byDay[i].minutes))}</td>)}
+                  {pay && <td />}
+                  {pay && <td>{money(sumOf(sec.rows, (r) => r.gross ?? 0))}</td>}
+                </tr>
+              )}
+            </tbody>
+          ))}
           <tfoot>
             <tr>
               <th scope="row">Total</th>
+              {staffNo && <td />}
               <td><b>{formatHours(total((r) => r.hours.total))}</b></td>
               <td>{formatHours(total((r) => r.hours.regular))}</td>
               <td>{formatHours(total((r) => r.hours.overtime))}</td>

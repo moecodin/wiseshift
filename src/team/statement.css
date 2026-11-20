@@ -812,3 +812,42 @@ html[data-bs-theme] body .tm .pf-sec, html[data-bs-theme] body .tm .pf-sec:last-
 html[data-bs-theme] body .tm .pf-sec .tm-h3 { margin-top: 0; }
 html[data-bs-theme] body .tm .pf .st-section { margin: 0 0 12px; }
 html[data-bs-theme] body .tm .pf > .tm-link { display: inline-block; margin-top: 4px; }
+
+/* Reports: the filter bar */
+html[data-bs-theme] body .tm .rp-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+html[data-bs-theme] body .tm .rp-when { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+html[data-bs-theme] body .tm .rp-when .form-select { width: auto; }
+html[data-bs-theme] body .tm .rp-when input[type="date"] { width: auto; }
+html[data-bs-theme] body .tm .rp-range { min-width: 130px; text-align: center; }
+html[data-bs-theme] body .tm .rp-filters { display: flex; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+html[data-bs-theme] body .tm .rp-field { display: flex; flex-direction: column; gap: 4px; margin: 0; min-width: 160px; }
+html[data-bs-theme] body .tm .rp-field > span, html[data-bs-theme] body .tm .rp-people summary > span { font-size: 12px; font-weight: 600; color: var(--muted); }
+html[data-bs-theme] body .tm .rp-people { position: relative; }
+html[data-bs-theme] body .tm .rp-people summary { list-style: none; display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
+html[data-bs-theme] body .tm .rp-people summary::-webkit-details-marker { display: none; }
+html[data-bs-theme] body .tm .rp-people summary > b { display: block; padding: 4px 30px 4px 10px; border: 1px solid var(--btn-line, var(--line)); border-radius: 6px; font-size: 14px; font-weight: 500; line-height: 1.5; background: var(--paper); position: relative; }
+html[data-bs-theme] body .tm .rp-people summary > b::after { content: '▾'; position: absolute; right: 10px; color: var(--muted); }
+html[data-bs-theme] body .tm .rp-people-list { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; width: 260px; max-height: 320px; overflow: auto; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); }
+html[data-bs-theme="dark"] body .tm .rp-people-list { background: rgb(27, 28, 27) !important; }
+html[data-bs-theme] body .tm .rp-people-all { display: flex; gap: 12px; margin-bottom: 4px; }
+html[data-bs-theme] body .tm .rp-toggles { display: flex; gap: 6px 16px; flex-wrap: wrap; padding-bottom: 4px; }
+html[data-bs-theme] body .tm .rp-toggles .form-check { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+/* Timesheet: group headings, subtotals, the staff number and the hours-only look */
+html[data-bs-theme] body .tm .tm-sheet .ts-group th { text-align: left; padding: 10px 8px 6px; font-weight: 700; background: var(--head); }
+html[data-bs-theme] body .tm .tm-sheet .ts-group small { margin-left: 8px; color: var(--muted); font-weight: 500; }
+html[data-bs-theme] body .tm .tm-sheet .ts-subtotal th, html[data-bs-theme] body .tm .tm-sheet .ts-subtotal td { font-weight: 600; color: var(--muted); border-top: 1px solid var(--line); }
+html[data-bs-theme] body .tm .tm-sheet .ts-no { color: var(--muted); font-variant-numeric: tabular-nums; }
+html[data-bs-theme] body .tm .tm-sheet.ts-hours-only td.tm-cell { text-align: center; }
+html[data-bs-theme] body .tm .tm-sheet.ts-hours-only td.tm-cell b { font-weight: 600; }
+.modal-content .ex-group { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 14px; }
+.modal-content .ex-group .form-select { width: auto; }
+@media print { .rp-bar, .rp-filters { display: none !important; } }
+
+/* Reports: report types and the extra reports */
+html[data-bs-theme] body .tm .rp-types { display: inline-flex; margin-bottom: 12px; max-width: 100%; overflow-x: auto; }
+html[data-bs-theme] body .tm .rp-types button { white-space: nowrap; }
+html[data-bs-theme] body .tm .rp-report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+html[data-bs-theme] body .tm .rp-narrow { max-width: 820px; }
+html[data-bs-theme] body .tm .rp-diff.over { color: var(--red); font-weight: 700; }
+html[data-bs-theme] body .tm .rp-diff.under { color: #b7791f; font-weight: 700; }
+html[data-bs-theme="dark"] body .tm .rp-diff.under { color: #e0a44f; }

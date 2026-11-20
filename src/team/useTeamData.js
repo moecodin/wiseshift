@@ -156,6 +156,8 @@ async function loadLive(email, week, period, today) {
   const todayKey = dateKey(today)
   const recent = [addDays(todayKey, -REVIEW_DAYS), todayKey]
   const shiftRanges = ranges(week, scheduleWeekOf(today), [recent[0], addDays(todayKey, 60)])
+  // The dates picked on Reports (or the pay period), so scheduled hours can be compared with worked hours.
+  shiftRanges.push([period[0], period.at(-1)])
   const punchRanges = ranges(period, payPeriodOf(today), recent)
   // The pay period before this one too, for the Pocket Trainer's level-up message.
   const before = payPeriodOf(fromKey(addDays(payPeriodOf(today)[0], -1)))

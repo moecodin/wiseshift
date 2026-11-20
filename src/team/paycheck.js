@@ -64,7 +64,7 @@ export function payPeriodFor(date, config) {
 export const payPeriodOf = (date) => payPeriodFor(date, CONFIG)
 
 // Is this list of days a pay period (rather than a Sunday-first schedule week)?
-const isPayPeriod = (days) => days.length === 14 || (days.length === CONFIG.days && fromKey(days[0]).getDay() === fromKey(CONFIG.anchor).getDay())
+export const isPayPeriod = (days) => days.length === 14 || (days.length === CONFIG.days && fromKey(days[0]).getDay() === fromKey(CONFIG.anchor).getDay())
 
 // The picker's three answers → a config, and back. `weekday` is 0 (Sunday) to 6; `secondWeek` says whether today
 // falls in the second week of a two-week period. The period that contains today starts on the latest `weekday` on or before it

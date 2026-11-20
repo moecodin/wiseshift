@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import Modal from '../components/Modal.jsx'
-import { dateKey, formatClock, fromKey } from '../lib/dates.js'
-import { decimalHours, formatHours, grossPay, moveDays, payPeriodOf, periodHours, punchMinutes, scheduleWeekOf } from './paycheck.js'
+import { dateKey, formatClock } from '../lib/dates.js'
+import { decimalHours, formatHours, moveDays, payPeriodOf, punchMinutes, scheduleWeekOf } from './paycheck.js'
+import { DEFAULT_FILTERS, daysBetween, downloadCsv, deptLabel, departments, groupRows, inDept, MAX_DAYS, reportRows, unapprovedCount } from './reportFilters.js'
 import { dayLabel, money, scheduleOnly } from './format.js'
 import { describeSpot } from './location.js'
 import { useFeatures } from './features.js'
@@ -18,21 +19,6 @@ const TIMELINES = [
   { id: 'lastWeek', label: 'Last week' },
   { id: 'custom', label: 'Custom dates' },
 ]
-const MAX_DAYS = 92
-
-// The date keys from one date to another, both included (nothing if they're backwards or absurdly far apart).
-function daysBetween(start, end) {
-  if (!start || !end || end < start) return []
-  const out = []
-  const d = fromKey(start)
-  for (let i = 0; i < MAX_DAYS; i++) {
-    const key = dateKey(d)
-    out.push(key)
-    if (key >= end) break
-    d.setDate(d.getDate() + 1)
-  }
-  return out
-}
 function timelineDays(id, now, start, end) {
   const period = payPeriodOf(now)
   const week = scheduleWeekOf(now)
@@ -43,28 +29,27 @@ function timelineDays(id, now, start, end) {
   return daysBetween(start, end)
 }
 
-const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
-function download(fileName, rows) {
-  // The leading mark makes Excel read names with accents correctly.
-  const text = `﻿${rows.map((r) => r.map(cell).join(',')).join('\r\n')}\r\n`
-  const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  document.body.append(link)
-  link.click()
-  link.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+// Which timeline a list of days is, so the pop-up opens on what the Reports page shows.
+function timelineOf(days, now) {
+  for (const t of ['period', 'lastPeriod', 'week', 'lastWeek']) {
+    const d = timelineDays(t, now)
+    if (d[0] === days[0] && d.at(-1) === days.at(-1)) return t
+  }
+  return 'custom'
 }
 
-export default function ExportHours({ data, now, onClose }) {
+export default function ExportHours({ data, now, onClose, preset }) {
+  const start0 = preset?.filters ?? DEFAULT_FILTERS
   const f = useFeatures()
-  const [timeline, setTimeline] = useState('period')
-  const [customStart, setCustomStart] = useState(() => dateKey(now))
-  const [customEnd, setCustomEnd] = useState(() => dateKey(now))
-  const [position, setPosition] = useState('all')
-  const [excluded, setExcluded] = useState(() => new Set()) // people unticked in the list
-  const [group, setGroup] = useState(false)
+  const [timeline, setTimeline] = useState(() => (preset?.days ? timelineOf(preset.days, now) : 'period'))
+  const [customStart, setCustomStart] = useState(() => preset?.days?.[0] ?? dateKey(now))
+  const [customEnd, setCustomEnd] = useState(() => preset?.days?.at(-1) ?? dateKey(now))
+  const [dept, setDept] = useState(start0.dept)
+  const [excluded, setExcluded] = useState(() => new Set(start0.picked ? data.employees.filter((e) => !start0.picked.includes(e.id)).map((e) => e.id) : [])) // people unticked in the list
+  const [groupBy, setGroupBy] = useState(start0.groupBy)
+  const [approvedOnly, setApprovedOnly] = useState(start0.approvedOnly)
+  const [staffNo, setStaffNo] = useState(start0.staffNo)
+  const group = groupBy !== 'none'
   const [format, setFormat] = useState('summary')
   const [withPay, setWithPay] = useState(false)
   const [making, setMaking] = useState(false) // building the PDF
@@ -73,28 +58,20 @@ export default function ExportHours({ data, now, onClose }) {
   const start = days[0] ?? ''
   const end = days.at(-1) ?? ''
 
-  // Everyone who clocks in, then narrowed by position and the people ticked in the list.
-  const people = data.employees.filter((e) => !scheduleOnly(e))
-  const positions = [...new Set(people.map((e) => e.position).filter(Boolean))].sort()
-  const rows = useMemo(() => {
-    const list = people
-      .filter((e) => position === 'all' || e.position === position)
-      .filter((e) => !excluded.has(e.id))
-      .map((e) => {
-        const hours = periodHours(data.punches, e.id, days, now)
-        const rate = data.payById[e.id]?.hourlyRate ?? 0
-        return { e, hours, rate, gross: e.payType === 'hourly' ? grossPay(hours, rate).gross : null }
-      })
-      .filter((r) => r.e.active || r.hours.total > 0)
-    return list.sort((a, b) => (group ? (a.e.position || '').localeCompare(b.e.position || '') : 0) || a.e.name.localeCompare(b.e.name))
+  // Everyone who clocks in, narrowed by department, the people ticked in the list and "Approved only" (the same rules as the Reports page).
+  const people = data.employees.filter((e) => !scheduleOnly(e)).sort((a, b) => a.name.localeCompare(b.name))
+  const { groups: groupNames, positions } = departments(data)
+  const rows = useMemo(
+    () => reportRows(data, days, now, { dept, picked: people.filter((e) => !excluded.has(e.id)).map((e) => e.id), groupBy, approvedOnly }),
     // people comes from data.employees, which changes identity every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.employees, data.punches, data.payById, days, position, excluded, group, now])
+    [data.employees, data.punches, data.payById, days, dept, excluded, groupBy, approvedOnly, now],
+  )
 
   const sum = (list, fn) => list.reduce((total, r) => total + fn(r), 0)
   const stillIn = rows.filter((r) => r.hours.open)
-  const unapproved = rows.flatMap((r) => r.hours.byDay.flatMap((d) => d.punches)).filter((p) => p.clockOut && !p.approvedAt).length
-  const groups = group ? [...new Set(rows.map((r) => r.e.position || 'No position'))].map((name) => ({ name, rows: rows.filter((r) => (r.e.position || 'No position') === name) })) : [{ name: '', rows }]
+  const unapproved = approvedOnly ? 0 : unapprovedCount(data, rows, days)
+  const groups = groupRows(rows, groupBy)
   const showPay = f.payRates && withPay
 
   const toggle = (id) => {
@@ -116,28 +93,28 @@ export default function ExportHours({ data, now, onClose }) {
     try {
       const { downloadPdf } = await import('./exportPdf.js')
       const place = (spot) => (spot ? describeSpot(spot, data.shop).label : 'No location')
-      const filters = [position === 'all' ? 'All positions' : position, `${rows.length} ${rows.length === 1 ? 'person' : 'people'}`, format === 'summary' ? 'Summary' : 'Detailed']
+      const filters = [deptLabel(dept), ...(approvedOnly ? ['Approved punches only'] : []), `${rows.length} ${rows.length === 1 ? 'person' : 'people'}`, format === 'summary' ? 'Summary' : 'Detailed']
       let tables
       if (format === 'summary') {
-        const head = ['Employee', 'Position', 'Regular', 'Overtime', 'Total', ...(showPay ? ['Rate', 'Gross (est.)'] : [])]
+        const head = ['Employee', ...(staffNo ? ['Staff no.'] : []), 'Position', 'Regular', 'Overtime', 'Total', ...(showPay ? ['Rate', 'Gross (est.)'] : [])]
         const body = []
         const boldRows = []
         for (const g of groups) {
           for (const r of g.rows) {
-            body.push([r.e.name, r.e.position || '', formatHours(r.hours.regular), formatHours(r.hours.overtime), formatHours(r.hours.total), ...(showPay ? [r.e.payType === 'hourly' ? money(r.rate) : 'Commission', r.gross === null ? '' : money(r.gross)] : [])])
+            body.push([r.e.name, ...(staffNo ? [r.e.staffNo ?? ''] : []), r.e.position || '', formatHours(r.hours.regular), formatHours(r.hours.overtime), formatHours(r.hours.total), ...(showPay ? [r.e.payType === 'hourly' ? money(r.rate) : 'Commission', r.gross === null ? '' : money(r.gross)] : [])])
           }
           if (group) {
             boldRows.push(body.length)
-            body.push([`Subtotal: ${g.name}`, '', formatHours(sum(g.rows, (r) => r.hours.regular)), formatHours(sum(g.rows, (r) => r.hours.overtime)), formatHours(sum(g.rows, (r) => r.hours.total)), ...(showPay ? ['', money(sum(g.rows, (r) => r.gross ?? 0))] : [])])
+            body.push([`Subtotal: ${g.name}`, ...(staffNo ? [''] : []), '', formatHours(sum(g.rows, (r) => r.hours.regular)), formatHours(sum(g.rows, (r) => r.hours.overtime)), formatHours(sum(g.rows, (r) => r.hours.total)), ...(showPay ? ['', money(sum(g.rows, (r) => r.gross ?? 0))] : [])])
           }
         }
-        const foot = ['Total', '', formatHours(sum(rows, (r) => r.hours.regular)), formatHours(sum(rows, (r) => r.hours.overtime)), formatHours(sum(rows, (r) => r.hours.total)), ...(showPay ? ['', money(sum(rows, (r) => r.gross ?? 0))] : [])]
+        const foot = ['Total', ...(staffNo ? [''] : []), '', formatHours(sum(rows, (r) => r.hours.regular)), formatHours(sum(rows, (r) => r.hours.overtime)), formatHours(sum(rows, (r) => r.hours.total)), ...(showPay ? ['', money(sum(rows, (r) => r.gross ?? 0))] : [])]
         tables = [{ head, body, boldRows, foot }]
       } else {
         tables = rows
           .filter((r) => r.hours.byDay.some((d) => d.punches.length))
           .map((r) => ({
-            heading: `${r.e.name}${r.e.position ? ` · ${r.e.position}` : ''}`,
+            heading: `${r.e.name}${staffNo && r.e.staffNo ? ` (no. ${r.e.staffNo})` : ''}${r.e.position ? ` · ${r.e.position}` : ''}`,
             head: ['Date', 'Clock in', 'Clock out', 'Hours', ...(f.location ? ['Clocked in at', 'Clocked out at'] : []), 'Approved', 'Note'],
             body: r.hours.byDay.flatMap((d) =>
               d.punches.map((p) => [
@@ -166,26 +143,26 @@ export default function ExportHours({ data, now, onClose }) {
     if (!ready()) return
     const name = `wiseshift-hours-${format}-${start}-to-${end}.csv`
     if (format === 'summary') {
-      const header = ['Employee', 'Position', 'Email', 'Start', 'End', 'Regular hours', 'Overtime hours', 'Total hours', ...(showPay ? ['Hourly rate', 'Gross pay (estimate)'] : [])]
-      const line = (r) => [r.e.name, r.e.position, r.e.email, start, end, decimalHours(r.hours.regular), decimalHours(r.hours.overtime), decimalHours(r.hours.total), ...(showPay ? [r.e.payType === 'hourly' ? r.rate : 'commission', r.gross ?? ''] : [])]
+      const header = ['Employee', ...(staffNo ? ['Staff no.'] : []), 'Position', 'Email', 'Start', 'End', 'Regular hours', 'Overtime hours', 'Total hours', ...(showPay ? ['Hourly rate', 'Gross pay (estimate)'] : [])]
+      const line = (r) => [r.e.name, ...(staffNo ? [r.e.staffNo ?? ''] : []), r.e.position, r.e.email, start, end, decimalHours(r.hours.regular), decimalHours(r.hours.overtime), decimalHours(r.hours.total), ...(showPay ? [r.e.payType === 'hourly' ? r.rate : 'commission', r.gross ?? ''] : [])]
       const lines = groups.flatMap((g) => [
         ...g.rows.map(line),
-        ...(group ? [[`Subtotal: ${g.name}`, '', '', '', '', decimalHours(sum(g.rows, (r) => r.hours.regular)), decimalHours(sum(g.rows, (r) => r.hours.overtime)), decimalHours(sum(g.rows, (r) => r.hours.total)), ...(showPay ? ['', sum(g.rows, (r) => r.gross ?? 0)] : [])]] : []),
+        ...(group ? [[`Subtotal: ${g.name}`, ...(staffNo ? [''] : []), '', '', '', '', decimalHours(sum(g.rows, (r) => r.hours.regular)), decimalHours(sum(g.rows, (r) => r.hours.overtime)), decimalHours(sum(g.rows, (r) => r.hours.total)), ...(showPay ? ['', sum(g.rows, (r) => r.gross ?? 0)] : [])]] : []),
       ])
-      download(name, [header, ...lines])
+      downloadCsv(name, [header, ...lines])
     } else {
       const place = (spot) => (spot ? describeSpot(spot, data.shop).label : 'No location')
-      const header = ['Employee', 'Position', 'Date', 'Clock in', 'Clock out', 'Hours', ...(f.location ? ['Clocked in at', 'Clocked out at'] : []), 'Approved', 'Fixed', 'Note']
+      const header = ['Employee', ...(staffNo ? ['Staff no.'] : []), 'Position', 'Date', 'Clock in', 'Clock out', 'Hours', ...(f.location ? ['Clocked in at', 'Clocked out at'] : []), 'Approved', 'Fixed', 'Note']
       const lines = rows.flatMap((r) =>
         r.hours.byDay.flatMap((d) =>
           d.punches.map((p) => [
-            r.e.name, r.e.position, d.date, formatClock(p.clockIn), p.clockOut ? formatClock(p.clockOut) : 'still in', decimalHours(punchMinutes(p, now)),
+            r.e.name, ...(staffNo ? [r.e.staffNo ?? ''] : []), r.e.position, d.date, formatClock(p.clockIn), p.clockOut ? formatClock(p.clockOut) : 'still in', decimalHours(punchMinutes(p, now)),
             ...(f.location ? [place(p.inSpot), p.clockOut ? place(p.outSpot) : ''] : []),
             p.approvedAt ? 'Yes' : 'No', p.editedBy ? `Fixed by ${p.editedBy}` : '', p.note,
           ]),
         ),
       )
-      download(name, [header, ...lines])
+      downloadCsv(name, [header, ...lines])
     }
   }
 
@@ -219,10 +196,11 @@ export default function ExportHours({ data, now, onClose }) {
           <input id="ex-end" type="date" className="form-control" value={timeline === 'custom' ? customEnd : end} disabled={timeline !== 'custom'} onChange={(e) => setCustomEnd(e.target.value)} />
         </div>
         <div>
-          <label className="form-label" htmlFor="ex-position">Position</label>
-          <select id="ex-position" className="form-select" value={position} onChange={(e) => setPosition(e.target.value)}>
-            <option value="all">All positions</option>
-            {positions.map((p) => <option key={p} value={p}>{p}</option>)}
+          <label className="form-label" htmlFor="ex-position">Department</label>
+          <select id="ex-position" className="form-select" value={dept} onChange={(e) => setDept(e.target.value)}>
+            <option value="all">Everyone</option>
+            {groupNames.length > 0 && <optgroup label="Staff groups">{groupNames.map((g) => <option key={g} value={`g:${g}`}>{g}</option>)}</optgroup>}
+            {positions.length > 0 && <optgroup label="Positions">{positions.map((p) => <option key={p} value={`p:${p}`}>{p}</option>)}</optgroup>}
           </select>
         </div>
       </div>
@@ -236,7 +214,7 @@ export default function ExportHours({ data, now, onClose }) {
             <button type="button" className="tm-link small" onClick={() => setExcluded(new Set())}>All</button>
             <button type="button" className="tm-link small" onClick={() => setExcluded(new Set(people.map((e) => e.id)))}>None</button>
           </div>
-          {people.filter((e) => position === 'all' || e.position === position).map((e) => (
+          {people.filter((e) => inDept(e, dept)).map((e) => (
             <label key={e.id} className="ex-check">
               <input type="checkbox" className="form-check-input" checked={!excluded.has(e.id)} onChange={() => toggle(e.id)} />
               <span>{e.name}{e.active ? '' : ' (not active)'}</span>
@@ -249,7 +227,16 @@ export default function ExportHours({ data, now, onClose }) {
             <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'summary'} onChange={() => setFormat('summary')} /><span><b>Summary</b> · one line per person</span></label>
             <label className="ex-check"><input type="radio" className="form-check-input" name="ex-format" checked={format === 'detailed'} onChange={() => setFormat('detailed')} /><span><b>Detailed</b> · one line per punch</span></label>
           </fieldset>
-          <label className="ex-check"><input type="checkbox" className="form-check-input" checked={group} onChange={(e) => setGroup(e.target.checked)} /><span>Group by position</span></label>
+          <label className="ex-group">
+            <span>Group by</span>
+            <select className="form-select form-select-sm" value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
+              <option value="none">Nothing</option>
+              {groupNames.length > 0 && <option value="group">Staff group</option>}
+              <option value="position">Position</option>
+            </select>
+          </label>
+          <label className="ex-check"><input type="checkbox" className="form-check-input" checked={approvedOnly} onChange={(e) => setApprovedOnly(e.target.checked)} /><span>Approved punches only</span></label>
+          <label className="ex-check"><input type="checkbox" className="form-check-input" checked={staffNo} onChange={(e) => setStaffNo(e.target.checked)} /><span>Include staff no.</span></label>
           {f.payRates && <label className="ex-check"><input type="checkbox" className="form-check-input" checked={withPay} onChange={(e) => setWithPay(e.target.checked)} /><span>Include pay rates and gross estimate</span></label>}
         </div>
       </div>
