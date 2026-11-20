@@ -10,6 +10,8 @@ import KioskSettings from './KioskSettings.jsx'
 import { FEATURES, PRESETS, featuresOf, presetFeatures, useFeatures } from './features.js'
 import { dayName, say } from './words.js'
 import Icon from './Icon.jsx'
+import { AVATAR_COLORS } from './avatarColors.js'
+import Avatar from './Avatar.jsx'
 import { defaultHours, hoursProblem, normalizeHours, presetsFromHours, shrinkImage } from './onboardingHelpers.js'
 import StoreHoursFields from './StoreHours.jsx'
 
@@ -65,6 +67,7 @@ function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
         </button>
       </section>
       <Language data={data} />
+      <MyColor data={data} me={me} />
       <section className="st-section">
         <h3 className="tm-h3">Notifications</h3>
         <NotifyOptions data={data} boss={boss} />
@@ -86,6 +89,30 @@ function MySettings({ data, me, boss, onToggleTheme, onSignOut }) {
         </ul>
       </section>
     </>
+  )
+}
+
+// The color of your badge, so the manager (and everyone) can tell you apart at a glance (update 032).
+function MyColor({ data, me }) {
+  const [result, setResult] = useState(null)
+  const pick = async (color) => {
+    const problem = await data.actions.setMyAvatarColor(color)
+    setResult(problem ? { error: problem } : null)
+  }
+  const mine = data.employees.find((e) => e.id === me.id) ?? me
+  return (
+    <section className="st-section">
+      <h3 className="tm-h3">{data.lang === 'es' ? 'Tu color' : 'Your color'}</h3>
+      <div className="av-picks" role="group" aria-label={data.lang === 'es' ? 'Color de tu insignia' : 'Your badge color'}>
+        {AVATAR_COLORS.map((c) => (
+          <button key={c} type="button" className="av-pick" aria-pressed={!mine.avatarAuto && mine.avatarColor === c} aria-label={c} onClick={() => pick(c)}>
+            <Avatar employee={{ ...mine, avatarColor: c }} size={40} />
+          </button>
+        ))}
+      </div>
+      <button type="button" className="tm-link small mt-2" disabled={Boolean(mine.avatarAuto)} onClick={() => pick(null)}>{data.lang === 'es' ? 'Color automático' : 'Use an automatic color'}</button>
+      <Result result={result} />
+    </section>
   )
 }
 

@@ -12,6 +12,7 @@ import { minutesBetween, payPeriodOf, scheduleWeekOf } from './paycheck.js'
 import { createSampleTeam } from './sampleTeam.js'
 import { createRestaurantSample } from './sampleRestaurant.js'
 import { tellPush } from './app.js'
+import { leastUsedColor, withAvatarColors } from './avatarColors.js'
 import { DEFAULT_SETTINGS, roundPunch, settingsFromRow, settingsToRow, unroundPunch } from './settings.js'
 
 const REFRESH_MS = 30000
@@ -37,6 +38,7 @@ const employeeFromRow = (r) => ({
   id: r.id, name: r.name, email: r.email ?? '', position: r.position ?? '', isManager: r.is_manager, payType: r.pay_type, active: r.active,
   group: r.group_name, // update 030: undefined before it is run, null or a group name after
   startedOn: r.started_on ?? '', staffNo: r.staff_no ?? null, // update 016
+  avatarColor: r.avatar_color ?? null, avatarReady: r.avatar_color !== undefined, // update 032
 })
 const payFromRow = (r) => ({
   employeeId: r.employee_id,
@@ -207,7 +209,7 @@ async function loadLive(email, week, period, today) {
   const list = employees.data.map(employeeFromRow)
   return {
     me: list.find((e) => e.email && e.email.toLowerCase() === email.toLowerCase()) ?? null,
-    employees: list,
+    employees: withAvatarColors(list),
     payById: Object.fromEntries(pay.data.map((r) => [r.employee_id, payFromRow(r)])),
     shifts,
     punches,
@@ -260,7 +262,7 @@ function sampleView(state, viewAs) {
   const own = (x) => boss || x.employeeId === viewAs
   return {
     me,
-    employees: [...state.employees].sort((a, b) => a.name.localeCompare(b.name)),
+    employees: withAvatarColors([...state.employees].sort((a, b) => a.name.localeCompare(b.name))),
     payById: Object.fromEntries(Object.entries(state.pay).filter(([id]) => boss || id === viewAs)),
     shifts: state.shifts.filter((x) => boss || x.published),
     punches: state.punches.filter(own),
@@ -462,6 +464,12 @@ export function useTeamData({ signedIn, email, week, period }) {
       if (!usingSupabase) return change((s) => ({ ...s, prefs: { ...s.prefs, [viewAs]: { ...s.prefs?.[viewAs], lang } } }))
       const problem = await run(supabase.rpc('set_my_lang', { new_lang: lang }))
       return problem && /set_my_lang|schema cache/.test(problem) ? "The language setting isn't in the database yet." : problem
+    },
+    // Your badge color (update 032). null goes back to the automatic one.
+    setMyAvatarColor: async (color) => {
+      if (!usingSupabase) return change((s) => ({ ...s, employees: s.employees.map((e) => (e.id === viewAs ? { ...e, avatarColor: color } : e)) }))
+      const problem = await run(supabase.rpc('set_my_avatar_color', { new_color: color ?? '' }))
+      return problem && /set_my_avatar_color|schema cache/.test(problem) ? "Badge colors aren't in the database yet." : problem
     },
     setPushOff: async (kinds) => {
       if (!usingSupabase) return change((s) => ({ ...s, prefs: { ...s.prefs, [viewAs]: { ...s.prefs?.[viewAs], pushOff: kinds } } }))
@@ -957,7 +965,7 @@ export function useTeamData({ signedIn, email, week, period }) {
       }
       // Schedule-only people (update 020) have no email, manager access or pay.
       const none = employee.payType === 'none'
-      const row = { name: employee.name.trim(), email: none ? null : employee.email.trim().toLowerCase(), position: employee.position.trim(), is_manager: none ? false : employee.isManager, ...(employee.startedOn !== undefined ? { started_on: employee.startedOn || null } : {}), ...(employee.group !== undefined ? { group_name: employee.group || null } : {}), pay_type: employee.payType, active: employee.active }
+      const row = { name: employee.name.trim(), email: none ? null : employee.email.trim().toLowerCase(), position: employee.position.trim(), is_manager: none ? false : employee.isManager, ...(employee.startedOn !== undefined ? { started_on: employee.startedOn || null } : {}), ...(employee.group !== undefined ? { group_name: employee.group || null } : {}), ...(!employee.id && view.employees[0]?.avatarReady ? { avatar_color: leastUsedColor(view.employees.map((e) => e.avatarColor)) } : {}), pay_type: employee.payType, active: employee.active }
       const saved = employee.id
         ? await supabase.from('employees').update(row).eq('id', employee.id).select().single()
         : await supabase.from('employees').insert(row).select().single()
