@@ -950,3 +950,18 @@ html[data-bs-theme="dark"] body .tm :is(.hr-hero, .sc-hero.today) small { color:
 html[data-bs-theme="dark"] body .tm .hr-hero .hr-bar { background: var(--line) !important; }
 html[data-bs-theme="dark"] body .tm .hr-hero .hr-bar i { background: var(--ok) !important; }
 html[data-bs-theme] body .tm .sc-row.past { opacity: 0.55; }
+
+/* Today: everyone who hasn't clocked in, in one card */
+html[data-bs-theme] body .tm .mt-alert.mt-group { display: block; padding: 14px 16px; }
+html[data-bs-theme] body .tm .mt-group-head { display: flex; align-items: center; gap: 12px; }
+html[data-bs-theme] body .tm .mt-group-head b { display: block; font-size: 16px; }
+html[data-bs-theme] body .tm .mt-faces { display: inline-flex; align-items: center; flex: none; }
+html[data-bs-theme] body .tm .mt-faces > * { margin-left: -8px; box-shadow: 0 0 0 2px var(--paper); border-radius: 50%; }
+html[data-bs-theme] body .tm .mt-faces > :first-child { margin-left: 0; }
+html[data-bs-theme] body .tm .mt-faces-more { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--head); color: var(--muted); font-size: 12px; font-weight: 700; }
+html[data-bs-theme] body .tm .mt-group-list { list-style: none; margin: 12px 0 0; padding: 0; }
+html[data-bs-theme] body .tm .mt-group-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+html[data-bs-theme] body .tm .mt-group-list .mt-g-who { flex: 1; min-width: 0; }
+html[data-bs-theme] body .tm .mt-group-list b { display: block; font-size: 14px; font-weight: 600; }
+html[data-bs-theme] body .tm .mt-group-list small { display: block; font-size: 13px; }
+html[data-bs-theme] body .tm .mt-group-more { margin-top: 4px; }

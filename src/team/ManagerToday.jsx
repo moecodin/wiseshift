@@ -22,8 +22,8 @@ const LATE = 15 // minutes after the shift start that "On time" turns into "Late
 const MISSING_AFTER = 10 // minutes after a shift starts before "hasn't clocked in" shows
 
 const WORDS = {
-  en: { coverEyebrow: 'Cover request', coverLine: (taker, owner) => `${taker} takes ${owner}'s shift`, swapLine: (a, b) => `${a} and ${b} swap shifts`, gets: (n) => `${n} gets`, hi: 'Hi', youOut: 'You’re not clocked in', clockHint: 'Open your clock to clock in',  statReview: 'To review', statDraft: 'Unpublished changes', statWorking: 'Working now', clockOutNow: 'Clock out', clockOutAsk: (n, t) => `Clock ${n} out now (${t})?`, attention: 'Needs your attention', clear: 'All clear. Nothing needs you right now.', notIn: (n) => `${n} hasn't clocked in`, started: (m) => `Shift started ${m} min ago`, call: 'Call', off: 'Time off request', nobodyElse: 'Nobody else is off those days.', alsoOff: (n) => `Also off: ${n}.`, decline: 'Decline', approve: 'Approve', fix: 'Punch to fix', neverOut: (t) => `Clocked in ${t} and never clocked out.`, setOut: 'Set the clock-out time', review: (n) => `${n} ${n === 1 ? 'punch' : 'punches'} to review`, reviewSub: 'Approve the ones that look right', open: 'Open', working: 'Working now', clockedIn: (n) => `${n} clocked in`, nobody: 'Nobody is clocked in.', onTime: 'On time', late: 'Late', draft: 'This week is still a draft', changes: (n) => `${n} ${n === 1 ? 'change' : 'changes'} not published`, publish: 'Publish', youIn: "You're clocked in", since: (t) => `Since ${t}`, myClock: 'My clock', inAt: (t) => `In at ${t}`, sched: 'Review all punches', days: (n) => `${n} ${n === 1 ? 'day' : 'days'}` },
-  es: { coverEyebrow: 'Solicitud de cobertura', coverLine: (taker, owner) => `${taker} toma el turno de ${owner}`, swapLine: (a, b) => `${a} y ${b} cambian de turno`, gets: (n) => `${n} recibe`, hi: 'Hola', youOut: 'No has registrado tu entrada', clockHint: 'Abre tu reloj para registrar la entrada',  statReview: 'Por revisar', statDraft: 'Cambios sin publicar', statWorking: 'Trabajando ahora', clockOutNow: 'Marcar salida', clockOutAsk: (n, t) => `¿Marcar la salida de ${n} ahora (${t})?`, attention: 'Necesita tu atención', clear: 'Todo en orden. Nada te necesita ahora.', notIn: (n) => `${n} no ha marcado entrada`, started: (m) => `El turno empezó hace ${m} min`, call: 'Llamar', off: 'Solicitud de ausencia', nobodyElse: 'Nadie más falta esos días.', alsoOff: (n) => `También faltan: ${n}.`, decline: 'Rechazar', approve: 'Aprobar', fix: 'Registro por arreglar', neverOut: (t) => `Registró su entrada a las ${t} y nunca registró su salida.`, setOut: 'Poner la hora de salida', review: (n) => `${n} ${n === 1 ? 'registro' : 'registros'} por revisar`, reviewSub: 'Aprueba los que se vean bien', open: 'Apertura', working: 'Trabajando ahora', clockedIn: (n) => `${n} con entrada`, nobody: 'Nadie ha marcado entrada.', onTime: 'A tiempo', late: 'Tarde', draft: 'Esta semana sigue en borrador', changes: (n) => `${n} ${n === 1 ? 'cambio' : 'cambios'} sin publicar`, publish: 'Publicar', youIn: 'Tu entrada está registrada', since: (t) => `Desde las ${t}`, myClock: 'Mi reloj', inAt: (t) => `Entrada ${t}`, sched: 'Revisar todos los registros', days: (n) => `${n} ${n === 1 ? 'día' : 'días'}` },
+  en: { coverEyebrow: 'Cover request', coverLine: (taker, owner) => `${taker} takes ${owner}'s shift`, swapLine: (a, b) => `${a} and ${b} swap shifts`, gets: (n) => `${n} gets`, hi: 'Hi', youOut: 'You’re not clocked in', clockHint: 'Open your clock to clock in',  statReview: 'To review', statDraft: 'Unpublished changes', statWorking: 'Working now', clockOutNow: 'Clock out', clockOutAsk: (n, t) => `Clock ${n} out now (${t})?`, attention: 'Needs your attention', clear: 'All clear. Nothing needs you right now.', notIn: (n) => `${n} hasn't clocked in`, notInMany: (n) => `${n} people haven't clocked in`, showAll: (n) => `Show all ${n}`, showFewer: 'Show fewer', startedRange: (a, b) => (a === b ? `Shifts started ${a} min ago` : `Shifts started ${a}–${b} min ago`), started: (m) => `Shift started ${m} min ago`, call: 'Call', off: 'Time off request', nobodyElse: 'Nobody else is off those days.', alsoOff: (n) => `Also off: ${n}.`, decline: 'Decline', approve: 'Approve', fix: 'Punch to fix', neverOut: (t) => `Clocked in ${t} and never clocked out.`, setOut: 'Set the clock-out time', review: (n) => `${n} ${n === 1 ? 'punch' : 'punches'} to review`, reviewSub: 'Approve the ones that look right', open: 'Open', working: 'Working now', clockedIn: (n) => `${n} clocked in`, nobody: 'Nobody is clocked in.', onTime: 'On time', late: 'Late', draft: 'This week is still a draft', changes: (n) => `${n} ${n === 1 ? 'change' : 'changes'} not published`, publish: 'Publish', youIn: "You're clocked in", since: (t) => `Since ${t}`, myClock: 'My clock', inAt: (t) => `In at ${t}`, sched: 'Review all punches', days: (n) => `${n} ${n === 1 ? 'day' : 'days'}` },
+  es: { coverEyebrow: 'Solicitud de cobertura', coverLine: (taker, owner) => `${taker} toma el turno de ${owner}`, swapLine: (a, b) => `${a} y ${b} cambian de turno`, gets: (n) => `${n} recibe`, hi: 'Hola', youOut: 'No has registrado tu entrada', clockHint: 'Abre tu reloj para registrar la entrada',  statReview: 'Por revisar', statDraft: 'Cambios sin publicar', statWorking: 'Trabajando ahora', clockOutNow: 'Marcar salida', clockOutAsk: (n, t) => `¿Marcar la salida de ${n} ahora (${t})?`, attention: 'Necesita tu atención', clear: 'Todo en orden. Nada te necesita ahora.', notIn: (n) => `${n} no ha marcado entrada`, notInMany: (n) => `${n} personas no han marcado entrada`, showAll: (n) => `Ver los ${n}`, showFewer: 'Ver menos', startedRange: (a, b) => (a === b ? `Los turnos empezaron hace ${a} min` : `Los turnos empezaron hace ${a}–${b} min`), started: (m) => `El turno empezó hace ${m} min`, call: 'Llamar', off: 'Solicitud de ausencia', nobodyElse: 'Nadie más falta esos días.', alsoOff: (n) => `También faltan: ${n}.`, decline: 'Rechazar', approve: 'Aprobar', fix: 'Registro por arreglar', neverOut: (t) => `Registró su entrada a las ${t} y nunca registró su salida.`, setOut: 'Poner la hora de salida', review: (n) => `${n} ${n === 1 ? 'registro' : 'registros'} por revisar`, reviewSub: 'Aprueba los que se vean bien', open: 'Apertura', working: 'Trabajando ahora', clockedIn: (n) => `${n} con entrada`, nobody: 'Nadie ha marcado entrada.', onTime: 'A tiempo', late: 'Tarde', draft: 'Esta semana sigue en borrador', changes: (n) => `${n} ${n === 1 ? 'cambio' : 'cambios'} sin publicar`, publish: 'Publicar', youIn: 'Tu entrada está registrada', since: (t) => `Desde las ${t}`, myClock: 'Mi reloj', inAt: (t) => `Entrada ${t}`, sched: 'Revisar todos los registros', days: (n) => `${n} ${n === 1 ? 'día' : 'días'}` },
 }
 
 // The manager's Today screen: what needs a decision, who is working, and the
@@ -38,6 +38,7 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
   // A request or draft card plays a short fold-away (a check mark, then the gap closes)
   // before the change is saved. leaving: id -> 'approved' | 'declined' | 'published'.
   const [leaving, setLeaving] = useState({})
+  const [allMissing, setAllMissing] = useState(false) // the grouped "haven't clocked in" card shows 4 people until opened
   const [asking, setAsking] = useState(null) // a time-off request waiting for "Approve X for these dates?" (same as Time off)
   const timers = useRef([])
   const leave = (id, result, save) => {
@@ -61,7 +62,8 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
   const drafts = data.shifts.filter((s) => week.includes(s.date) && !s.published)
   const covers = !f.cover ? [] : (data.cover ?? []).filter((c) => c.status === 'taken' && data.shifts.some((s) => s.id === c.shiftId))
   const staffNotes = !f.timeClock ? [] : (data.punchNotes ?? []).filter((n) => !n.ackAt)
-  const count = notIn.length + requests.length + covers.length + stuck.length + staffNotes.length + (toReview > 0 ? 1 : 0)
+  // Two or more people missing are one card (with everyone listed inside), so they count once.
+  const count = (notIn.length > 1 ? 1 : notIn.length) + requests.length + covers.length + stuck.length + staffNotes.length + (toReview > 0 ? 1 : 0)
 
   const othersOff = (t) => data.teamOff.filter((o) => o.employeeId !== t.employeeId && o.start <= t.end && o.end >= t.start).map((o) => first(o.employeeId))
 
@@ -99,7 +101,7 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
       <h2 className="sc-h mt-h">{w.attention} {count > 0 && <span className="mt-count">{count}</span>}</h2>
       {count === 0 && <p className="tm-muted">{w.clear}</p>}
 
-      {notIn.map((s) => {
+      {notIn.length === 1 && notIn.map((s) => {
         const phone = data.privateById?.[s.employeeId]?.phone
         return (
           <div key={s.id} className="mt-alert">
@@ -112,6 +114,38 @@ export default function ManagerToday({ data, me, lang, onView, onGoTo }) {
           </div>
         )
       })}
+
+      {notIn.length > 1 && (() => {
+        const late = notIn.map((s) => nowMin - s.start)
+        const shown = allMissing ? notIn : notIn.slice(0, 4)
+        return (
+          <section className="mt-alert mt-group">
+            <div className="mt-group-head">
+              <span className="mt-faces" aria-hidden="true">
+                {notIn.slice(0, 3).map((s) => <Avatar key={s.id} employee={person(s.employeeId)} size={32} />)}
+                {notIn.length > 3 && <span className="mt-faces-more">+{notIn.length - 3}</span>}
+              </span>
+              <div>
+                <b>{w.notInMany(notIn.length)}</b>
+                <small>{w.startedRange(Math.min(...late), Math.max(...late))}</small>
+              </div>
+            </div>
+            <ul className="mt-group-list">
+              {shown.map((s) => {
+                const phone = data.privateById?.[s.employeeId]?.phone
+                return (
+                  <li key={s.id}>
+                    <Avatar employee={person(s.employeeId)} size={28} />
+                    <span className="mt-g-who"><b>{name(s.employeeId)}</b><small>{[s.title, shiftTimes(s)].filter(Boolean).join(" · ")}</small></span>
+                    {phone && <a className="mt-call" href={`tel:${phone}`}>{w.call}</a>}
+                  </li>
+                )
+              })}
+            </ul>
+            {notIn.length > 4 && <button type="button" className="tm-link small mt-group-more" onClick={() => setAllMissing(!allMissing)}>{allMissing ? w.showFewer : w.showAll(notIn.length)}</button>}
+          </section>
+        )
+      })()}
 
       {requests.map((t) => {
         const others = othersOff(t)
