@@ -121,10 +121,10 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
         )}
         {boss && (
           <div className="tm-tools">
-            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={copyLastWeek}>Copy last week</button>
-            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={() => setEditing({ batch: true, employeeId: '', date: week[0], start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })} title="Add the same shift to several people and days at once">Batch Schedule</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="copy-week" onClick={copyLastWeek}>Copy last week</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="batch" onClick={() => setEditing({ batch: true, employeeId: '', date: week[0], start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })} title="Add the same shift to several people and days at once">Batch Schedule</button>
             <button type="button" className="btn btn-outline-secondary btn-sm" disabled={!drafts.length} onClick={clearDrafts} title="Remove this week's unpublished shifts (published ones stay)">Clear ({drafts.length})</button>
-            <button type="button" className="btn btn-brand btn-sm" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
+            <button type="button" className="btn btn-brand btn-sm" data-search="publish" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
           </div>
         )}
       </div>

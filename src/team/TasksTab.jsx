@@ -62,6 +62,7 @@ export default function TasksTab({ data, me, boss, lang }) {
 
   return (
     <div className="tm-narrow tq">
+      <h2 className="sc-h desk-title">{lang === 'es' ? 'Tareas' : 'Tasks'}</h2>
       <div className="tq-top">
         <Seg className="tm-seg" role="group" aria-label={w.today}>
           <button type="button" aria-pressed={day === 'today'} onClick={() => setDay('today')}>{w.today}</button>

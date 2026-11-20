@@ -35,7 +35,7 @@ export default function PeopleTab({ data, me }) {
     <div className="tm-narrow desk">
       <div className="pt-head">
         <h2 className="sc-h">Team <small className="mg-sum">{people.filter((e) => e.active).length} active</small></h2>
-        <button type="button" className="btn btn-brand btn-sm" onClick={() => setEditing({ name: '', email: '', position: '', isManager: false, payType: 'hourly', active: true })}>+ Add person</button>
+        <button type="button" className="btn btn-brand btn-sm" data-search="add-person" onClick={() => setEditing({ name: '', email: '', position: '', isManager: false, payType: 'hourly', active: true })}>+ Add person</button>
       </div>
       <div className="pt-list">
       {people.map((e) => {

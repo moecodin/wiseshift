@@ -19,7 +19,7 @@ export default function ReportsTab({ data, period, onPeriod }) {
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, 1))} aria-label="Pay period after"><Icon name="right" /></button>
           {!current && <button type="button" className="btn btn-link btn-sm" onClick={() => onPeriod(payPeriodOf(new Date()))}>This pay period</button>}
         </div>
-        <button type="button" className="btn btn-brand btn-sm ex-btn desk-only" onClick={() => setExporting(true)}>Export hours…</button>
+        <button type="button" className="btn btn-brand btn-sm ex-btn desk-only" data-search="export" onClick={() => setExporting(true)}>Export hours…</button>
       </div>
       <Timesheet data={data} period={period} now={now} />
       <p className="ex-note">Exports are available on a computer.</p>

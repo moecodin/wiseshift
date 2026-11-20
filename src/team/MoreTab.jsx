@@ -21,13 +21,14 @@ const WORDS = {
 
 // The More tab: who you are, then Time off, Team (managers), Notifications,
 // Language, Settings and Sign out.
-export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, onNotify, onSettings, onSignOut }) {
+export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, onNotify, onSignOut }) {
   const w = WORDS[lang === 'es' ? 'es' : 'en']
   const f = useFeatures()
   const [error, setError] = useState('')
   const pick = async (next) => setError((await data.actions.setLang(next)) || '')
   return (
     <div className="tm-narrow mo">
+      <h2 className="sc-h desk-title">{lang === 'es' ? 'Más' : 'More'}</h2>
       <section className="mo-card mo-me">
         <Avatar employee={me} size={56} />
         <div>
@@ -71,11 +72,6 @@ export default function MoreTab({ data, me, boss, lang, email, pending, onOpen, 
             <button type="button" aria-pressed={lang === 'es'} onClick={() => pick('es')}>Español</button>
           </span>
         </div>
-        <button type="button" className="mo-item" onClick={onSettings}>
-          <Icon name="gear" />
-          <span><b>{w.settings}</b></span>
-          <Chevron />
-        </button>
       </section>
       {error && <p className="tm-error" role="alert">{error}</p>}
 

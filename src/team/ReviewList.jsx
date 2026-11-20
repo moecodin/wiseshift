@@ -296,7 +296,7 @@ export default function ReviewList({ data }) {
           <button type="button" aria-pressed={roomy} onClick={() => setDensity('roomy')}>Roomy</button>
           <button type="button" aria-pressed={!roomy} onClick={() => setDensity('compact')}>Compact</button>
         </Seg>
-        <button type="button" className="btn btn-outline-secondary btn-sm rv-add" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
+        <button type="button" className="btn btn-outline-secondary btn-sm rv-add" data-search="add-punch" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
         {pending.length > 0 && <button type="button" className="btn btn-outline-secondary btn-sm rv-add rv-review" onClick={() => startReview(pending)} title="Go through the punches waiting for approval one at a time">Review one by one</button>}
         {pending.length > 0 && (
           <button type="button" className="btn btn-success rc-all" disabled={busy} onClick={() => approve(pending.map((p) => p.id))}>

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, Fragment } from 'react'
 import { usingSupabase } from '../lib/supabase.js'
 import { useAuth } from '../state/useAuth.js'
 import SignIn from '../components/SignIn.jsx'
@@ -9,6 +9,7 @@ import ClockTab from './ClockTab.jsx'
 import ScheduleTab from './ScheduleTab.jsx'
 import ReportsTab from './ReportsTab.jsx'
 import DesktopOnly from './DesktopOnly.jsx'
+import SearchPalette from './SearchPalette.jsx'
 import { useIsPhone } from './useIsPhone.js'
 import HoursTab from './HoursTab.jsx'
 import TimeOffTab from './TimeOffTab.jsx'
@@ -147,6 +148,37 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   const tabs = TABS.filter((t) => (t !== 'hours' || features.timeClock) && (t !== 'tasks' || features.teamTasks) && (t !== 'reports' || (boss && features.timeClock && features.timesheets)))
   const page = tab === 'people' && !boss ? 'more' : tab === 'hours' && !features.timeClock ? 'clock' : tab === 'reports' && !(boss && features.timeClock && features.timesheets) ? 'clock' : tab === 'tasks' && !features.teamTasks ? 'clock' : tab === 'off' && !features.timeOff ? 'more' : tab
   const phone = useIsPhone()
+  // Site search: Ctrl/⌘+K or "/" opens it; a result opens its page (and Settings on the right side), then the spot flashes.
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [settingsStart, setSettingsStart] = useState('me')
+  const [hit, setHit] = useState(null)
+  useEffect(() => {
+    const keys = (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) || e.target?.isContentEditable
+      if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setSearchOpen(true) }
+      else if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); setSearchOpen(true) }
+    }
+    document.addEventListener('keydown', keys)
+    return () => document.removeEventListener('keydown', keys)
+  }, [])
+  useEffect(() => {
+    if (!hit) return undefined
+    let tries = 0
+    const timer = setInterval(() => {
+      tries += 1
+      const find = hit.find?.toLowerCase()
+      const el = hit.sel
+        ? document.querySelector(hit.sel)
+        : find ? [...document.querySelectorAll('.st-page .st-section')].find((x) => (x.querySelector('.tm-h3')?.innerText ?? x.innerText).toLowerCase().trim().startsWith(find)) ?? [...document.querySelectorAll('.st-page .st-section')].find((x) => x.innerText.toLowerCase().includes(find)) : null
+      if (el && el.offsetParent !== null) {
+        clearInterval(timer)
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        el.classList.add('search-hit')
+        setTimeout(() => el.classList.remove('search-hit'), 2300)
+      } else if (tries > 25) clearInterval(timer)
+    }, 120)
+    return () => clearInterval(timer)
+  }, [hit])
   // On a phone Reports lives under More (the bottom bar keeps five tabs), so it counts as a page opened from More.
   const inMore = MORE.some((m) => m.id === page) || (phone && page === 'reports')
   // Screens slide in from the side the tab is on: toward the right for tabs further
@@ -228,10 +260,6 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   const showOwnerTour = Boolean(me && boss && data.settingsReady && data.settings.setupReady && !data.settings.setupDone)
   const showStaffTour = Boolean(me && !showOwnerTour && !staffTourDone && data.settingsReady && data.settings.setupDone && !welcomeSeen(me.id))
 
-  const signOut = usingSupabase && (
-    <button type="button" className="tm-link" onClick={onSignOut}>Sign out</button>
-  )
-
   let body
   if (data.setupMissing) {
     body = (
@@ -277,15 +305,24 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {page === 'reports' && (phone ? <DesktopOnly name={tabNames.reports} lang={lang} /> : <ReportsTab data={data} period={period} onPeriod={setPeriod} />)}
         {page === 'off' && <TimeOffTab {...shared} />}
         {page === 'people' && boss && <PeopleTab {...shared} />}
-        {page === 'settings' && <SettingsPanel asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
-        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSettings={() => go('settings')} onSignOut={usingSupabase ? onSignOut : null} />}
+        {page === 'settings' && <SettingsPanel key={settingsStart} start={settingsStart} asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
+        {page === 'more' && <MoreTab {...shared} email={email} pending={pending} onOpen={go} onNotify={() => setNotifying(true)} onSignOut={usingSupabase ? onSignOut : null} />}
       </>
     )
   }
 
   // Theme, notifications and settings: in the header on a phone, in the side menu on a computer.
+  const goToPlace = (place) => {
+    setSearchOpen(false)
+    if (place.settings) setSettingsStart(place.settings)
+    go(place.tab)
+    setHit(place.find || place.sel ? { find: place.find, sel: place.sel, n: Date.now() } : null)
+  }
   const iconButtons = (
     <>
+          <button type="button" className="tm-icon" onClick={() => setSearchOpen(true)} aria-label="Search" title="Search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+          </button>
           <button type="button" className="tm-icon" onClick={onToggleTheme} aria-label="Light or dark" title="Light or dark">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></svg>
           </button>
@@ -338,20 +375,28 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
           <button type="button" className="tm-nav-toggle" onClick={toggleNav} aria-label={navOff ? 'Show the menu labels' : 'Hide the menu labels'} title={navOff ? 'Show the menu labels' : 'Hide the menu labels'}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d={navOff ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'} /></svg>
           </button>
+          <button type="button" className="tm-search-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+            <span>{lang === 'es' ? 'Buscar' : 'Search'}</span><kbd>/</kbd>
+          </button>
           <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
             {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
             {tabs.map((id) => (
-              <button key={id} type="button" role="tab" data-tab={id} aria-selected={(page === id && !(phone && id === 'reports')) || (id === 'more' && inMore)} onClick={() => { go(id); if (id === 'clock') setHomeTick((n) => n + 1) }}>
+              <Fragment key={id}>
+              {/* Computer only: Settings sits in the menu just before More (on a phone it stays a button in the header). */}
+              {id === 'more' && (
+              <button type="button" className="tm-tab-settings" aria-pressed={page === 'settings'} onClick={() => go('settings')}>
+                <svg className="tm-tabicon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
+                <span>{lang === 'es' ? 'Ajustes' : 'Settings'}</span>
+              </button>
+              )}
+              <button type="button" role="tab" data-tab={id} aria-selected={(page === id && !(phone && id === 'reports')) || (id === 'more' && inMore)} onClick={() => { go(id); if (id === 'clock') setHomeTick((n) => n + 1) }}>
                 <TabIcon id={id === 'clock' ? 'today' : id} />
                 <span>{id === 'clock' ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
                 {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
               </button>
+              </Fragment>
             ))}
-            {/* Computer only: Settings sits in the menu with the tabs (on a phone it stays a button in the header). */}
-            <button type="button" className="tm-tab-settings" aria-pressed={page === 'settings'} onClick={() => go('settings')}>
-              <svg className="tm-tabicon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
-              <span>{lang === 'es' ? 'Ajustes' : 'Settings'}</span>
-            </button>
           </nav>
           <div className="tm-side-btns">{iconButtons}</div>
           <div className="tm-me">
@@ -366,8 +411,8 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
       <main className={`tm-main ${tab === 'schedule' || tab === 'people' || tab === 'hours' ? 'wide' : ''}`}>
         {data.error && me && <p className="tm-error" role="alert">Couldn't refresh: {data.error}</p>}
         <div key={page} className={`tm-page slide-${dir}`}>{body}</div>
-        <p className={`tm-foot ${page === 'schedule' ? 'desk-hide' : ''}`}>{signOut}</p>
       </main>
+      <SearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} onPick={goToPlace} ctx={{ boss, features, lang, phone }} />
       {notifying && <NotifySettings data={data} boss={boss} onClose={() => setNotifying(false)} />}
       {me && features.timeClock && <ClockedOutNotice data={data} me={me} lang={lang} />}
       {showOwnerTour && <OwnerOnboarding data={data} me={me} lang={lang} onTeam={() => go('people')} />}

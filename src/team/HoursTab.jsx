@@ -207,7 +207,7 @@ export function Timesheet({ data, period, now }) {
         </table>
       </div>
       <div className="tm-tools mt-3">
-        <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={() => window.print()}>Print</button>
+        <button type="button" className="btn btn-outline-secondary btn-sm desk-only" data-search="print" onClick={() => window.print()}>Print</button>
       </div>
       <p className="tm-muted small mt-2">Hours are exact, to the minute. Overtime is time and a half after 40 hours in each {DAY_LONG.en[weekStart]}–{DAY_LONG.en[(weekStart + 6) % 7]} week.</p>
     </div>

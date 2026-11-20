@@ -601,3 +601,51 @@ html[data-bs-theme] body .tm .seg-ind { position: absolute; top: 0; left: 0; z-i
   html[data-bs-theme] body .tm .tm-tabs button[data-tab='reports'] { display: none; }
 }
 @media (min-width: 900px) { html[data-bs-theme] body .tm .mo-phone-only { display: none; } }
+
+/* More and Tasks on a computer: the same page as Settings (a left-aligned column, a title, hairlines between sections),
+   not a phone's centered cards. Phones are unchanged. */
+.desk-title { display: none; }
+@media (min-width: 900px) {
+  html[data-bs-theme] body .tm .desk-title { display: block; }
+  html[data-bs-theme] body .tm :is(.tm-narrow.mo, .tm-narrow.tq) { max-width: 760px; margin: 0; }
+  /* More: one flat list, rows separated by hairlines */
+  html[data-bs-theme] body .tm .mo .mo-card { background: transparent; border: 0; border-radius: 0; margin: 0; overflow: visible; border-top: 1px solid var(--line); }
+  html[data-bs-theme] body .tm .mo .mo-me { padding: 16px 0; border-top: 0; }
+  html[data-bs-theme] body .tm .mo .mo-card:first-of-type { border-top: 0; }
+  html[data-bs-theme] body .tm .mo .mo-item { padding: 0; }
+  html[data-bs-theme] body .tm .mo .mo-item:hover { background: transparent; }
+  /* Tasks: the toolbar sits on one line, and the shift band is a plain section */
+  html[data-bs-theme] body .tm .tq .tq-top { justify-content: flex-start; gap: 16px; }
+  html[data-bs-theme] body .tm .tq .tm-card { background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 14px 0; }
+}
+
+/* ======================= Site search (SearchPalette.jsx) ======================= */
+.tm-search-btn { display: none; }
+.tm-icon[aria-label='Search'] { display: inline-flex; }
+@media (min-width: 900px) {
+  html[data-bs-theme] body .tm .tm-icon[aria-label='Search'] { display: none; }
+  html[data-bs-theme] body .tm .tm-search-btn { display: flex; align-items: center; gap: 10px; width: calc(100% - 4px); margin: 4px 2px 10px; padding: 0 12px; min-height: 38px; border: 1px solid var(--line); border-radius: var(--r-sm); background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; text-align: left; }
+  html[data-bs-theme] body .tm .tm-search-btn:hover { border-color: var(--faint); color: var(--ink); }
+  html[data-bs-theme] body .tm .tm-search-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; flex: none; }
+  html[data-bs-theme] body .tm .tm-search-btn kbd { margin-left: auto; padding: 1px 6px; border: 1px solid var(--line); border-radius: var(--r-xs); background: transparent; color: var(--muted); font: inherit; font-size: 12px; }
+  html[data-bs-theme] body .tm.nav-off .tm-search-btn span, html[data-bs-theme] body .tm.nav-off .tm-search-btn kbd { display: none; }
+}
+html[data-bs-theme] body .sr { position: fixed; inset: 0; z-index: 1060; display: flex; justify-content: center; align-items: flex-start; padding: 12vh 16px 16px; background: rgba(10, 12, 16, 0.5); animation: tm-fade 0.15s ease both; }
+html[data-bs-theme] body .sr-card { width: min(560px, 100%); max-height: 76vh; display: flex; flex-direction: column; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; animation: tm-item 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; min-height: 0; padding: 0; }
+.sr-field { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.sr-field svg { width: 18px; height: 18px; fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-linecap: round; flex: none; }
+.sr-field input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 17px; }
+.sr-esc { border: 1px solid var(--line); border-radius: var(--r-xs); background: transparent; color: var(--muted); font-size: 12px; padding: 2px 7px; }
+.sr-list { list-style: none; margin: 0; padding: 6px; overflow: auto; }
+.sr-head { padding: 8px 10px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.sr-item { display: flex; flex-direction: column; gap: 1px; padding: 9px 10px; border-radius: var(--r-sm); cursor: pointer; border-left: 3px solid transparent; }
+.sr-item b { font-size: 15px; font-weight: 600; }
+.sr-item small { font-size: 13px; color: var(--muted); }
+.sr-item[aria-selected='true'] { background: var(--head); border-left-color: var(--ink); }
+.sr-none { padding: 16px 10px; color: var(--muted); font-size: 14px; }
+.sr-hint { margin: 0; padding: 8px 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+@media (max-width: 899px) { html[data-bs-theme] body .sr { padding: 0; } html[data-bs-theme] body .sr-card { width: 100%; max-height: 100%; height: 100%; border-radius: 0; border: 0; } .sr-hint { display: none; } }
+/* Where the search landed: the target flashes once */
+@keyframes sr-hit { 0%, 35% { background-color: var(--head); outline: 2px solid var(--ink); outline-offset: 4px; } 100% { background-color: transparent; outline: 2px solid transparent; outline-offset: 4px; } }
+.search-hit { animation: sr-hit 2.2s ease-out; border-radius: var(--r-sm); }
+@media (prefers-reduced-motion: reduce) { html[data-bs-theme] body .sr, html[data-bs-theme] body .sr-card { animation: none; } .search-hit { animation: none; outline: 2px solid var(--ink); outline-offset: 4px; } }
