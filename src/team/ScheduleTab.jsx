@@ -13,6 +13,8 @@ import { loadSpan, saveSpan } from './viewPref.js'
 import DayStrip from './DayStrip.jsx'
 import ShiftDropDialog from './ShiftDropDialog.jsx'
 import Icon from './Icon.jsx'
+import Seg from './Seg.jsx'
+import SlideIn from './SlideIn.jsx'
 
 // The week's schedule: everyone (a grid like Humanity) or just mine.
 // Managers click a box to add or change a shift; new shifts are drafts that
@@ -112,15 +114,15 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
           {!thisWeek && <button type="button" className="btn btn-link btn-sm" onClick={() => onWeek(scheduleWeekOf(new Date()))}>This week</button>}
         </div>
         {boss && (
-          <div className="tm-seg mg-seg" role="group" aria-label="Whose shifts">
+          <Seg className="tm-seg mg-seg" role="group" aria-label="Whose shifts">
             <button type="button" aria-pressed={view === 'everyone'} onClick={() => setView('everyone')}>Whole team</button>
             <button type="button" aria-pressed={view === 'mine'} onClick={() => setView('mine')}>My shifts</button>
-          </div>
+          </Seg>
         )}
         {boss && (
           <div className="tm-tools">
-            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={copyLastWeek}>Copy last week</button>
-            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setEditing({ batch: true, employeeId: '', date: week[0], start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })} title="Add the same shift to several people and days at once">Batch Schedule</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={copyLastWeek}>Copy last week</button>
+            <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={() => setEditing({ batch: true, employeeId: '', date: week[0], start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })} title="Add the same shift to several people and days at once">Batch Schedule</button>
             <button type="button" className="btn btn-outline-secondary btn-sm" disabled={!drafts.length} onClick={clearDrafts} title="Remove this week's unpublished shifts (published ones stay)">Clear ({drafts.length})</button>
             <button type="button" className="btn btn-brand btn-sm" disabled={!drafts.length} onClick={publish}>Publish ({drafts.length})</button>
           </div>
@@ -139,6 +141,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
       )}
       {boss && drafts.length > 0 && <p className="tm-muted small">Dashed shifts are drafts: only managers see them until you press Publish.</p>}
 
+      <SlideIn id={view} order={['everyone', 'mine']}>
       {!boss ? (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       ) : view === 'everyone' ? (
@@ -149,6 +152,7 @@ export default function ScheduleTab({ data, me, boss, look, lang, week, onWeek }
       ) : (
         <MySchedule data={data} me={me} week={week} today={today} lang={lang} view={view} onView={setView} />
       )}
+      </SlideIn>
 
       {dropping && <ShiftDropDialog shift={dropping.shift} target={dropping.target} data={data} onClose={() => setDropping(null)} onDone={(text) => { setDropping(null); setMessage(text) }} />}
       {editing && <ShiftEditor shift={editing} data={data} week={week} onClose={() => setEditing(null)} onDone={setMessage} />}
@@ -164,14 +168,14 @@ function ManagerDay({ span, onSpan, picked, onPick, view, onView, data, me, week
   const blank = () => ({ employeeId: me.id, date: selected, start: 480, end: 840, breakMin: 0, title: '', role: '', note: '', published: false })
   return (
     <div className="tm-narrow mg-phone">
-      <div className="sc-toggle" role="group" aria-label="Whose shifts">
+      <Seg className="sc-toggle" role="group" aria-label="Whose shifts">
         <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>My shifts</button>
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>Whole team</button>
-      </div>
-      <div className="sc-toggle sc-span" role="group" aria-label="Show a day or the week">
+      </Seg>
+      <Seg className="sc-toggle sc-span" role="group" aria-label="Show a day or the week">
         <button type="button" aria-pressed={span === 'day'} onClick={() => onSpan('day')}>Day</button>
         <button type="button" aria-pressed={span === 'week'} onClick={() => onSpan('week')}>Week</button>
-      </div>
+      </Seg>
       {span === 'day' && <>
       <DayStrip days={week} selected={selected} renderDay={(d) => {
           const any = shifts.some((s) => s.date === d)

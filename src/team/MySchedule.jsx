@@ -12,6 +12,7 @@ import { tagClass } from './tags.js'
 export { tagClass }
 import { activeCover, CoverStatus, OpenShifts } from './CoverUI.jsx'
 import { WeekTotal } from './ScheduleTab.jsx'
+import Seg from './Seg.jsx'
 
 // The phone schedule for employees: a strip of the week's days, a card for the
 // chosen day, then the whole week as a list. "My shifts" shows just yours;
@@ -38,16 +39,16 @@ export default function MySchedule({ data, me, week, today, lang, view, onView }
 
   return (
     <div className={`tm-narrow desk ${me.isManager ? 'ms-boss' : ''} ${view === 'mine' ? 'ms-mine' : ''}`}>
-      <div className="sc-toggle" role="group" aria-label="Whose shifts">
+      <Seg className="sc-toggle" role="group" aria-label="Whose shifts">
         <button type="button" aria-pressed={view === 'mine'} onClick={() => onView('mine')}>{w.mine}</button>
         <button type="button" aria-pressed={view === 'everyone'} onClick={() => onView('everyone')}>{w.team}</button>
-      </div>
+      </Seg>
 
       {(
-        <div className="sc-toggle sc-span" role="group" aria-label={w.dayOrWeek}>
+        <Seg className="sc-toggle sc-span" role="group" aria-label={w.dayOrWeek}>
           <button type="button" aria-pressed={span === 'day'} onClick={() => changeSpan('day')}>{w.day}</button>
           <button type="button" aria-pressed={span === 'week'} onClick={() => changeSpan('week')}>{w.weekLabel}</button>
-        </div>
+        </Seg>
       )}
 
       {span !== 'week' && <DayStrip days={week} selected={selected} renderDay={(d) => {

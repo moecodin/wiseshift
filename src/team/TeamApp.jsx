@@ -7,6 +7,9 @@ import { payPeriodOf, scheduleWeekOf } from './paycheck.js'
 import { useTeamData } from './useTeamData.js'
 import ClockTab from './ClockTab.jsx'
 import ScheduleTab from './ScheduleTab.jsx'
+import ReportsTab from './ReportsTab.jsx'
+import DesktopOnly from './DesktopOnly.jsx'
+import { useIsPhone } from './useIsPhone.js'
 import HoursTab from './HoursTab.jsx'
 import TimeOffTab from './TimeOffTab.jsx'
 import PeopleTab from './PeopleTab.jsx'
@@ -41,7 +44,7 @@ function savedTheme() {
 
 // The tabs, in order. Their names come from the person's theme. Time off and Team open
 // from More.
-const TABS = ['clock', 'schedule', 'tasks', 'hours', 'more']
+const TABS = ['clock', 'schedule', 'tasks', 'hours', 'reports', 'more']
 const PAGES = [...TABS, ...MORE.map((m) => m.id), 'settings']
 
 // The team page (/team): time clock, schedules, hours and
@@ -141,9 +144,11 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
   // Which parts of the app this business uses (Settings → Features). A tab or page for a
   // feature that is off is skipped, even if someone opens an old link to it.
   const features = featuresOf(data.settings)
-  const tabs = TABS.filter((t) => (t !== 'hours' || features.timeClock) && (t !== 'tasks' || features.teamTasks))
-  const page = tab === 'people' && !boss ? 'more' : tab === 'hours' && !features.timeClock ? 'clock' : tab === 'tasks' && !features.teamTasks ? 'clock' : tab === 'off' && !features.timeOff ? 'more' : tab
-  const inMore = MORE.some((m) => m.id === page)
+  const tabs = TABS.filter((t) => (t !== 'hours' || features.timeClock) && (t !== 'tasks' || features.teamTasks) && (t !== 'reports' || (boss && features.timeClock && features.timesheets)))
+  const page = tab === 'people' && !boss ? 'more' : tab === 'hours' && !features.timeClock ? 'clock' : tab === 'reports' && !(boss && features.timeClock && features.timesheets) ? 'clock' : tab === 'tasks' && !features.teamTasks ? 'clock' : tab === 'off' && !features.timeOff ? 'more' : tab
+  const phone = useIsPhone()
+  // On a phone Reports lives under More (the bottom bar keeps five tabs), so it counts as a page opened from More.
+  const inMore = MORE.some((m) => m.id === page) || (phone && page === 'reports')
   // Screens slide in from the side the tab is on: toward the right for tabs further
   // along the bar (and pages opened from More), toward the left going back.
   const [dir, setDir] = useState('r')
@@ -269,6 +274,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
         {page === 'schedule' && <ScheduleTab {...shared} week={week} onWeek={setWeek} />}
         {page === 'tasks' && <TasksTab {...shared} />}
         {page === 'hours' && <HoursTab {...shared} period={period} onPeriod={setPeriod} />}
+        {page === 'reports' && (phone ? <DesktopOnly name={tabNames.reports} lang={lang} /> : <ReportsTab data={data} period={period} onPeriod={setPeriod} />)}
         {page === 'off' && <TimeOffTab {...shared} />}
         {page === 'people' && boss && <PeopleTab {...shared} />}
         {page === 'settings' && <SettingsPanel asPage data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} onClose={() => go('clock')} />}
@@ -335,7 +341,7 @@ function Team({ email, signedIn, onSignOut, onToggleTheme }) {
           <nav className="tm-tabs" role="tablist" aria-label="Team page" ref={navRef}>
             {pill && <span className="tm-pill" aria-hidden="true" style={{ transform: `translate(${pill.left}px, ${pill.top}px)`, width: pill.width, height: pill.height }} />}
             {tabs.map((id) => (
-              <button key={id} type="button" role="tab" aria-selected={page === id || (id === 'more' && inMore)} onClick={() => { go(id); if (id === 'clock') setHomeTick((n) => n + 1) }}>
+              <button key={id} type="button" role="tab" data-tab={id} aria-selected={(page === id && !(phone && id === 'reports')) || (id === 'more' && inMore)} onClick={() => { go(id); if (id === 'clock') setHomeTick((n) => n + 1) }}>
                 <TabIcon id={id === 'clock' ? 'today' : id} />
                 <span>{id === 'clock' ? (lang === 'es' ? 'Hoy' : 'Today') : (lang === 'es' ? TABS_ES : look.tabs)[id]}</span>
                 {id === 'more' && pending > 0 && <span className="tm-badge" aria-label={`${pending} waiting`}>{pending}</span>}
@@ -386,7 +392,8 @@ const ICONS = {
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   schedule: <><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
   tasks: <><rect x="4" y="4" width="16" height="16" rx="4" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></>,
-  hours: <><path d="M5 20V10M12 20V4M19 20v-7" /></>,
+  hours: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+  reports: <><path d="M5 20V10M12 20V4M19 20v-7" /></>,
   more: <><circle cx="6" cy="12" r="1.2" /><circle cx="12" cy="12" r="1.2" /><circle cx="18" cy="12" r="1.2" /></>,
 }
 function TabIcon({ id }) {

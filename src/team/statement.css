@@ -546,7 +546,7 @@ html[data-bs-theme] body .tm .ob-choice[aria-pressed='true'] { border-color: var
 @media (max-width: 420px) { .sh-row { grid-template-columns: 1fr; } .sh-bad { grid-column: 1; } }
 
 /* Settings lives in the menu on a computer (below the tabs); on a phone it stays the gear in the header */
-.tm-tab-settings { display: none; }
+html[data-bs-theme] body .tm .tm-tab-settings { display: none; }
 @media (min-width: 900px) {
   html[data-bs-theme] body .tm .tm-tab-settings { display: flex; }
   html[data-bs-theme] body .tm .tm-side-btns .tm-icon[aria-label='Settings'] { display: none; }
@@ -576,3 +576,28 @@ html[data-bs-theme='dark'] body .tm-avatar[class*='av-'] { background: hsl(var(-
 .av-picks { display: flex; flex-wrap: wrap; gap: 10px; }
 html[data-bs-theme] body .tm .av-pick { padding: 3px; min-height: 0; border: 2px solid transparent; border-radius: 50%; background: transparent; }
 html[data-bs-theme] body .tm .av-pick[aria-pressed='true'] { border-color: var(--ink); }
+
+/* ======================= Switches: a sliding highlight, and content that slides with it =======================
+   The picked button's look moves to one pill (.seg-ind) that glides between choices (Seg.jsx); the picked button itself is
+   left plain so the pill shows through. The content under a switch comes in from the side you moved towards (SlideIn.jsx). */
+html[data-bs-theme] body .tm .seg-host { position: relative; }
+html[data-bs-theme] body .tm .seg-host > button { position: relative; z-index: 1; }
+html[data-bs-theme] body .tm .seg-host > button[aria-pressed='true'] { background: transparent !important; outline: 0 !important; }
+html[data-bs-theme] body .tm .seg-ind { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; background: var(--paper); outline: 1px solid var(--line); border-radius: var(--r-sm); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s ease; }
+@keyframes slide-r { from { opacity: 0; translate: 32px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes slide-l { from { opacity: 0; translate: -32px 0; } to { opacity: 1; translate: 0 0; } }
+/* backwards (not both): once it ends the page goes back to no translate, so fixed things inside it stay put */
+.slide-in.r { animation: slide-r 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.slide-in.l { animation: slide-l 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+@media (prefers-reduced-motion: reduce) { html[data-bs-theme] body .tm .seg-ind { transition: none; } .slide-in.r, .slide-in.l { animation: none; } }
+
+/* Desk-sized tools are not offered on a phone: their buttons hide, and Reports and Business settings show a note instead (DesktopOnly.jsx) */
+.do-card { text-align: left; }
+.do-card h2 { margin: 0 0 8px; font-size: 20px; font-weight: 700; color: var(--ink); }
+.do-card p { margin: 0 0 14px; font-size: 15px; line-height: 1.5; color: var(--muted); }
+.do-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 899px) {
+  html[data-bs-theme] body .desk-only { display: none !important; }
+  html[data-bs-theme] body .tm .tm-tabs button[data-tab='reports'] { display: none; }
+}
+@media (min-width: 900px) { html[data-bs-theme] body .tm .mo-phone-only { display: none; } }

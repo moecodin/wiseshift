@@ -7,56 +7,27 @@ import { dayLabel, isoToTimeInput, money, rangeLabel, scheduleOnly, timeInputToI
 import { describeSpot } from './location.js'
 import MyHours from './MyHours.jsx'
 import { useFeatures } from './features.js'
-import ExportHours from './ExportHours.jsx'
 import TimesheetCards, { PersonHours } from './TimesheetCards.jsx'
 import ReviewList from './ReviewList.jsx'
-import { punchStatus } from './review.js'
 import Icon from './Icon.jsx'
 
-// Hours for a pay period (Friday to Thursday, two weeks) and the paycheck
-// estimate. Managers can look at anyone, fix punches, see everyone's timesheet
-// and download it for the payroll service.
+// Hours. A manager sees the punches (review, approve, fix, add). Everyone else sees their own hours for the pay period
+// and the paycheck estimate. Timesheets and exports live in the Reports tab.
 export default function HoursTab({ data, me, boss, lang, period, onPeriod }) {
   const now = useNow()
-  const f = useFeatures()
-  // Managers start on Review (punches to approve); staff only have their own hours.
-  const [view, setView] = useState('review')
-  const [exporting, setExporting] = useState(false)
   const current = payPeriodOf(now)[0] === period[0]
-  // Managers can also review (approve) everyone's punches here, like the Review list on Today.
-  const reviewing = boss && view === 'review'
-  const toReview = boss ? data.punches.filter((p) => punchStatus(p) === 'pending').length : 0
-
+  if (boss) return <div className="tm-narrow desk"><ReviewList data={data} /></div>
   return (
     <div>
       <div className="tm-toolbar">
-        {!reviewing && (
         <div className="tm-weeknav nav-center">
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, -1))} aria-label="Pay period before"><Icon name="left" /></button>
           <b>{rangeLabel(period)}</b>
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => onPeriod(moveDays(period, 1))} aria-label="Pay period after"><Icon name="right" /></button>
           {!current && <button type="button" className="btn btn-link btn-sm" onClick={() => onPeriod(payPeriodOf(new Date()))}>This pay period</button>}
         </div>
-        )}
-        {boss && (
-          <div className="tm-seg hr-seg" role="group" aria-label="Show">
-            <button type="button" aria-pressed={view === 'review'} onClick={() => setView('review')}>Review{toReview > 0 && <span className="hr-count">{toReview}</span>}</button>
-            {f.timesheets && <button type="button" aria-pressed={view === 'all'} onClick={() => setView('all')}>Timesheet</button>}
-          </div>
-        )}
-        {boss && f.timesheets && !reviewing && (
-          <button type="button" className="btn btn-brand btn-sm ex-btn" onClick={() => setExporting(true)}>Export hours…</button>
-        )}
       </div>
-      {reviewing ? (
-        <div className="tm-narrow desk"><ReviewList data={data} /></div>
-      ) : boss && f.timesheets && view === 'all' ? (
-        <Timesheet data={data} period={period} now={now} />
-      ) : (
-        <MyHours data={data} me={me} period={period} now={now} lang={lang} />
-      )}
-      {boss && f.timesheets && <p className="ex-note">Exports are available on a computer.</p>}
-      {exporting && <ExportHours data={data} now={now} onClose={() => setExporting(false)} />}
+      <MyHours data={data} me={me} period={period} now={now} lang={lang} />
     </div>
   )
 }
@@ -147,7 +118,7 @@ export function PunchEditor({ punch, data, onClose }) {
 }
 
 // Managers: everyone's hours for the pay period, like the Humanity timesheet summary.
-function Timesheet({ data, period, now }) {
+export function Timesheet({ data, period, now }) {
   const weekStart = fromKey(payPeriodConfig().anchor).getDay() // overtime weeks begin on the pay period's first day
   const f = useFeatures()
   const [openRow, setOpenRow] = useState(null) // a person's days and paycheck estimate, from their name
@@ -236,7 +207,7 @@ function Timesheet({ data, period, now }) {
         </table>
       </div>
       <div className="tm-tools mt-3">
-        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => window.print()}>Print</button>
+        <button type="button" className="btn btn-outline-secondary btn-sm desk-only" onClick={() => window.print()}>Print</button>
       </div>
       <p className="tm-muted small mt-2">Hours are exact, to the minute. Overtime is time and a half after 40 hours in each {DAY_LONG.en[weekStart]}–{DAY_LONG.en[(weekStart + 6) % 7]} week.</p>
     </div>

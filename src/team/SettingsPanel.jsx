@@ -15,27 +15,34 @@ import Avatar from './Avatar.jsx'
 import { defaultHours, hoursProblem, normalizeHours, presetsFromHours, shrinkImage } from './onboardingHelpers.js'
 import StoreHoursFields from './StoreHours.jsx'
 import PayPeriodFields from './PayPeriodFields.jsx'
+import Seg from './Seg.jsx'
+import DesktopOnly from './DesktopOnly.jsx'
+import { useIsPhone } from './useIsPhone.js'
+import SlideIn from './SlideIn.jsx'
 
 // ⚙️ Settings. "Me" is for everyone: theme, notifications, contact details,
 // the location notice and password. "Business" is for managers: the shop and
 // how the app works for the whole team.
 export default function SettingsPanel({ data, me, boss, onToggleTheme, onSignOut, start = 'me', onClose, asPage = false }) {
   const [page, setPage] = useState(boss ? start : 'me')
+  const phone = useIsPhone()
   const content = (
     <>
       {boss && (
         <div className="tm-switch">
-          <div className="tm-seg" role="group" aria-label="Settings page">
+          <Seg className="tm-seg" role="group" aria-label="Settings page">
             <button type="button" aria-pressed={page === 'me'} onClick={() => setPage('me')}>Me</button>
             <button type="button" aria-pressed={page === 'business'} onClick={() => setPage('business')}>Business</button>
-          </div>
+          </Seg>
         </div>
       )}
-      {page === 'me' ? (
-        <MySettings data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} />
-      ) : (
-        <BusinessSettings data={data} onClose={onClose} />
-      )}
+      <SlideIn id={page} order={['me', 'business']}>
+        {page === 'me' ? (
+          <MySettings data={data} me={me} boss={boss} onToggleTheme={onToggleTheme} onSignOut={onSignOut} />
+        ) : (
+          phone ? <DesktopOnly name="Business settings" lang={data.lang} /> : <BusinessSettings data={data} onClose={onClose} />
+        )}
+      </SlideIn>
     </>
   )
   // As a page it fills the content area like the other tabs; as a pop-up it is the Modal.
@@ -128,10 +135,10 @@ function Language({ data }) {
   return (
     <section className="st-section">
       <h3 className="tm-h3">Language · Idioma</h3>
-      <div className="tm-seg st-lang" role="group" aria-label="Language">
+      <Seg className="tm-seg st-lang" role="group" aria-label="Language">
         <button type="button" aria-pressed={data.lang !== 'es'} onClick={() => pick('en')}>English</button>
         <button type="button" aria-pressed={data.lang === 'es'} onClick={() => pick('es')}>Español</button>
-      </div>
+      </Seg>
       <p className="tm-muted small mt-2 mb-0">
         {data.lang === 'es' ? 'Las pestañas y las pantallas salen en español.' : 'Changes the tabs and screens to Spanish.'}
       </p>

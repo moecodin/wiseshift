@@ -3,6 +3,7 @@ import Modal from '../components/Modal.jsx'
 import { dateKey } from '../lib/dates.js'
 import { autoFocusOnDesktop } from '../lib/focus.js'
 import { clockTime, firstName, fromTimeInput, useNow } from './format.js'
+import Seg from './Seg.jsx'
 
 // The Tasks tab: a day's to-do list for the whole team (update 029). Tasks during my shift come
 // first. Anyone can take an open task with "I'll take it" (first tap wins) and give it back; the
@@ -62,10 +63,10 @@ export default function TasksTab({ data, me, boss, lang }) {
   return (
     <div className="tm-narrow tq">
       <div className="tq-top">
-        <div className="tm-seg" role="group" aria-label={w.today}>
+        <Seg className="tm-seg" role="group" aria-label={w.today}>
           <button type="button" aria-pressed={day === 'today'} onClick={() => setDay('today')}>{w.today}</button>
           <button type="button" aria-pressed={day === 'tomorrow'} onClick={() => setDay('tomorrow')}>{w.tomorrow}</button>
-        </div>
+        </Seg>
         {boss && <button type="button" className="btn btn-brand btn-sm" onClick={() => setAdding(true)}>{w.add}</button>}
       </div>
 

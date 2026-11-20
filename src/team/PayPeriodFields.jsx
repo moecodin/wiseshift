@@ -1,6 +1,7 @@
 import { configFromParts, partsOfConfig, payPeriodFor } from './paycheck.js'
 import { DAY_LONG, DAY_SHORT } from './onboardingHelpers.js'
 import { fromKey } from '../lib/dates.js'
+import Seg from './Seg.jsx'
 
 // The pay period: how long (one week or two), which day it starts, and, for two weeks, which week we are in now.
 // value is { days: 7 | 14, anchor }. A preview says it in words: "Friday to Thursday, every 2 weeks".
@@ -22,10 +23,10 @@ export default function PayPeriodFields({ value, onChange, lang = 'en' }) {
   return (
     <div className="pp-fields">
       <span className="form-label d-block" id="pay-len-l">{w.length}</span>
-      <div className="tm-seg" role="group" aria-labelledby="pay-len-l">
+      <Seg className="tm-seg" role="group" aria-labelledby="pay-len-l">
         <button type="button" aria-pressed={parts.days === 7} onClick={() => change({ days: 7 })}>{w.one}</button>
         <button type="button" aria-pressed={parts.days === 14} onClick={() => change({ days: 14 })}>{w.two}</button>
-      </div>
+      </Seg>
       <span className="form-label d-block mt-3" id="pay-day-l">{w.first}</span>
       <div className="rl-picks" role="group" aria-labelledby="pay-day-l">
         {DAY_SHORT[l].map((n, d) => <button key={n} type="button" className="rl-pick" aria-pressed={parts.weekday === d} onClick={() => change({ weekday: d })}>{n}</button>)}
@@ -33,10 +34,10 @@ export default function PayPeriodFields({ value, onChange, lang = 'en' }) {
       {parts.days === 14 && (
         <>
           <span className="form-label d-block mt-3" id="pay-wk-l">{w.which}</span>
-          <div className="tm-seg" role="group" aria-labelledby="pay-wk-l">
+          <Seg className="tm-seg" role="group" aria-labelledby="pay-wk-l">
             <button type="button" aria-pressed={!parts.secondWeek} onClick={() => change({ secondWeek: false })}>{w.firstWeek}</button>
             <button type="button" aria-pressed={parts.secondWeek} onClick={() => change({ secondWeek: true })}>{w.secondWeek}</button>
-          </div>
+          </Seg>
         </>
       )}
       <p className="pp-preview mt-3 mb-0"><b>{startName} {w.to} {endName}</b>, {w.every(parts.days)}. {w.now}: {fmt(period[0])} – {fmt(period.at(-1))}.</p>

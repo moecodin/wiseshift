@@ -12,6 +12,7 @@ import { loadDensity, saveDensity } from './viewPref.js'
 import { dayLabel, hoursLabel, rangeLabel, scheduleOnly, timeInputToIso, useNow } from './format.js'
 import { REVIEW_DAYS } from './useTeamData.js'
 import Icon from './Icon.jsx'
+import Seg from './Seg.jsx'
 
 // "Maria L.", "8a", "Tue 17": short forms so a punch fits on one line.
 const shortName = (full = '') => {
@@ -291,10 +292,10 @@ export default function ReviewList({ data }) {
           <option value="date">By date</option>
           <option value="none">One list</option>
         </select>
-        <div className="tm-seg rv-density" role="group" aria-label="Layout">
+        <Seg className="tm-seg rv-density" role="group" aria-label="Layout">
           <button type="button" aria-pressed={roomy} onClick={() => setDensity('roomy')}>Roomy</button>
           <button type="button" aria-pressed={!roomy} onClick={() => setDensity('compact')}>Compact</button>
-        </div>
+        </Seg>
         <button type="button" className="btn btn-outline-secondary btn-sm rv-add" onClick={() => setAdding({ employeeId: picked.size === 1 ? [...picked][0] : '', clockIn: timeInputToIso(today, '08:00'), clockOut: timeInputToIso(today, '14:00'), note: '', isNew: true, chooseWho: true })}>+ Add punch</button>
         {pending.length > 0 && <button type="button" className="btn btn-outline-secondary btn-sm rv-add rv-review" onClick={() => startReview(pending)} title="Go through the punches waiting for approval one at a time">Review one by one</button>}
         {pending.length > 0 && (
@@ -303,13 +304,13 @@ export default function ReviewList({ data }) {
           </button>
         )}
       </div>
-      <div className="tm-seg rc-status" role="group" aria-label="Status">
+      <Seg className="tm-seg rc-status" role="group" aria-label="Status">
         {[['pending', 'Pending'], ['progress', 'In progress'], ['approved', 'Approved'], ['all', 'All']].map(([id, label]) => (
           <button key={id} type="button" aria-pressed={status === id} onClick={() => setStatus(id)}>
             {label}{id !== 'all' && <span className="rc-n">{countOf(id)}</span>}
           </button>
         ))}
-      </div>
+      </Seg>
       {range === 'period' && <p className="tm-muted small mb-2">{rangeLabel(payPeriodOf(now))}</p>}
 
       {list.length ? (
